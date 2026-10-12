@@ -12,7 +12,7 @@ interface BlogCardProps {
  *
  * Upper visual section:
  *   LEFT  — Uploaded thumbnail (object-fit: cover, fills the panel fully).
- *   RIGHT — Blog title at the top + smaller JADMAA logo positioned below the title.
+ *   RIGHT — Blog title at top + smaller JADMAA logo at the bottom of the dark panel.
  *
  * Lower content section (unchanged from original):
  *   Red blog title link, date, author, excerpt, Read More →
@@ -42,21 +42,27 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
           />
         </div>
 
-        {/* RIGHT — Title + Logo */}
-        <div className="w-[48%] bg-[#1A1A1A] flex flex-col justify-between px-4 py-4 overflow-hidden">
-          {/* Blog Title */}
-          <p className="text-white text-[13px] sm:text-[14px] font-semibold leading-[1.45] line-clamp-5 pr-1">
+        {/* RIGHT — Title + Logo on dark panel */}
+        <div className="w-[48%] bg-[#1A1A1A] flex flex-col px-4 py-4 overflow-hidden">
+          {/* Blog Title — top of panel */}
+          <p className="text-white text-[12.5px] sm:text-[13.5px] font-semibold leading-[1.4] line-clamp-5 flex-1">
             {blog.title}
           </p>
 
-          {/* JADMAA Logo — smaller, pushed slightly down toward bottom */}
-          <div className="flex items-end justify-end mt-2 shrink-0">
+          {/* JADMAA branding — bottom of panel, slightly smaller */}
+          <div className="flex items-end justify-start mt-3 gap-2 shrink-0">
+            {/* Logo with CSS filter to make it white on dark bg */}
             <img
               src={fallbackLogo}
-              alt="JADMAA Varmakalai"
-              className="w-[54px] h-[54px] sm:w-[60px] sm:h-[60px] object-contain opacity-90 brightness-0 invert"
+              alt="JADMAA"
+              style={{ filter: 'brightness(0) invert(1)', WebkitFilter: 'brightness(0) invert(1)' }}
+              className="w-[42px] h-[42px] sm:w-[48px] sm:h-[48px] object-contain opacity-85"
               loading="lazy"
             />
+            <div className="flex flex-col leading-[1.1]">
+              <span className="text-white text-[9px] font-bold tracking-wider uppercase opacity-90">JADMAA</span>
+              <span className="text-[#B12B2B] text-[8px] font-semibold tracking-wider uppercase">Varmakalai</span>
+            </div>
           </div>
         </div>
       </Link>
