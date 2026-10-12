@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { blogApi } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
-import { Calendar, User, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 
 export const Blog: React.FC = () => {
@@ -32,81 +31,87 @@ export const Blog: React.FC = () => {
   return (
     <>
       <SEO 
-        title="Blog | JADMAA Varmakalai"
-        description="Read the latest news, training tips, and insights about traditional Varmakalai martial arts."
+        title="Varmakalai Blog | Martial Arts & Varma Treatment Insights"
+        description="Read Varmakalai (Varma Kalai) articles, martial arts training tips, and traditional Varma treatment guides from JADMAA Varmakalai."
       />
-      
-      <section className="bg-jadmaa-cream py-12 md:py-16 border-b border-jadmaa-border text-left">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-4 reveal-on-scroll">
-          <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider">
-            Academy Journal
-          </span>
-          <h1 className="font-heading font-extrabold text-3xl sm:text-5xl text-jadmaa-charcoal">
-            The Varmakalai <span className="text-jadmaa-red">Blog</span>
-          </h1>
-          <p className="text-base md:text-lg text-jadmaa-textMuted max-w-2xl leading-relaxed">
-            Latest news, techniques, student stories, and deep dives into the traditional Tamil martial science of Varmakalai.
-          </p>
-        </div>
-      </section>
 
-      <section className="py-16 bg-white border-b border-jadmaa-border text-left min-h-screen">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
+      <div className="bg-[#FAF6F0] min-h-screen text-left text-[#2B2521]">
+        {/* Header Container */}
+        <section className="pt-10 pb-6 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto">
+          <h1 className="text-[32px] sm:text-[40px] font-bold text-[#2B2521] leading-[1.2] mb-3">
+            Varmakalai Blog
+          </h1>
+          <p className="text-[15px] sm:text-[16px] text-[#5C5148] leading-[1.6] max-w-[900px]">
+            Insights on Varmakalai (Varma Kalai) martial arts training, self-defence, and traditional Varma treatment — from the JADMAA Varmakalai team.
+          </p>
+        </section>
+
+        {/* Blog Posts Section */}
+        <section className="pb-20 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto">
           {loading ? (
-            <div className="text-center py-16 text-jadmaa-textMuted">Loading articles...</div>
-          ) : error ? (
-            <div className="text-center py-16 text-jadmaa-red">Error: {error}</div>
+            <div className="text-center py-20 text-[#7A6E65]">Loading articles...</div>
+          ) : error && blogs.length === 0 ? (
+            <div className="text-center py-20 text-[#B12B2B]">Error: {error}</div>
           ) : blogs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 reveal-stagger">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blogs.map(blog => (
-                <Link to={`/blog/${blog.slug}`} key={blog.id} className="group bg-jadmaa-cream/50 rounded-2xl border border-jadmaa-border overflow-hidden hover-lift flex flex-col scroll-card-settle">
+                <article 
+                  key={blog.id} 
+                  className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md"
+                >
+                  {/* Thumbnail */}
                   {blog.thumbnailUrl && (
-                    <div className="h-48 w-full overflow-hidden">
+                    <Link to={`/blog/${blog.slug}`} className="block overflow-hidden aspect-[16/9] bg-[#FAF6F0]">
                       <img 
                         src={blog.thumbnailUrl} 
                         alt={blog.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        loading="lazy"
                       />
-                    </div>
+                    </Link>
                   )}
+
+                  {/* Post Content */}
                   <div className="p-6 flex flex-col flex-grow">
-                    <div className="flex items-center space-x-4 mb-3">
-                      <span className="flex items-center text-xs uppercase font-bold tracking-wider text-jadmaa-red">
-                        <Calendar className="w-3 h-3 mr-1.5" />
-                        {format(new Date(blog.createdAt), 'MMM dd, yyyy')}
-                      </span>
-                    </div>
-                    <h3 className="font-heading font-bold text-xl text-jadmaa-charcoal mb-2 group-hover:text-jadmaa-red transition-colors">
-                      {blog.title}
+                    <h3 className="text-[19px] sm:text-[20px] font-bold text-[#B12B2B] leading-[1.3] mb-2 hover:text-[#8F2020] transition-colors">
+                      <Link to={`/blog/${blog.slug}`}>
+                        {blog.title}
+                      </Link>
                     </h3>
-                    <p className="text-base md:text-lg text-jadmaa-textMuted line-clamp-3 mb-6">
+
+                    {/* Meta */}
+                    <div className="text-[12px] text-[#7A6E65] leading-[1.4] mb-3 font-normal">
+                      <span>{format(new Date(blog.createdAt), 'MMMM dd, yyyy')}</span>
+                      <span className="mx-1.5 text-[#E8DDD0]">|</span>
+                      <span>by {blog.author?.name || 'info@jadmaa.com'}</span>
+                    </div>
+
+                    {/* Excerpt */}
+                    <div className="text-[14px] text-[#5C5148] leading-[1.6] line-clamp-3 mb-5">
                       {blog.excerpt || 'Read the full article to learn more about this topic.'}
-                    </p>
-                    <div className="mt-auto flex items-center justify-between border-t border-jadmaa-border pt-4">
-                      <div className="flex items-center space-x-2">
-                        {blog.author?.avatarUrl ? (
-                          <img src={blog.author.avatarUrl} alt={blog.author.name} className="w-6 h-6 rounded-full" />
-                        ) : (
-                          <div className="w-6 h-6 rounded-full bg-jadmaa-charcoal/10 flex items-center justify-center">
-                            <User className="w-3 h-3 text-jadmaa-charcoal/50" />
-                          </div>
-                        )}
-                        <span className="text-xs font-semibold text-jadmaa-charcoal">{blog.author?.name}</span>
-                      </div>
-                      <ArrowRight className="w-4 h-4 text-jadmaa-red group-hover:translate-x-1 transition-transform" />
+                    </div>
+
+                    {/* Read More Link */}
+                    <div className="mt-auto pt-2">
+                      <Link 
+                        to={`/blog/${blog.slug}`}
+                        className="inline-flex items-center text-[13px] font-medium text-[#B12B2B] hover:text-[#8F2020] hover:underline transition-colors"
+                      >
+                        Read More →
+                      </Link>
                     </div>
                   </div>
-                </Link>
+                </article>
               ))}
             </div>
           ) : (
-            <div className="text-center py-20 bg-jadmaa-cream/40 rounded-2xl border border-dashed border-jadmaa-border">
-              <h3 className="font-heading font-extrabold text-xl text-jadmaa-charcoal mb-2">No articles yet</h3>
-              <p className="text-base md:text-lg text-jadmaa-textMuted">Check back soon for new insights and stories.</p>
+            <div className="text-center py-20 bg-white rounded-[14px] border border-[#E8DDD0]">
+              <h3 className="font-bold text-xl text-[#2B2521] mb-2">No articles yet</h3>
+              <p className="text-[15px] text-[#7A6E65]">Check back soon for new insights and stories.</p>
             </div>
           )}
-        </div>
-      </section>
+        </section>
+      </div>
     </>
   );
 };

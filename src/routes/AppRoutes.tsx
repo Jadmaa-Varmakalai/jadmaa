@@ -9,7 +9,6 @@ import { CourseDetails } from '../pages/CourseDetails';
 import { Contact } from '../pages/Contact';
 import { Blog } from '../pages/Blog';
 import { BlogPostDetail } from '../pages/BlogPostDetail';
-import { Careers } from '../pages/Careers';
 
 // Auth Pages
 import { Login } from '../pages/Auth/Login';
@@ -45,8 +44,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/about" element={<About />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:slug" element={<CourseDetails />} />
-        <Route path="/careers" element={<Careers />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/careers" element={<Navigate to="/" replace />} />
         <Route path="/blog" element={<Blog />} />
         <Route path="/blog/:slug" element={<BlogPostDetail />} />
 

@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { razorpayService } from './razorpay.service.js';
 import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 import { invalidateProgressCache } from '../progress/progress.controller.js';
+import { sendCoursePurchaseAdminNotificationEmail } from '../../services/email/email.service.js';
 
 /**
  * 1. CREATE ORDER (Razorpay is the PRIMARY & ONLY customer-facing gateway)
@@ -307,6 +308,20 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     invalidateUserCache(payment.userId);
     invalidateProgressCache(payment.userId);
 
+    // Notify administrators asynchronously about the new course purchase
+    sendCoursePurchaseAdminNotificationEmail({
+      userName: user.name || 'Student',
+      userEmail: user.email || '',
+      courseTitle: payment.course?.title || 'Course',
+      courseId: payment.courseId,
+      amount: payment.amount,
+      currency: 'INR',
+      paymentId: razorpay_payment_id,
+      orderId: razorpay_order_id,
+    }).catch((emailErr) => {
+      console.error('[PaymentController] Error sending admin course purchase email:', emailErr);
+    });
+
     return res.status(200).json({
       success: true,
       message: 'Payment verified and course unlocked successfully.',
@@ -356,20 +371,38 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
       const paymentId = paymentEntity?.id;
 
       if (orderId) {
-        let activatedUserId: string | null = null;
-        await prisma.$transaction(async (tx) => {
+        const { activatedUserId, purchaseInfo } = await prisma.$transaction(async (tx) => {
           const payment = await tx.payment.findUnique({
             where: { merchantOrderId: orderId },
+            include: { user: true, course: true },
           });
 
           if (!payment) {
             console.warn(`Webhook order not found in DB: ${orderId}`);
-            return;
+            return { activatedUserId: null as string | null, purchaseInfo: null };
           }
 
-          activatedUserId = payment.userId;
+          let info: {
+            userName: string;
+            userEmail: string;
+            courseTitle: string;
+            courseId: string;
+            amount: number;
+            paymentId: string;
+            orderId: string;
+          } | null = null;
 
           if (payment.status !== 'SUCCESS') {
+            info = {
+              userName: payment.user?.name || 'Student',
+              userEmail: payment.user?.email || '',
+              courseTitle: payment.course?.title || 'Course',
+              courseId: payment.courseId,
+              amount: payment.amount,
+              paymentId: paymentId || payment.gatewayTransactionId || '',
+              orderId,
+            };
+
             await tx.payment.update({
               where: { id: payment.id },
               data: {
@@ -401,11 +434,28 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
               },
             });
           }
+
+          return { activatedUserId: payment.userId, purchaseInfo: info };
         });
 
         if (activatedUserId) {
           invalidateUserCache(activatedUserId);
           invalidateProgressCache(activatedUserId);
+        }
+
+        if (purchaseInfo) {
+          sendCoursePurchaseAdminNotificationEmail({
+            userName: purchaseInfo.userName,
+            userEmail: purchaseInfo.userEmail,
+            courseTitle: purchaseInfo.courseTitle,
+            courseId: purchaseInfo.courseId,
+            amount: purchaseInfo.amount,
+            currency: 'INR',
+            paymentId: purchaseInfo.paymentId,
+            orderId: purchaseInfo.orderId,
+          }).catch((err) => {
+            console.error('[Webhook] Failed to send admin purchase notification email:', err);
+          });
         }
       }
     } else if (eventType === 'payment.failed') {

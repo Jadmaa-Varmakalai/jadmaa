@@ -10,5 +10,4 @@ export const mainNavItems: NavItem[] = [
   { id: "nav-courses", label: "Courses", href: "/courses" },
   { id: "nav-contact", label: "Contact", href: "/contact" },
   { id: "nav-blog", label: "Blog", href: "/blog" },
-  { id: "nav-careers", label: "Careers", href: "/careers" },
 ];

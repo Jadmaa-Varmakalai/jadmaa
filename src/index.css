@@ -573,6 +573,61 @@ a[role="button"]:active {
   transform: none;
 }
 
+/* ==========================================
+   JADMAA BLOG ARTICLE CONTENT STYLING
+   ========================================== */
+.jadmaa-article-content h2 {
+  font-family: inherit;
+  font-size: 25px;
+  font-weight: 700;
+  line-height: 1.3em;
+  color: #2B2521;
+  margin-top: 1.8em;
+  margin-bottom: 0.6em;
+}
 
+.jadmaa-article-content h3 {
+  font-family: inherit;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3em;
+  color: #2B2521;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
 
+.jadmaa-article-content p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #334155;
+  margin-bottom: 1.25em;
+}
 
+.jadmaa-article-content ul,
+.jadmaa-article-content ol {
+  margin-top: 0.75em;
+  margin-bottom: 1.5em;
+  padding-left: 1.5em;
+  list-style-type: disc;
+}
+
+.jadmaa-article-content ol {
+  list-style-type: decimal;
+}
+
+.jadmaa-article-content li {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #334155;
+  margin-bottom: 0.5em;
+}
+
+.jadmaa-article-content a {
+  color: #B12B2B;
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+.jadmaa-article-content a:hover {
+  color: #8F2020;
+}

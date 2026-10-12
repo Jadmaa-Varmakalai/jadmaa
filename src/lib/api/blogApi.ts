@@ -17,8 +17,12 @@ export interface BlogPost {
   updatedAt: string;
 }
 
+import defaultBlogsData from '../../data/jadmaa_blogs.json';
+
 let memoryBlogsCache: BlogPost[] | null = null;
 const blogSlugCache = new Map<string, BlogPost>();
+
+const defaultBlogs: BlogPost[] = defaultBlogsData as unknown as BlogPost[];
 
 export const blogApi = {
   getCachedBlogs: (): BlogPost[] => {
@@ -35,34 +39,39 @@ export const blogApi = {
         }
       }
     } catch (_) {}
-    return [];
+    return defaultBlogs;
   },
 
   getBlogs: async (all?: boolean): Promise<BlogPost[]> => {
-    if (!all) {
-      const cached = blogApi.getCachedBlogs();
-      if (cached.length > 0) {
-        // Background revalidation
-        fetchApi('/blogs').then(res => {
-          if (res?.data && Array.isArray(res.data)) {
-            memoryBlogsCache = res.data;
-            try {
-              sessionStorage.setItem('jadmaa_blogs_cache', JSON.stringify(res.data));
-            } catch (_) {}
-          }
-        }).catch(() => {});
-        return cached;
+    try {
+      if (!all) {
+        const cached = blogApi.getCachedBlogs();
+        if (cached.length > 0) {
+          // Background revalidation
+          fetchApi('/blogs').then(res => {
+            if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+              memoryBlogsCache = res.data;
+              try {
+                sessionStorage.setItem('jadmaa_blogs_cache', JSON.stringify(res.data));
+              } catch (_) {}
+            }
+          }).catch(() => {});
+          return cached;
+        }
       }
-    }
 
-    const res = await fetchApi(all ? '/blogs?all=true' : '/blogs');
-    if (!all && res?.data) {
-      memoryBlogsCache = res.data;
-      try {
-        sessionStorage.setItem('jadmaa_blogs_cache', JSON.stringify(res.data));
-      } catch (_) {}
-    }
-    return res.data || [];
+      const res = await fetchApi(all ? '/blogs?all=true' : '/blogs');
+      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
+        if (!all) {
+          memoryBlogsCache = res.data;
+          try {
+            sessionStorage.setItem('jadmaa_blogs_cache', JSON.stringify(res.data));
+          } catch (_) {}
+        }
+        return res.data;
+      }
+    } catch (_) {}
+    return defaultBlogs;
   },
 
   getBlogBySlug: async (slug: string): Promise<BlogPost> => {
@@ -80,11 +89,21 @@ export const blogApi = {
       return existing;
     }
 
-    const res = await fetchApi(`/blogs/${slug}`);
-    if (res?.data) {
-      blogSlugCache.set(slug, res.data);
+    try {
+      const res = await fetchApi(`/blogs/${slug}`);
+      if (res?.data) {
+        blogSlugCache.set(slug, res.data);
+        return res.data;
+      }
+    } catch (_) {}
+
+    const defaultMatch = defaultBlogs.find(b => b.slug === slug || b.id === slug);
+    if (defaultMatch) {
+      blogSlugCache.set(slug, defaultMatch);
+      return defaultMatch;
     }
-    return res.data;
+
+    throw new Error('Article not found');
   },
   createBlog: async (data: Partial<BlogPost>): Promise<BlogPost> => {
     const res = await fetchApi('/blogs', {

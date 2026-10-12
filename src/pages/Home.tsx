@@ -427,48 +427,6 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 6. GROWTH & LEADERSHIP / BUILD YOUR FUTURE SECTION */}
-      <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            
-            <div className="lg:col-span-7 space-y-3" data-aos="fade-right">
-              <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
-                <EditableText settingKey="home.growth.eyebrow" defaultText="Growth & Leadership" />
-              </span>
-              <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
-                <EditableText settingKey="home.growth.title" defaultText="Build Your Future Through Traditional Martial Arts (Varmakalai)" />
-              </h2>
-              <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
-                <EditableText 
-                  settingKey="home.growth.description" 
-                  defaultText="Learning doesn't end with a certificate. Dedicated students can grow from student to certified instructor and branch trainer — building a meaningful career while preserving an ancient tradition." 
-                  multiline={true} 
-                />
-              </p>
-              <div className="pt-2">
-                <Link 
-                  to="/careers" 
-                  className="inline-flex items-center space-x-1.5 font-semibold text-[15px] text-[#B12B2B] hover:text-[#8F2020] transition-colors group font-body"
-                >
-                  <span><EditableText settingKey="home.growth.cta" defaultText="Learn More →" /></span>
-                </Link>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5 flex justify-center" data-aos="fade-left" data-aos-delay="100">
-              <div className="w-full max-w-[480px] overflow-hidden rounded-[14px]">
-                <img 
-                  src="https://jadmaa.com/wp-content/uploads/2026/08/file_000000008884820b9a3c789a8c0be531-1024x683.png" 
-                  alt="Varmakalai martial arts training session at JADMAA" 
-                  className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
-                />
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       {/* 7. FEATURED COURSES SECTION */}
       <section className="py-16 bg-white border-b border-[#E8DDD0] text-left">
@@ -495,7 +453,7 @@ export const Home: React.FC = () => {
           <div className="mobile-swipe-scroll">
             {loading ? (
               <div className="col-span-3 text-center py-8 text-jadmaa-textMuted">Loading courses...</div>
-            ) : featuredCourses.map((course, idx) => (
+            ) : featuredCourses.map((course) => (
               <div key={course.id} className="jd-pop reveal-on-scroll">
                 <CourseCard course={course} hidePrice />
               </div>
