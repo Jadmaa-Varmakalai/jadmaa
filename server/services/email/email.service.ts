@@ -420,4 +420,103 @@ export const sendEnquiryAdminNotificationEmail = async (
   }
 };
 
+export interface EnquiryUserAcknowledgementParams {
+  name: string;
+  email: string;
+  phone?: string;
+  typeLabel: string;
+  courseTitle?: string;
+  location?: string;
+}
+
+export const sendEnquiryUserAcknowledgementEmail = async (
+  params: EnquiryUserAcknowledgementParams
+): Promise<{ success: boolean; reason?: string }> => {
+  try {
+    const { name, email, phone, typeLabel, courseTitle, location } = params;
+    if (!email || !email.includes('@')) {
+      return { success: false, reason: 'No valid recipient email' };
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'https://jadmaa.com';
+    const subject = `✨ Thank you for contacting JADMAA Varmakalai: ${typeLabel}`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden; color: #2B2521;">
+        <div style="background-color: #B12B2B; padding: 24px; text-align: center; color: white;">
+          <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px;">JADMAA VARMAKALAI</h2>
+          <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.95;">Academy of Ancient Tamil Martial Science</p>
+        </div>
+
+        <div style="padding: 24px;">
+          <p style="font-size: 16px; margin-top: 0; line-height: 1.5;">
+            Dear <strong>${name}</strong>,
+          </p>
+          <p style="font-size: 14px; line-height: 1.6; color: #4A4A4A;">
+            Thank you for reaching out to JADMAA Varmakalai. We have successfully received your enquiry regarding <strong>${typeLabel}</strong>.
+          </p>
+
+          <div style="background-color: #FBF8F5; border: 1px solid #EFE8E0; border-radius: 6px; padding: 16px; margin: 20px 0;">
+            <p style="margin: 0 0 8px 0; font-size: 13px; font-weight: bold; color: #B12B2B;">YOUR ENQUIRY SUMMARY:</p>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <tr>
+                <td style="padding: 4px 0; color: #666; width: 130px;"><strong>Interest:</strong></td>
+                <td style="padding: 4px 0; color: #111; font-weight: 600;">${typeLabel}</td>
+              </tr>
+              ${courseTitle ? `
+              <tr>
+                <td style="padding: 4px 0; color: #666;"><strong>Course:</strong></td>
+                <td style="padding: 4px 0; color: #111;">${courseTitle}</td>
+              </tr>
+              ` : ''}
+              ${location ? `
+              <tr>
+                <td style="padding: 4px 0; color: #666;"><strong>Branch / City:</strong></td>
+                <td style="padding: 4px 0; color: #111;">📍 ${location}</td>
+              </tr>
+              ` : ''}
+              ${phone ? `
+              <tr>
+                <td style="padding: 4px 0; color: #666;"><strong>Contact Phone:</strong></td>
+                <td style="padding: 4px 0; color: #111;">${phone}</td>
+              </tr>
+              ` : ''}
+            </table>
+          </div>
+
+          <p style="font-size: 14px; line-height: 1.6; color: #4A4A4A;">
+            Our admissions team and senior instructors will review your details and reach out to you directly via phone or WhatsApp shortly.
+          </p>
+
+          <p style="font-size: 14px; line-height: 1.6; color: #4A4A4A;">
+            If you need urgent assistance or wish to book a direct consultation, you may also reach our academy desk directly at:
+            <br />
+            📞 <strong><a href="tel:+919345220020" style="color: #B12B2B; text-decoration: none;">+91 93452 20020</a></strong>
+            &nbsp;|&nbsp;
+            💬 <strong><a href="https://wa.me/919345220020" style="color: #25D366; text-decoration: none;">WhatsApp Us</a></strong>
+          </p>
+
+          <div style="text-align: center; margin: 28px 0 10px 0;">
+            <a href="${frontendUrl}/courses" style="display: inline-block; padding: 12px 26px; background-color: #2B2521; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+              Explore All Varmakalai Courses
+            </a>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 24px 0;" />
+          <p style="color: #888; font-size: 12px; text-align: center; margin: 0;">
+            JADMAA Varmakalai Academy & Varma Clinic — Thanjavur • Kumbakonam • Ariyalur<br />
+            <a href="${frontendUrl}" style="color: #B12B2B; text-decoration: none;">www.jadmaa.com</a>
+          </p>
+        </div>
+      </div>
+    `;
+
+    console.log(`[EmailService] Sending enquiry confirmation to customer: ${email}`);
+    await BrevoService.sendTransactionalEmail(email, subject, htmlContent);
+    return { success: true };
+  } catch (error: any) {
+    console.error('[EmailService] Error sending enquiry acknowledgement to customer:', error);
+    return { success: false, reason: error.message };
+  }
+};
+
 

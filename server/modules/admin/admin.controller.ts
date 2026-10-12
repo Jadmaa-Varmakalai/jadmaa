@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { logAdminAction } from '../../utils/audit.js';
 import bcrypt from 'bcryptjs';
-import { sendNewCourseSuggestionEmail, sendEnquiryAdminNotificationEmail } from '../../services/email/email.service.js';
+import { sendNewCourseSuggestionEmail, sendEnquiryAdminNotificationEmail, sendEnquiryUserAcknowledgementEmail } from '../../services/email/email.service.js';
+import { BrevoService } from '../../services/email/brevo.service.js';
 
 const getPagination = (req: Request) => {
   const page = parseInt(req.query.page as string) || 1;
@@ -425,7 +426,13 @@ export const getCourses = async (req: Request, res: Response) => {
     const [items, total] = await Promise.all([
       prisma.course.findMany({
         where, skip, take: limit,
-        include: { instructor: { select: { displayName: true } } },
+        include: { 
+          instructor: { select: { displayName: true } },
+          modules: {
+            include: { lessons: { orderBy: { sortOrder: 'asc' } } },
+            orderBy: { sortOrder: 'asc' }
+          }
+        },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.course.count({ where })
@@ -470,8 +477,8 @@ export const createCourse = async (req: Request, res: Response) => {
 
     // Handle Youtube link shortcut
     if (youtubeUrl) {
-      let videoId = youtubeUrl;
-      const match = youtubeUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+      let videoId = youtubeUrl.trim();
+      const match = videoId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
       if (match) videoId = match[1];
 
       await prisma.courseModule.create({
@@ -504,10 +511,66 @@ export const createCourse = async (req: Request, res: Response) => {
 
 export const updateCourse = async (req: Request, res: Response) => {
   try {
+    const { youtubeUrl, ...updateData } = req.body;
+    const courseId = req.params.id as string;
+
     const course = await prisma.course.update({
-      where: { id: (req.params.id as string) },
-      data: req.body
+      where: { id: courseId },
+      data: updateData
     });
+
+    if (youtubeUrl !== undefined && youtubeUrl !== null) {
+      const trimmed = String(youtubeUrl).trim();
+      if (trimmed) {
+        let videoId = trimmed;
+        const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+        if (match) videoId = match[1];
+
+        const firstModule = await prisma.courseModule.findFirst({
+          where: { courseId },
+          include: { lessons: { orderBy: { sortOrder: 'asc' } } },
+          orderBy: { sortOrder: 'asc' }
+        });
+
+        if (firstModule) {
+          if (firstModule.lessons.length > 0) {
+            await prisma.lesson.update({
+              where: { id: firstModule.lessons[0].id },
+              data: { youtubeVideoId: videoId }
+            });
+          } else {
+            await prisma.lesson.create({
+              data: {
+                moduleId: firstModule.id,
+                title: course.title,
+                youtubeVideoId: videoId,
+                sortOrder: 1,
+                isRequired: true,
+                isPublished: true
+              }
+            });
+          }
+        } else {
+          await prisma.courseModule.create({
+            data: {
+              courseId,
+              title: 'Main Content',
+              sortOrder: 1,
+              lessons: {
+                create: {
+                  title: course.title,
+                  youtubeVideoId: videoId,
+                  sortOrder: 1,
+                  isRequired: true,
+                  isPublished: true
+                }
+              }
+            }
+          });
+        }
+      }
+    }
+
     await logAdminAction((req as any).user.id, 'UPDATE_COURSE', 'Course', course.id, null, req);
     res.json({ success: true, data: course });
   } catch (err: any) {
@@ -820,6 +883,29 @@ export const submitPublicEnquiry = async (req: Request, res: Response) => {
     }).catch((err) => {
       console.error('[EnquiryController] Error sending admin notification email:', err);
     });
+
+    // If user provided an email, sync to Brevo Marketing List & send customer confirmation
+    if (email && email.trim().includes('@')) {
+      const cleanEmail = email.trim();
+      const cleanName = name.trim();
+
+      // 1. Sync contact to Brevo Contacts / Marketing list
+      BrevoService.addContactToMarketingList(cleanEmail, cleanName).catch((err) => {
+        console.warn('[EnquiryController] Warning syncing lead to Brevo list:', err);
+      });
+
+      // 2. Send instant acknowledgement email to the user
+      sendEnquiryUserAcknowledgementEmail({
+        name: cleanName,
+        email: cleanEmail,
+        phone: mobile.trim(),
+        typeLabel,
+        courseTitle: courseTitle ? courseTitle.trim() : undefined,
+        location: location ? location.trim() : undefined,
+      }).catch((err) => {
+        console.warn('[EnquiryController] Warning sending customer confirmation email:', err);
+      });
+    }
 
     res.status(201).json({
       success: true,

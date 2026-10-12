@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Video, PlayCircle, ExternalLink } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
 import { ImageUpload } from '../../components/common/ImageUpload';
 
@@ -31,6 +31,12 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
     if (isOpen) {
       fetchInstructors();
       if (course) {
+        let existingYoutubeUrl = '';
+        const videoId = course.modules?.[0]?.lessons?.[0]?.youtubeVideoId;
+        if (videoId) {
+          existingYoutubeUrl = videoId.startsWith('http') ? videoId : `https://www.youtube.com/watch?v=${videoId}`;
+        }
+
         setFormData({
           title: course.title || '',
           subtitle: course.subtitle || '',
@@ -40,9 +46,22 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
           price: course.price || 0,
           status: course.status || 'DRAFT',
           thumbnailUrl: course.thumbnailUrl || '',
-          youtubeUrl: '', // Readonly or just for creation usually, but we keep it empty for update
+          youtubeUrl: existingYoutubeUrl,
           instructorId: course.instructorId || ''
         });
+
+        // If modules weren't in course prop, fetch complete course details
+        if (!videoId && course.id) {
+          adminApi.getCourseById(course.id).then(res => {
+            if (res.data) {
+              const fullVideoId = res.data.modules?.[0]?.lessons?.[0]?.youtubeVideoId;
+              if (fullVideoId) {
+                const fullUrl = fullVideoId.startsWith('http') ? fullVideoId : `https://www.youtube.com/watch?v=${fullVideoId}`;
+                setFormData(prev => ({ ...prev, youtubeUrl: fullUrl }));
+              }
+            }
+          }).catch(console.error);
+        }
       } else {
         setFormData({
           title: '',
