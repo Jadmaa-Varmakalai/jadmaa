@@ -4,7 +4,7 @@ import { SEO } from '../components/common/SEO';
 import { CourseCard } from '../components/courses/CourseCard';
 import { mockTestimonials } from '../data/testimonials';
 import { mockBranches } from '../data/branches';
-import { CheckCircle2, ArrowRight, Star, MapPin, HeartPulse, Shield, Award, Users } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Star, MapPin, HeartPulse, Shield, Award, Users, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
 import { courseApi } from '../lib/api/courseApi';
 import type { Course } from '../types';
 import { reviewsApi, type Testimonial } from '../lib/api/reviewsApi';
@@ -14,17 +14,31 @@ import { EditableText } from '../components/common/EditableText';
 export const Home: React.FC = () => {
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>(() => {
     const cached = courseApi.getCachedCourses();
-    return cached.slice(0, 3);
+    return cached.length > 0 ? cached : [];
   });
   const [loading, setLoading] = useState(() => courseApi.getCachedCourses().length === 0);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(() => mockTestimonials as any);
+
+  // Featured Courses Carousel State
+  const coursesTrackRef = React.useRef<HTMLDivElement>(null);
+  const [coursesDirection, setCoursesDirection] = useState<'left' | 'right'>('right');
+  const [coursesPaused, setCoursesPaused] = useState<boolean>(false);
+  const [isCoursesDragging, setIsCoursesDragging] = useState<boolean>(false);
+  const coursesDragStart = React.useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
+
+  // Testimonials Carousel State
+  const testimonialsTrackRef = React.useRef<HTMLDivElement>(null);
+  const [testimonialsDirection, setTestimonialsDirection] = useState<'left' | 'right'>('right');
+  const [testimonialsPaused, setTestimonialsPaused] = useState<boolean>(false);
+  const [isTestimonialsDragging, setIsTestimonialsDragging] = useState<boolean>(false);
+  const testimonialsDragStart = React.useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
 
   useEffect(() => {
     const fetchCourses = async () => {
       try {
         const data = await courseApi.getCourses();
         if (data && data.length > 0) {
-          setFeaturedCourses(data.slice(0, 3));
+          setFeaturedCourses(data);
         }
       } catch (err) {
         console.error('Failed to fetch courses', err);
@@ -45,6 +59,81 @@ export const Home: React.FC = () => {
     };
     fetchTestimonials();
   }, []);
+
+  // Continuous smooth auto-scroll animation loop for Featured Courses
+  useEffect(() => {
+    const el = coursesTrackRef.current;
+    if (!el) return;
+
+    let animId: number;
+    const speed = 0.8; // pixels per frame
+
+    const step = () => {
+      if (!coursesPaused && !isCoursesDragging && el) {
+        if (coursesDirection === 'right') {
+          el.scrollLeft += speed;
+          // When scrolled halfway through the doubled content, loop seamlessly
+          if (el.scrollLeft >= el.scrollWidth / 2) {
+            el.scrollLeft -= el.scrollWidth / 2;
+          }
+        } else {
+          el.scrollLeft -= speed;
+          if (el.scrollLeft <= 0) {
+            el.scrollLeft += el.scrollWidth / 2;
+          }
+        }
+      }
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [coursesDirection, coursesPaused, isCoursesDragging, featuredCourses]);
+
+  // Continuous smooth auto-scroll animation loop for Testimonials
+  useEffect(() => {
+    const el = testimonialsTrackRef.current;
+    if (!el) return;
+
+    let animId: number;
+    const speed = 0.75; // pixels per frame
+
+    const step = () => {
+      if (!testimonialsPaused && !isTestimonialsDragging && el) {
+        if (testimonialsDirection === 'right') {
+          el.scrollLeft += speed;
+          if (el.scrollLeft >= el.scrollWidth / 2) {
+            el.scrollLeft -= el.scrollWidth / 2;
+          }
+        } else {
+          el.scrollLeft -= speed;
+          if (el.scrollLeft <= 0) {
+            el.scrollLeft += el.scrollWidth / 2;
+          }
+        }
+      }
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [testimonialsDirection, testimonialsPaused, isTestimonialsDragging, testimonials]);
+
+  // Manual roll helpers for Courses
+  const scrollCoursesBy = (delta: number, newDirection?: 'left' | 'right') => {
+    if (newDirection) setCoursesDirection(newDirection);
+    if (coursesTrackRef.current) {
+      coursesTrackRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    }
+  };
+
+  // Manual roll helpers for Testimonials
+  const scrollTestimonialsBy = (delta: number, newDirection?: 'left' | 'right') => {
+    if (newDirection) setTestimonialsDirection(newDirection);
+    if (testimonialsTrackRef.current) {
+      testimonialsTrackRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    }
+  };
 
   const wellnessServices = [
     {
@@ -377,20 +466,104 @@ export const Home: React.FC = () => {
                 <EditableText settingKey="home.courses.subtitle" defaultText="Online Recorded Courses • Offline Branch Training — explore our self-paced & guided programs." multiline={true} />
               </p>
             </div>
-            <Link to="/courses" className="inline-flex items-center space-x-1 font-semibold text-[15px] text-[#B12B2B] hover:text-[#8F2020] group font-body">
-              <span>View all courses</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
+            
+            {/* Interactive Direction & Manual Roll Controls */}
+            <div className="flex items-center gap-3">
+              <Link to="/courses" className="inline-flex items-center space-x-1 font-semibold text-[15px] text-[#B12B2B] hover:text-[#8F2020] group font-body mr-2">
+                <span>View all</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+
+              {/* Prev (Scroll Left / Set Left Direction) */}
+              <button
+                type="button"
+                onClick={() => scrollCoursesBy(-360, 'left')}
+                title="Scroll Left (Roll Left)"
+                aria-label="Scroll Courses Left"
+                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
+                  coursesDirection === 'left' && !coursesPaused
+                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
+                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+
+              {/* Pause / Play Toggle */}
+              <button
+                type="button"
+                onClick={() => setCoursesPaused(!coursesPaused)}
+                title={coursesPaused ? "Resume Auto Scroll" : "Pause Auto Scroll"}
+                aria-label={coursesPaused ? "Play Auto Scroll" : "Pause Auto Scroll"}
+                className="p-2 sm:p-2.5 rounded-full bg-white text-[#2B2521] border border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B] transition-all duration-200"
+              >
+                {coursesPaused ? <Play className="w-4 h-4 sm:w-5 sm:h-5" /> : <Pause className="w-4 h-4 sm:w-5 sm:h-5" />}
+              </button>
+
+              {/* Next (Scroll Right / Set Right Direction) */}
+              <button
+                type="button"
+                onClick={() => scrollCoursesBy(360, 'right')}
+                title="Scroll Right (Roll Right)"
+                aria-label="Scroll Courses Right"
+                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
+                  coursesDirection === 'right' && !coursesPaused
+                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
+                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
+                }`}
+              >
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
 
-          <div className="mobile-swipe-scroll">
-            {loading ? (
-              <div className="col-span-3 text-center py-8 text-jadmaa-textMuted">Loading courses...</div>
-            ) : featuredCourses.map((course) => (
-              <div key={course.id} className="jd-pop reveal-on-scroll">
-                <CourseCard course={course} hidePrice />
-              </div>
-            ))}
+          {/* Carousel Track Container */}
+          <div className="relative group">
+            {/* Fade effect at the edges */}
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#FAF6F0] to-transparent z-10"></div>
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#FAF6F0] to-transparent z-10"></div>
+
+            <div
+              ref={coursesTrackRef}
+              className="flex gap-6 overflow-x-auto no-scrollbar py-2 cursor-grab active:cursor-grabbing select-none"
+              onMouseEnter={() => setCoursesPaused(true)}
+              onMouseLeave={() => {
+                if (!isCoursesDragging) setCoursesPaused(false);
+              }}
+              onMouseDown={(e) => {
+                setIsCoursesDragging(true);
+                coursesDragStart.current = {
+                  startX: e.pageX - (coursesTrackRef.current?.offsetLeft || 0),
+                  scrollLeft: coursesTrackRef.current?.scrollLeft || 0,
+                };
+              }}
+              onMouseMove={(e) => {
+                if (!isCoursesDragging || !coursesTrackRef.current) return;
+                e.preventDefault();
+                const x = e.pageX - (coursesTrackRef.current.offsetLeft || 0);
+                const walk = (x - coursesDragStart.current.startX) * 1.5;
+                coursesTrackRef.current.scrollLeft = coursesDragStart.current.scrollLeft - walk;
+              }}
+              onMouseUp={() => {
+                setIsCoursesDragging(false);
+                setCoursesPaused(false);
+              }}
+              onTouchStart={() => setCoursesPaused(true)}
+              onTouchEnd={() => setCoursesPaused(false)}
+            >
+              {loading ? (
+                <div className="w-full text-center py-8 text-jadmaa-textMuted">Loading courses...</div>
+              ) : (
+                [...featuredCourses, ...featuredCourses].map((course, idx) => (
+                  <div
+                    key={`${course.id}-${idx}`}
+                    className="w-[85vw] sm:w-[360px] lg:w-[380px] shrink-0"
+                  >
+                    <CourseCard course={course} hidePrice />
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -406,18 +579,18 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
             
             {/* Left Image */}
-            <div className="lg:col-span-5 flex justify-center" data-aos="fade-right">
-              <div className="w-full max-w-[480px] overflow-hidden rounded-[14px]">
+            <div className="lg:col-span-4 flex justify-center" data-aos="fade-right">
+              <div className="w-full max-w-[350px] overflow-hidden rounded-[14px] shadow-sm">
                 <img 
                   src="https://jadmaa.com/wp-content/uploads/2026/07/wellness-682x1024.jpg" 
                   alt="Traditional Varma therapy session at JADMAA Varmakalai" 
-                  className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
+                  className="w-full h-[380px] sm:h-[420px] object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
                 />
               </div>
             </div>
 
             {/* Right Content */}
-            <div className="lg:col-span-7 space-y-5 flex flex-col" data-aos="fade-left" data-aos-delay="100">
+            <div className="lg:col-span-8 space-y-5 flex flex-col" data-aos="fade-left" data-aos-delay="100">
               <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
                 <EditableText 
                   settingKey="home.wellness.description" 
@@ -445,6 +618,17 @@ export const Home: React.FC = () => {
                     </ul>
                   </div>
                 ))}
+              </div>
+
+              {/* Enquire for Varma Treatment Button */}
+              <div className="pt-2">
+                <Link
+                  to="/contact?type=treatment"
+                  className="inline-flex items-center space-x-2 px-6 py-3 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-sm rounded-lg shadow-sm transition-all duration-200 group"
+                >
+                  <span>Enquire for Varma Treatment</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
               </div>
 
               <p className="font-body text-[14px] text-[#5C5148] italic border-t border-[#E8DDD0] pt-4 leading-[1.6]">
@@ -497,13 +681,59 @@ export const Home: React.FC = () => {
       {/* 9. TESTIMONIALS SECTION */}
       <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
-          <div className="text-center max-w-2xl mx-auto space-y-2" data-aos="fade-up">
-            <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
-              <EditableText settingKey="home.testimonials.eyebrow" defaultText="STUDENT REVIEWS" />
-            </span>
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.2]">
-              <EditableText settingKey="home.testimonials.title" defaultText="What Our Students Say" />
-            </h2>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
+            <div className="text-left">
+              <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
+                <EditableText settingKey="home.testimonials.eyebrow" defaultText="STUDENT REVIEWS" />
+              </span>
+              <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.2]">
+                <EditableText settingKey="home.testimonials.title" defaultText="What Our Students Say" />
+              </h2>
+            </div>
+
+            {/* Testimonials Controls: Direction & Manual Roll */}
+            <div className="flex items-center gap-3">
+              {/* Scroll Left */}
+              <button
+                type="button"
+                onClick={() => scrollTestimonialsBy(-340, 'left')}
+                title="Scroll Left (Roll Left)"
+                aria-label="Scroll Reviews Left"
+                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
+                  testimonialsDirection === 'left' && !testimonialsPaused
+                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
+                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+
+              {/* Pause / Play */}
+              <button
+                type="button"
+                onClick={() => setTestimonialsPaused(!testimonialsPaused)}
+                title={testimonialsPaused ? "Resume Auto Scroll" : "Pause Auto Scroll"}
+                aria-label={testimonialsPaused ? "Play Auto Scroll" : "Pause Auto Scroll"}
+                className="p-2 sm:p-2.5 rounded-full bg-white text-[#2B2521] border border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B] transition-all duration-200"
+              >
+                {testimonialsPaused ? <Play className="w-4 h-4 sm:w-5 sm:h-5" /> : <Pause className="w-4 h-4 sm:w-5 sm:h-5" />}
+              </button>
+
+              {/* Scroll Right */}
+              <button
+                type="button"
+                onClick={() => scrollTestimonialsBy(340, 'right')}
+                title="Scroll Right (Roll Right)"
+                aria-label="Scroll Reviews Right"
+                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
+                  testimonialsDirection === 'right' && !testimonialsPaused
+                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
+                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
+                }`}
+              >
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
           </div>
 
           <div className="relative overflow-hidden group">
@@ -511,8 +741,40 @@ export const Home: React.FC = () => {
             <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#FAF6F0] to-transparent z-10"></div>
             <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#FAF6F0] to-transparent z-10"></div>
             
-            <div className="flex animate-marquee min-w-max gap-6 pb-4 hover:[animation-play-state:paused]">
-              {[...(testimonials.length > 0 ? testimonials : mockTestimonials as any), ...(testimonials.length > 0 ? testimonials : mockTestimonials as any)].map((t: any, idx: number) => (
+            <div
+              ref={testimonialsTrackRef}
+              className="flex gap-6 overflow-x-auto no-scrollbar py-2 cursor-grab active:cursor-grabbing select-none"
+              onMouseEnter={() => setTestimonialsPaused(true)}
+              onMouseLeave={() => {
+                if (!isTestimonialsDragging) setTestimonialsPaused(false);
+              }}
+              onMouseDown={(e) => {
+                setIsTestimonialsDragging(true);
+                testimonialsDragStart.current = {
+                  startX: e.pageX - (testimonialsTrackRef.current?.offsetLeft || 0),
+                  scrollLeft: testimonialsTrackRef.current?.scrollLeft || 0,
+                };
+              }}
+              onMouseMove={(e) => {
+                if (!isTestimonialsDragging || !testimonialsTrackRef.current) return;
+                e.preventDefault();
+                const x = e.pageX - (testimonialsTrackRef.current.offsetLeft || 0);
+                const walk = (x - testimonialsDragStart.current.startX) * 1.5;
+                testimonialsTrackRef.current.scrollLeft = testimonialsDragStart.current.scrollLeft - walk;
+              }}
+              onMouseUp={() => {
+                setIsTestimonialsDragging(false);
+                setTestimonialsPaused(false);
+              }}
+              onTouchStart={() => setTestimonialsPaused(true)}
+              onTouchEnd={() => setTestimonialsPaused(false)}
+            >
+              {[
+                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any)),
+                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any)),
+                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any)),
+                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any))
+              ].map((t: any, idx: number) => (
                 <div key={`${t.id}-${idx}`} className="w-[85vw] sm:w-[350px] shrink-0 bg-white rounded-lg border border-[#E8DDD0] p-5 space-y-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
                   <div className="space-y-2">
                     <div className="flex text-amber-500">

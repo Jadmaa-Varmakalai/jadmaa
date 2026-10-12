@@ -466,8 +466,16 @@ a[role="button"]:active {
 }
 
 /* ==========================================
-   JADMAA.COM MARQUEE (TESTIMONIALS / LOGOS)
+   CAROUSEL & AUTO-SCROLL UTILITIES
    ========================================== */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @keyframes marquee {
   0%   { transform: translateX(0); }
   100% { transform: translateX(-50%); }

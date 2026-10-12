@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { Phone, Mail, CheckCircle2, MessageCircle, Send, Loader2 } from 'lucide-react';
 import { EditableText } from '../components/common/EditableText';
@@ -8,11 +9,19 @@ import { adminApi } from '../lib/api/adminApi';
 type EnquiryType = 'ONLINE_CLASS' | 'OFFLINE_CLASS' | 'VARMA_TREATMENT';
 
 export const Contact: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const initialType: EnquiryType = (() => {
+    const t = (searchParams.get('type') || searchParams.get('enquiryType') || '').toLowerCase();
+    if (t === 'treatment' || t === 'varma_treatment') return 'VARMA_TREATMENT';
+    if (t === 'offline' || t === 'offline_class') return 'OFFLINE_CLASS';
+    return 'ONLINE_CLASS';
+  })();
+
   const [formData, setFormData] = useState({
     name: '',
     mobile: '',
     email: '',
-    enquiryType: 'ONLINE_CLASS' as EnquiryType,
+    enquiryType: initialType,
     selectedCourse: '',
     city: 'Thanjavur',
     message: ''
@@ -23,6 +32,13 @@ export const Contact: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [lastSubmittedData, setLastSubmittedData] = useState<any>(null);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    const t = (searchParams.get('type') || searchParams.get('enquiryType') || '').toLowerCase();
+    if (t === 'treatment' || t === 'varma_treatment') {
+      setFormData(prev => ({ ...prev, enquiryType: 'VARMA_TREATMENT' }));
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     courseApi.getCourses().then((list) => {
