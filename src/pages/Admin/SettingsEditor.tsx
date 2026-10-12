@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
 import { Save, Loader, Globe, Image as ImageIcon, AlignLeft, Type, Link as LinkIcon, ToggleLeft, Layout } from 'lucide-react';
 import { defaultCmsContent } from '../../lib/cms/defaultContent';
+import { ImageUpload } from '../../components/common/ImageUpload';
 
 type CmsFieldType = 'text' | 'textarea' | 'image' | 'boolean' | 'url';
 
@@ -334,7 +335,14 @@ export const SettingsEditor: React.FC = () => {
                         </div>
                       ) : (
                         <>
-                          {field.type === 'textarea' ? (
+                          {field.type === 'image' ? (
+                            <ImageUpload
+                              value={settings[field.key] || ''}
+                              onChange={(url) => setSettings({ ...settings, [field.key]: url })}
+                              placeholder="https://example.com/image.jpg"
+                              helperText="Upload image from your device or paste an image URL"
+                            />
+                          ) : field.type === 'textarea' ? (
                             <textarea
                               rows={4}
                               value={settings[field.key] || ''}
@@ -346,15 +354,8 @@ export const SettingsEditor: React.FC = () => {
                               type={field.type === 'url' ? 'url' : 'text'}
                               value={settings[field.key] || ''}
                               onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                              placeholder={field.type === 'image' ? 'https://...' : ''}
                               className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-jadmaa-red focus:ring-1 focus:ring-jadmaa-red text-sm"
                             />
-                          )}
-
-                          {field.type === 'image' && settings[field.key] && (
-                            <div className="mt-2 rounded-lg border overflow-hidden w-32 h-20 bg-gray-100 flex items-center justify-center">
-                              <img src={settings[field.key]} alt="Preview" className="max-w-full max-h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%239ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>' }} />
-                            </div>
                           )}
                           
                           <div className="flex justify-end pt-1">

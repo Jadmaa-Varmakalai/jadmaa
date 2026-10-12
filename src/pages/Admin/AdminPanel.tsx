@@ -10,20 +10,22 @@ import { Enrollments } from './Enrollments';
 import { Payments } from './Payments';
 import { DatabaseManager } from './DatabaseManager';
 import { SettingsEditor } from './SettingsEditor';
+import { EnquiriesManager } from './EnquiriesManager';
 import { useAuth } from '../../context/AuthContext';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-type Tab = 'dashboard' | 'students' | 'instructors' | 'courses' | 'enrollments' | 'payments' | 'blogs' | 'settings' | 'database';
+type Tab = 'dashboard' | 'enquiries' | 'students' | 'instructors' | 'courses' | 'enrollments' | 'payments' | 'blogs' | 'settings' | 'database';
 
 export const AdminPanel: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const { user, isLoggedIn, loading } = useAuth();
 
   useEffect(() => {
     if (location.hash) {
       const hash = location.hash.replace('#', '') as Tab;
-      if (['dashboard', 'students', 'instructors', 'courses', 'enrollments', 'payments', 'blogs', 'settings', 'database'].includes(hash)) {
+      if (['dashboard', 'enquiries', 'students', 'instructors', 'courses', 'enrollments', 'payments', 'blogs', 'settings', 'database'].includes(hash)) {
         setActiveTab(hash);
       }
     } else {
@@ -61,6 +63,7 @@ export const AdminPanel: React.FC = () => {
 
   const tabs: { id: Tab, label: string }[] = [
     { id: 'dashboard', label: 'Overview' },
+    { id: 'enquiries', label: 'Enquiries & Leads' },
     { id: 'students', label: 'Students' },
     { id: 'instructors', label: 'Instructors' },
     { id: 'courses', label: 'Courses' },
@@ -74,6 +77,11 @@ export const AdminPanel: React.FC = () => {
     tabs.push({ id: 'database', label: 'Database' });
   }
 
+  const handleTabClick = (tabId: Tab) => {
+    setActiveTab(tabId);
+    navigate(`/admin#${tabId}`, { replace: true });
+  };
+
   return (
     <>
       <SEO title="Admin Panel | JADMAA LMS" />
@@ -85,13 +93,34 @@ export const AdminPanel: React.FC = () => {
           <h1 className="font-heading font-extrabold text-3xl text-jadmaa-charcoal">
             JADMAA Admin Portal
           </h1>
-          <p className="text-xs text-jadmaa-textMuted pb-4">Manage branches, courses, users, and the Academy Journal.</p>
+          <p className="text-xs text-jadmaa-textMuted pb-2">Manage enquiries, courses, users, and the Academy Journal.</p>
+
+          {/* Admin Navigation Tabs */}
+          <div className="flex gap-4 border-t border-jadmaa-border/40 pt-3 overflow-x-auto no-scrollbar">
+            {tabs.map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => handleTabClick(tab.id)}
+                  className={`pb-3 px-2 text-sm font-semibold transition-all border-b-2 whitespace-nowrap cursor-pointer ${
+                    isActive
+                      ? 'border-jadmaa-red text-jadmaa-red font-bold'
+                      : 'border-transparent text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </section>
       
       <section className="py-8 bg-gray-50 text-left min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {activeTab === 'dashboard' && <Overview />}
+          {activeTab === 'enquiries' && <EnquiriesManager />}
           {activeTab === 'students' && <Students />}
           {activeTab === 'instructors' && <Instructors />}
           {activeTab === 'courses' && <Courses />}

@@ -16,6 +16,9 @@ router.patch('/students/:id/status', authenticate, requireAdmin, adminController
 // Instructors
 router.get('/instructors', authenticate, requireAdmin, adminController.getInstructors);
 router.post('/instructors', authenticate, requireAdmin, adminController.createInstructor);
+router.get('/instructors/applications', authenticate, requireAdmin, adminController.getInstructorApplications);
+router.post('/instructors/applications/approve', authenticate, requireAdmin, adminController.approveInstructorApplication);
+router.post('/instructors/applications/reject', authenticate, requireAdmin, adminController.rejectInstructorApplication);
 router.get('/instructors/:id', authenticate, requireAdmin, adminController.getInstructorById);
 router.patch('/instructors/:id', authenticate, requireAdmin, adminController.updateInstructor);
 router.patch('/instructors/:id/status', authenticate, requireAdmin, adminController.updateInstructorStatus);
@@ -53,9 +56,11 @@ router.get('/certificates/:id', authenticate, requireAdmin, adminController.getC
 router.post('/certificates/:id/revoke', authenticate, requireAdmin, adminController.revokeCertificate);
 
 // Enquiries
+router.post('/enquiries/public', adminController.submitPublicEnquiry);
 router.get('/enquiries', authenticate, requireAdmin, adminController.getEnquiries);
 router.get('/enquiries/:id', authenticate, requireAdmin, adminController.getEnquiryById);
 router.patch('/enquiries/:id/status', authenticate, requireAdmin, adminController.updateEnquiryStatus);
+router.delete('/enquiries/:id', authenticate, requireAdmin, adminController.deleteEnquiry);
 
 // Administrators & Audit Logs (Super Admin only)
 router.get('/administrators', authenticate, requireSuperAdmin, adminController.getAdministrators);

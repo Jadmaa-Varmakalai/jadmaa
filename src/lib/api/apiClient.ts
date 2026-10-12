@@ -75,7 +75,9 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}): Pro
   const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
-    throw new Error(data.error?.message || 'Something went wrong');
+    const err: any = new Error(data.error?.message || 'Something went wrong');
+    err.data = data;
+    throw err;
   }
 
   return data;

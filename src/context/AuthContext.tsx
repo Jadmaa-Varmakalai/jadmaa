@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
   login: (email: string, password?: string) => Promise<User>;
-  register: (name: string, email: string, phone: string, password?: string) => Promise<User>;
+  register: (name: string, email: string, phone: string, password?: string, extraOptions?: any) => Promise<User>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -69,6 +69,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           localStorage.setItem('jadmaa_user', JSON.stringify(loggedInUser));
         } catch (_) {}
+        if (res.data.showInstructorApprovalNotice) {
+          sessionStorage.setItem('jadmaa_instructor_approved_notice', 'true');
+        }
         setUser(loggedInUser);
         return loggedInUser;
       } else {
@@ -80,15 +83,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (name: string, email: string, phone: string, password?: string) => {
+  const register = async (name: string, email: string, phone: string, password?: string, extraOptions?: any) => {
     try {
-      const res = await authApi.register({ name, email, phone, password: password || 'defaultpass123' });
+      const res = await authApi.register({ 
+        name, 
+        email, 
+        phone, 
+        password: password || 'defaultpass123',
+        ...extraOptions 
+      });
       if (!res.success) { 
         throw new Error(res.error?.message || 'Registration failed');
       }
       return await login(email, password);
     } catch (err: any) {
-      
       throw err;
     }
   };

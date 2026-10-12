@@ -3,6 +3,7 @@ import { blogApi } from "../../lib/api/blogApi";
 import type { BlogPost } from '../../lib/api/blogApi';
 import { Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
+import { ImageUpload } from '../../components/common/ImageUpload';
 
 export const BlogManager: React.FC = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
@@ -95,16 +96,13 @@ export const BlogManager: React.FC = () => {
               className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
             />
           </div>
-          <div>
-            <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Thumbnail URL</label>
-            <input 
-              type="text" 
-              value={currentBlog.thumbnailUrl || ''}
-              onChange={(e) => setCurrentBlog({...currentBlog, thumbnailUrl: e.target.value})}
-              className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
-              placeholder="https://example.com/image.jpg"
-            />
-          </div>
+          <ImageUpload 
+            label="Thumbnail Image"
+            value={currentBlog.thumbnailUrl || ''}
+            onChange={(url) => setCurrentBlog({...currentBlog, thumbnailUrl: url})}
+            aspectRatio="video"
+            helperText="Upload an image from your device or paste an image URL"
+          />
           <div>
             <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Content (Markdown)</label>
             <textarea 

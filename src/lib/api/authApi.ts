@@ -13,6 +13,9 @@ export const authApi = {
       body: JSON.stringify(data),
     });
   },
+  checkInstructor: async (email: string) => {
+    return fetchApi(`/auth/check-instructor?email=${encodeURIComponent(email)}`);
+  },
   logout: async () => {
     return fetchApi('/auth/logout', {
       method: 'POST',

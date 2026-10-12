@@ -272,3 +272,152 @@ export const sendCoursePurchaseAdminNotificationEmail = async (
   }
 };
 
+export interface EnquiryNotificationParams {
+  name: string;
+  phone: string;
+  email?: string;
+  category: 'CLASS' | 'TREATMENT';
+  type: 'ONLINE_CLASS' | 'OFFLINE_CLASS' | 'VARMA_TREATMENT';
+  typeLabel: string;
+  courseTitle?: string;
+  location?: string;
+  message?: string;
+}
+
+/**
+ * Notifies administrators whenever a user submits a contact/enquiry form.
+ */
+export const sendEnquiryAdminNotificationEmail = async (
+  params: EnquiryNotificationParams
+): Promise<{ success: boolean; reason?: string }> => {
+  try {
+    const { name, phone, email, category, typeLabel, courseTitle, location, message } = params;
+
+    // Collect recipient admin emails
+    const adminEmails: Set<string> = new Set();
+
+    const envAdmin = (process.env.ADMIN_NOTIFICATION_EMAIL || process.env.ADMIN_EMAIL || '').trim();
+    if (envAdmin) {
+      envAdmin.split(',').forEach((e) => {
+        const trimmed = e.trim();
+        if (trimmed) adminEmails.add(trimmed);
+      });
+    }
+
+    try {
+      const dbAdmins = await prisma.user.findMany({
+        where: {
+          role: { in: ['ADMIN', 'SUPER_ADMIN'] },
+          isActive: true,
+        },
+        select: { email: true },
+      });
+      dbAdmins.forEach((admin) => {
+        if (admin.email) adminEmails.add(admin.email.trim());
+      });
+    } catch (dbErr) {
+      console.warn('[EmailService] Could not fetch admin users from DB:', dbErr);
+    }
+
+    if (adminEmails.size === 0) {
+      adminEmails.add('info@jadmaa.com');
+    }
+
+    const frontendUrl = process.env.FRONTEND_URL || 'https://jadmaa.com';
+    const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+
+    const badgeColor = category === 'TREATMENT' ? '#0E7490' : '#B12B2B';
+    const categoryTitle = category === 'TREATMENT' ? 'Varma Treatment Enquiry' : 'Class / Training Enquiry';
+
+    const subject = `📩 New ${categoryTitle}: ${name} (${typeLabel})`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden; color: #2B2521;">
+        <div style="background-color: ${badgeColor}; padding: 22px; text-align: center; color: white;">
+          <h2 style="margin: 0; font-size: 20px; font-weight: 800; letter-spacing: 1px;">JADMAA VARMAKALAI</h2>
+          <p style="margin: 6px 0 0 0; font-size: 13px; opacity: 0.95;">New Website Enquiry Received</p>
+        </div>
+
+        <div style="padding: 24px;">
+          <p style="font-size: 15px; margin-top: 0; line-height: 1.5;">
+            A new enquiry has been submitted on the JADMAA website.
+          </p>
+
+          <div style="background-color: #FBF8F5; border: 1px solid #EFE8E0; border-radius: 6px; padding: 18px; margin: 20px 0;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <tr>
+                <td style="padding: 6px 0; color: #666; width: 140px;"><strong>Name:</strong></td>
+                <td style="padding: 6px 0; color: #111; font-weight: 600;">${name}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #666;"><strong>Phone / WhatsApp:</strong></td>
+                <td style="padding: 6px 0; color: #111; font-weight: 600;">
+                  <a href="tel:${phone}" style="color: #2B2521; text-decoration: none;">${phone}</a>
+                  &nbsp;
+                  <a href="https://wa.me/${phone.replace(/[^0-9]/g, '')}" target="_blank" style="color: #25D366; font-size: 12px; font-weight: bold; text-decoration: underline;">(Chat on WhatsApp)</a>
+                </td>
+              </tr>
+              ${email ? `
+              <tr>
+                <td style="padding: 6px 0; color: #666;"><strong>Email:</strong></td>
+                <td style="padding: 6px 0; color: #111;"><a href="mailto:${email}" style="color: #B12B2B;">${email}</a></td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td style="padding: 6px 0; color: #666;"><strong>Enquiry Type:</strong></td>
+                <td style="padding: 6px 0; color: ${badgeColor}; font-weight: 600;">${typeLabel}</td>
+              </tr>
+              ${courseTitle ? `
+              <tr>
+                <td style="padding: 6px 0; color: #666;"><strong>Selected Course:</strong></td>
+                <td style="padding: 6px 0; color: #111; font-weight: 600;">${courseTitle}</td>
+              </tr>
+              ` : ''}
+              ${location ? `
+              <tr>
+                <td style="padding: 6px 0; color: #666;"><strong>Preferred Location:</strong></td>
+                <td style="padding: 6px 0; color: #111; font-weight: 600;">📍 ${location}</td>
+              </tr>
+              ` : ''}
+              ${message ? `
+              <tr>
+                <td style="padding: 6px 0; color: #666; vertical-align: top;"><strong>Message:</strong></td>
+                <td style="padding: 6px 0; color: #333; line-height: 1.5;">${message}</td>
+              </tr>
+              ` : ''}
+              <tr>
+                <td style="padding: 6px 0; color: #666;"><strong>Submitted At (IST):</strong></td>
+                <td style="padding: 6px 0; color: #111;">${timestamp}</td>
+              </tr>
+            </table>
+          </div>
+
+          <div style="text-align: center; margin: 26px 0 14px 0;">
+            <a href="${frontendUrl}/admin#enquiries" style="display: inline-block; padding: 12px 26px; background-color: #B12B2B; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 14px;">
+              View Enquiries in Admin Portal
+            </a>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 24px 0;" />
+          <p style="color: #888; font-size: 12px; text-align: center; margin: 0;">
+            This is an automated administrative alert from JADMAA Varmakalai website.
+          </p>
+        </div>
+      </div>
+    `;
+
+    console.log(`[EmailService] Sending enquiry alert to admins: ${Array.from(adminEmails).join(', ')}`);
+
+    adminEmails.forEach((adminEmail) => {
+      BrevoService.sendTransactionalEmail(adminEmail, subject, htmlContent).catch((err) => {
+        console.error(`[EmailService] Error sending enquiry alert to admin ${adminEmail}:`, err);
+      });
+    });
+
+    return { success: true };
+  } catch (error: any) {
+    console.error('[EmailService] Error sending enquiry admin notification:', error);
+    return { success: false, reason: error.message };
+  }
+};
+
+

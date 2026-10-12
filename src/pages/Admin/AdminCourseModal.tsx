@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
+import { ImageUpload } from '../../components/common/ImageUpload';
 
 interface AdminCourseModalProps {
   isOpen: boolean;
@@ -205,16 +206,13 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
             </select>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700">Thumbnail URL</label>
-            <input 
-              type="url" 
-              placeholder="https://example.com/image.jpg"
-              value={formData.thumbnailUrl}
-              onChange={e => setFormData({...formData, thumbnailUrl: e.target.value})}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red"
-            />
-          </div>
+          <ImageUpload 
+            label="Course Thumbnail"
+            value={formData.thumbnailUrl}
+            onChange={(url) => setFormData({...formData, thumbnailUrl: url})}
+            aspectRatio="video"
+            helperText="Upload thumbnail from your device or paste an image URL"
+          />
 
           {!course && (
             <div className="space-y-1">

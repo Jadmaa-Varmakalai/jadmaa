@@ -27,10 +27,22 @@ export const register = async (req: Request, res: Response) => {
   try {
     const validated = registerSchema.parse(req.body);
     const email = validated.email.trim().toLowerCase();
+    const { applyAsInstructor, title, specialization, experience, bio } = req.body;
     
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ 
+      where: { email },
+      include: { instructorProfile: true }
+    });
+
     if (existing) {
-      return res.status(400).json({ success: false, error: { message: 'Email already exists' } });
+      if (existing.role === 'INSTRUCTOR' || existing.instructorProfile) {
+        return res.status(400).json({ 
+          success: false, 
+          isAlreadyInstructor: true,
+          error: { message: 'This email is already registered as an Instructor. Please log in directly.' } 
+        });
+      }
+      return res.status(400).json({ success: false, error: { message: 'Email already exists. Please log in.' } });
     }
 
     const passwordHash = await bcrypt.hash(validated.password, 10);
@@ -40,15 +52,57 @@ export const register = async (req: Request, res: Response) => {
         email,
         phone: validated.phone.trim(),
         passwordHash,
+        role: 'STUDENT', // Registered as student until admin approves
       }
     });
 
-    // Add registered student to Brevo marketing list in the background
+    // If applying as instructor, record application and notify admin
+    if (applyAsInstructor) {
+      const applicationData = {
+        userId: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        title: title || 'Instructor Candidate',
+        specialization: specialization || 'Varmakalai Training',
+        experience: experience || '',
+        bio: bio || '',
+        status: 'PENDING',
+        appliedAt: new Date().toISOString(),
+      };
+
+      await prisma.systemSetting.upsert({
+        where: { key: `instructor_app_${user.id}` },
+        update: {
+          value: JSON.stringify(applicationData),
+          description: `Instructor Application for ${user.name}`
+        },
+        create: {
+          key: `instructor_app_${user.id}`,
+          value: JSON.stringify(applicationData),
+          description: `Instructor Application for ${user.name}`
+        }
+      });
+    }
+
+    // Add registered user to Brevo marketing list in the background
     BrevoService.addContactToMarketingList(user.email, user.name).catch(err => {
       console.error('[AuthController] Failed to add contact to Brevo marketing list:', err);
     });
 
-    res.json({ success: true, data: { id: user.id, name: user.name, email: user.email, phone: user.phone } });
+    res.json({ 
+      success: true, 
+      data: { 
+        id: user.id, 
+        name: user.name, 
+        email: user.email, 
+        phone: user.phone,
+        appliedAsInstructor: !!applyAsInstructor,
+        message: applyAsInstructor 
+          ? 'Registration successful! Your request to become an instructor has been submitted to the Admin. Until approved, you can explore courses as a student.'
+          : 'Registration successful!'
+      } 
+    });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
       return res.status(400).json({ success: false, error: { message: 'Validation error', details: (err as any).errors } });
@@ -65,7 +119,10 @@ export const login = async (req: Request, res: Response) => {
     
     const user = await prisma.user.findUnique({ 
       where: { email },
-      include: { enrollments: { select: { courseId: true } } }
+      include: { 
+        enrollments: { select: { courseId: true } },
+        instructorProfile: true,
+      }
     });
     if (!user) {
       console.warn(`[Auth:Login] Login failed: User with email "${validated.email}" not found.`);
@@ -79,14 +136,29 @@ export const login = async (req: Request, res: Response) => {
 
     const isValid = await bcrypt.compare(validated.password, user.passwordHash);
     if (!isValid) {
-      console.warn(`[Auth:Login] Login failed: Password comparison failed for "${validated.email}". Hash format: ${user.passwordHash.substring(0, 4)}`);
+      console.warn(`[Auth:Login] Login failed: Password comparison failed for "${validated.email}".`);
       return res.status(401).json({ success: false, error: { message: 'Invalid credentials' } });
     }
 
-        prisma.user.update({
+    prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() }
     }).catch(console.error);
+
+    // Check if user has an unacknowledged instructor approval notification
+    let showInstructorApprovalNotice = false;
+    if (user.role === 'INSTRUCTOR') {
+      const noticeKey = `instructor_approved_notice_${user.id}`;
+      const notice = await prisma.systemSetting.findUnique({ where: { key: noticeKey } });
+      if (notice && notice.value === 'UNNOTIFIED') {
+        showInstructorApprovalNotice = true;
+        // Mark as NOTIFIED so it is only shown ONE TIME after approval
+        await prisma.systemSetting.update({
+          where: { key: noticeKey },
+          data: { value: 'NOTIFIED' }
+        }).catch(console.error);
+      }
+    }
 
     const { accessToken, refreshToken } = generateTokens(user);
 
@@ -98,10 +170,11 @@ export const login = async (req: Request, res: Response) => {
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
-        res.json({ 
+    res.json({ 
       success: true, 
       data: { 
         token: accessToken,
+        showInstructorApprovalNotice,
         user: { 
           id: user.id, 
           name: user.name, 
@@ -183,22 +256,52 @@ export const getMe = async (req: Request, res: Response) => {
 export const updateProfile = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.id;
-    const { name, phone } = req.body;
+    const { name, phone, avatarUrl } = req.body;
     
     if (!name) {
       return res.status(400).json({ success: false, error: { message: 'Name is required' } });
     }
 
+    const updateData: any = { name, phone };
+    if (avatarUrl !== undefined) {
+      updateData.avatarUrl = avatarUrl;
+    }
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: { name, phone }
+      data: updateData
     });
 
     invalidateUserCache(userId);
 
-    res.json({ success: true, data: { name: user.name, phone: user.phone } });
+    res.json({ success: true, data: { name: user.name, phone: user.phone, avatarUrl: user.avatarUrl } });
   } catch (err) {
     console.error('Update profile error:', err);
+    res.status(500).json({ success: false, error: { message: 'Server error' } });
+  }
+};
+
+export const checkInstructorStatus = async (req: Request, res: Response) => {
+  try {
+    const email = String(req.query.email || req.body?.email || '').trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({ success: false, error: { message: 'Email is required' } });
+    }
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { instructorProfile: true }
+    });
+    const isInstructor = user ? (user.role === 'INSTRUCTOR' || Boolean(user.instructorProfile)) : false;
+    res.json({
+      success: true,
+      data: {
+        exists: Boolean(user),
+        isInstructor,
+        role: user?.role || null
+      }
+    });
+  } catch (err) {
+    console.error('Check instructor status error:', err);
     res.status(500).json({ success: false, error: { message: 'Server error' } });
   }
 };

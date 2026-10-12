@@ -5,6 +5,7 @@ import { User, Mail, Phone, Lock, CheckCircle, Clock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { fetchApi } from '../../lib/api/apiClient';
 import { authApi } from '../../lib/api/authApi';
+import { ImageUpload } from '../../components/common/ImageUpload';
 
 export const StudentProfile: React.FC = () => {
   const { user, isLoggedIn } = useAuth();
@@ -15,6 +16,7 @@ export const StudentProfile: React.FC = () => {
   // Profile update state
   const [name, setName] = useState(() => user?.name || '');
   const [phone, setPhone] = useState(() => (user as any)?.phone || '');
+  const [avatarUrl, setAvatarUrl] = useState(() => (user as any)?.avatarUrl || '');
   const [updateLoading, setUpdateLoading] = useState(false);
   const [updateError, setUpdateError] = useState<string | null>(null);
   const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
@@ -57,11 +59,11 @@ export const StudentProfile: React.FC = () => {
     try {
       const res = await fetchApi('/auth/update-profile', { 
         method: 'PUT', 
-        body: JSON.stringify({ name, phone }) 
+        body: JSON.stringify({ name, phone, avatarUrl }) 
       });
       if (res.success) {
         setUpdateSuccess("Profile updated successfully.");
-        setProfile({ ...(profile || user), name: res.data.name, phone: res.data.phone });
+        setProfile({ ...(profile || user), name: res.data.name, phone: res.data.phone, avatarUrl: res.data.avatarUrl });
       } else {
         setUpdateError(res.error?.message || 'Failed to update profile');
       }
@@ -84,6 +86,7 @@ export const StudentProfile: React.FC = () => {
           setProfile(res.data);
           setName(res.data.name || '');
           setPhone(res.data.phone || '');
+          if (res.data.avatarUrl) setAvatarUrl(res.data.avatarUrl);
         }
       } catch (err) {
         console.warn('Could not fetch fresh profile:', err);
@@ -161,6 +164,13 @@ export const StudentProfile: React.FC = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Phone Number</label>
                   <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-jadmaa-red focus:border-jadmaa-red" />
                 </div>
+                <ImageUpload 
+                  label="Profile Picture (Avatar)"
+                  value={avatarUrl}
+                  onChange={setAvatarUrl}
+                  aspectRatio="square"
+                  helperText="Upload a photo from your device or paste an image URL"
+                />
                 <div className="pt-2">
                   <button type="submit" disabled={updateLoading} className="px-5 py-2.5 bg-gray-900 text-white font-semibold rounded text-sm hover:bg-gray-800 transition disabled:opacity-50">
                     {updateLoading ? 'Saving...' : 'Save Changes'}

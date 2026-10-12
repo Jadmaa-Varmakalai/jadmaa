@@ -82,7 +82,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Column */}
-            <div className="lg:col-span-7 space-y-5 text-left" data-aos="fade-right">
+            <div className="lg:col-span-7 space-y-5 text-left animate-jd-pop">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -113,7 +113,7 @@ export const Home: React.FC = () => {
               </div>
 
               {/* Hero Stats Row */}
-              <div className="pt-8 border-t border-[#E8DDD0] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left" data-aos="fade-up" data-aos-delay="100">
+              <div className="pt-8 border-t border-[#E8DDD0] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left">
                 <div>
                   <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={1000} suffix="+" /></div>
                   <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
@@ -146,8 +146,8 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Right Column: Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[440px]" data-aos="fade-left" data-aos-delay="150">
-              <div className="relative group cursor-pointer">
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[440px] animate-jd-pop">
+              <div className="relative group cursor-pointer animate-jd-hero-float">
                 <img 
                   src="/images/hero-kick-action-transparent.png" 
                   alt="Varmakalai Practitioner Stance" 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
 import { Search, Plus, X } from 'lucide-react';
+import { ImageUpload } from '../../components/common/ImageUpload';
 
 export const Instructors: React.FC = () => {
   const [instructors, setInstructors] = useState<any[]>([]);
@@ -16,7 +17,8 @@ export const Instructors: React.FC = () => {
     displayName: '',
     title: '',
     specialization: '',
-    experience: ''
+    experience: '',
+    avatarUrl: ''
   });
   const [submitError, setSubmitError] = useState('');
 
@@ -65,34 +67,211 @@ export const Instructors: React.FC = () => {
     }
   };
 
+  const [activeSubTab, setActiveSubTab] = useState<'INSTRUCTORS' | 'APPLICATIONS'>('INSTRUCTORS');
+  const [applications, setApplications] = useState<any[]>([]);
+  const [loadingApps, setLoadingApps] = useState(false);
+  const [actionInProgress, setActionInProgress] = useState<string | null>(null);
+
+  const fetchApplications = async () => {
+    setLoadingApps(true);
+    try {
+      const res = await adminApi.getInstructorApplications();
+      if (res.success && res.data) {
+        setApplications(res.data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch instructor applications:', err);
+    } finally {
+      setLoadingApps(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchApplications();
+  }, []);
+
+  const handleApproveApp = async (userId: string) => {
+    if (!window.confirm('Approve this candidate as an active Instructor? Their role will immediately upgrade to Instructor.')) return;
+    setActionInProgress(userId);
+    try {
+      await adminApi.approveInstructorApplication(userId);
+      await fetchApplications();
+      await fetchInstructors();
+    } catch (err: any) {
+      alert(err.message || 'Failed to approve application');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const handleRejectApp = async (userId: string) => {
+    if (!window.confirm('Reject this instructor application? The user will remain as a student.')) return;
+    setActionInProgress(userId);
+    try {
+      await adminApi.rejectInstructorApplication(userId);
+      await fetchApplications();
+    } catch (err: any) {
+      alert(err.message || 'Failed to reject application');
+    } finally {
+      setActionInProgress(null);
+    }
+  };
+
+  const pendingApps = applications.filter(a => a.status === 'PENDING');
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-xl font-heading font-bold">Instructors</h2>
+        <div>
+          <h2 className="text-xl font-heading font-bold text-gray-900">Manage Instructors</h2>
+          <p className="text-xs text-gray-500 mt-0.5">Manage certified faculty and review instructor registration requests</p>
+        </div>
+
         <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">
-          <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="text" 
-              placeholder="Search instructors..." 
-              className="pl-9 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:border-jadmaa-red w-full sm:w-64"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
+          {activeSubTab === 'INSTRUCTORS' && (
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input 
+                type="text" 
+                placeholder="Search instructors..." 
+                className="pl-9 pr-4 py-2 border rounded-full text-sm focus:outline-none focus:border-jadmaa-red w-full sm:w-64 bg-white"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+          )}
           <button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center px-4 py-2 bg-jadmaa-red text-white text-sm font-bold rounded hover:bg-red-800 transition-colors shrink-0 w-full sm:w-auto"
+            className="flex items-center justify-center px-4 py-2 bg-jadmaa-red text-white text-sm font-bold rounded-lg hover:bg-red-800 transition-colors shrink-0 w-full sm:w-auto cursor-pointer shadow-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Instructor
           </button>
         </div>
       </div>
-      
-      <>
-        {/* Desktop Table View */}
-        <div className="hidden md:block bg-white border rounded-xl overflow-x-auto shadow-sm">
+
+      {/* Sub Tabs: Active Instructors vs Pending Applications */}
+      <div className="flex items-center gap-2 border-b border-gray-200">
+        <button
+          onClick={() => setActiveSubTab('INSTRUCTORS')}
+          className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+            activeSubTab === 'INSTRUCTORS'
+              ? 'border-jadmaa-red text-jadmaa-red'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          Active Instructors ({instructors.length})
+        </button>
+        <button
+          onClick={() => setActiveSubTab('APPLICATIONS')}
+          className={`pb-3 px-3 text-sm font-bold border-b-2 transition-all cursor-pointer flex items-center gap-1.5 ${
+            activeSubTab === 'APPLICATIONS'
+              ? 'border-jadmaa-red text-jadmaa-red'
+              : 'border-transparent text-gray-500 hover:text-gray-900'
+          }`}
+        >
+          <span>Instructor Requests</span>
+          {pendingApps.length > 0 && (
+            <span className="bg-amber-500 text-white text-[11px] font-extrabold px-1.5 py-0.2 rounded-full">
+              {pendingApps.length}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeSubTab === 'APPLICATIONS' ? (
+        <div className="space-y-4">
+          {loadingApps ? (
+            <div className="p-8 text-center text-gray-500 bg-white border rounded-xl">Loading applications...</div>
+          ) : applications.length === 0 ? (
+            <div className="p-8 text-center text-gray-500 bg-white border rounded-xl">
+              No instructor requests received yet.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {applications.map((app) => {
+                const isPending = app.status === 'PENDING';
+                return (
+                  <div
+                    key={app.key || app.userId}
+                    className={`bg-white border rounded-xl p-5 shadow-sm space-y-3 ${
+                      isPending ? 'border-amber-200 bg-amber-50/20' : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <h3 className="font-heading font-bold text-base text-gray-900">{app.name}</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">Applied on: {app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : 'Recent'}</p>
+                      </div>
+                      <span
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                          app.status === 'APPROVED'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : app.status === 'REJECTED'
+                            ? 'bg-rose-100 text-rose-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {app.status || 'PENDING'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-700 bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                      <div>
+                        <span className="text-gray-400 block font-semibold">Email:</span>
+                        <a href={`mailto:${app.email}`} className="text-jadmaa-red hover:underline truncate block">{app.email}</a>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block font-semibold">Phone:</span>
+                        <a href={`tel:${app.phone}`} className="hover:underline">{app.phone || '-'}</a>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block font-semibold">Title / Specialization:</span>
+                        <span>{app.title || app.specialization || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400 block font-semibold">Experience:</span>
+                        <span>{app.experience || '-'}</span>
+                      </div>
+                    </div>
+
+                    {app.bio && (
+                      <p className="text-xs text-gray-600 bg-white p-2 rounded border border-gray-100 italic">
+                        "{app.bio}"
+                      </p>
+                    )}
+
+                    <div className="flex justify-end gap-2 pt-2 border-t">
+                      {isPending ? (
+                        <>
+                          <button
+                            disabled={actionInProgress === app.userId}
+                            onClick={() => handleRejectApp(app.userId)}
+                            className="px-3 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg cursor-pointer transition-colors"
+                          >
+                            Reject
+                          </button>
+                          <button
+                            disabled={actionInProgress === app.userId}
+                            onClick={() => handleApproveApp(app.userId)}
+                            className="px-4 py-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg cursor-pointer transition-colors shadow-sm"
+                          >
+                            {actionInProgress === app.userId ? 'Approving...' : '✓ Approve as Instructor'}
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">Application {app.status?.toLowerCase()}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="hidden md:block bg-white border rounded-xl overflow-x-auto shadow-sm">
           <table className="w-full text-left text-sm whitespace-nowrap">
             <thead className="bg-gray-50 border-b">
               <tr>
@@ -178,24 +357,25 @@ export const Instructors: React.FC = () => {
             ))
           )}
         </div>
-      </>
-      
-      {/* Pagination */}
-      <div className="flex justify-between items-center text-sm text-gray-600">
-        <div>Showing page {pagination.page} of {pagination.totalPages || 1} ({pagination.total} total)</div>
-        <div className="flex space-x-2">
-          <button 
-             disabled={pagination.page <= 1} 
-             onClick={() => setPagination({...pagination, page: pagination.page - 1})}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >Prev</button>
-          <button 
-             disabled={pagination.page >= pagination.totalPages} 
-             onClick={() => setPagination({...pagination, page: pagination.page + 1})}
-            className="px-3 py-1 border rounded disabled:opacity-50"
-          >Next</button>
+
+        {/* Pagination */}
+        <div className="flex justify-between items-center text-sm text-gray-600">
+          <div>Showing page {pagination.page} of {pagination.totalPages || 1} ({pagination.total} total)</div>
+          <div className="flex space-x-2">
+            <button 
+               disabled={pagination.page <= 1} 
+               onClick={() => setPagination({...pagination, page: pagination.page - 1})}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >Prev</button>
+            <button 
+               disabled={pagination.page >= pagination.totalPages} 
+               onClick={() => setPagination({...pagination, page: pagination.page + 1})}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >Next</button>
+          </div>
         </div>
-      </div>
+        </>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
@@ -256,6 +436,14 @@ export const Instructors: React.FC = () => {
                   <input type="text" placeholder="e.g. 10 Years" className="w-full px-3 py-2 border rounded focus:border-jadmaa-red focus:ring-1 focus:ring-jadmaa-red" value={formData.experience} onChange={e => setFormData({...formData, experience: e.target.value})} />
                 </div>
               </div>
+
+              <ImageUpload
+                label="Profile Photo (Avatar)"
+                value={formData.avatarUrl}
+                onChange={(url) => setFormData({...formData, avatarUrl: url})}
+                aspectRatio="square"
+                helperText="Upload photo from device or paste an image URL"
+              />
 
               <div className="pt-4 flex justify-end space-x-3">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 border rounded font-medium text-gray-600 hover:bg-gray-50">Cancel</button>

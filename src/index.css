@@ -187,6 +187,64 @@
   transform: scale(1.05);
 }
 
+/* ==========================================
+   HERO KICK ANIMATION (cloned jadmaa.com source)
+   ========================================== */
+@keyframes jd-pop { 
+  0% { 
+    opacity: 0; 
+    transform: translateY(20px); 
+  }
+  100% { 
+    opacity: 1; 
+    transform: none; 
+  }
+}
+
+@keyframes jd-hero-float { 
+  0% { 
+    transform: translateY(0px); 
+  }
+  50% { 
+    transform: translateY(-10px); 
+  }
+  100% { 
+    transform: translateY(0px); 
+  }
+}
+
+.animate-jd-pop {
+  animation: jd-pop 0.65s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s both;
+}
+
+@media (max-width: 768px) {
+  .animate-jd-pop {
+    animation-duration: 0.7s;
+  }
+}
+
+.animate-jd-hero-float {
+  animation: jd-hero-float 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+@media (max-width: 768px) {
+  .animate-jd-hero-float {
+    animation-duration: 4.5s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-jd-pop {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .animate-jd-hero-float {
+    animation: none !important;
+  }
+}
+
 /* Float Animation with interactive speedup on hover */
 @keyframes jdHeroFloat {
   0% { transform: translateY(0); }

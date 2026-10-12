@@ -32,6 +32,15 @@ export const adminApi = {
     method: 'PATCH',
     body: JSON.stringify({ isActive })
   }),
+  getInstructorApplications: () => fetchApi('/admin/instructors/applications'),
+  approveInstructorApplication: (userId: string) => fetchApi('/admin/instructors/applications/approve', {
+    method: 'POST',
+    body: JSON.stringify({ userId })
+  }),
+  rejectInstructorApplication: (userId: string) => fetchApi('/admin/instructors/applications/reject', {
+    method: 'POST',
+    body: JSON.stringify({ userId })
+  }),
   
   // Courses
   getCourses: (params = {}) => {
@@ -73,5 +82,20 @@ export const adminApi = {
   updateSetting: (key: string, value: string, description?: string) => fetchApi('/admin/settings', {
     method: 'PATCH',
     body: JSON.stringify({ key, value, description })
+  }),
+
+  // Enquiries
+  getEnquiries: (params = {}) => {
+    const qs = new URLSearchParams(params as any).toString();
+    return fetchApi(`/admin/enquiries${qs ? '?' + qs : ''}`);
+  },
+  updateEnquiryStatus: (id: string, status: string) => fetchApi(`/admin/enquiries/${id}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status })
+  }),
+  deleteEnquiry: (id: string) => fetchApi(`/admin/enquiries/${id}`, { method: 'DELETE' }),
+  submitEnquiry: (data: any) => fetchApi('/admin/enquiries/public', {
+    method: 'POST',
+    body: JSON.stringify(data)
   })
 };

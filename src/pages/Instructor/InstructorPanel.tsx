@@ -1,12 +1,25 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SEO } from '../../components/common/SEO';
-import { GraduationCap, Video, Users, CheckSquare } from 'lucide-react';
+import { GraduationCap, Video, Users, CheckSquare, Sparkles, X, CheckCircle2 } from 'lucide-react';
 
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 export const InstructorPanel: React.FC = () => {
   const { user, isLoggedIn, loading } = useAuth();
+  const [showApprovalNotice, setShowApprovalNotice] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Check if user has an unacknowledged approval notification from this login
+    if (sessionStorage.getItem('jadmaa_instructor_approved_notice') === 'true') {
+      setShowApprovalNotice(true);
+    }
+  }, []);
+
+  const handleDismissNotice = () => {
+    setShowApprovalNotice(false);
+    sessionStorage.removeItem('jadmaa_instructor_approved_notice');
+  };
 
   if (loading) {
     return (
@@ -25,7 +38,36 @@ export const InstructorPanel: React.FC = () => {
 
   return (
     <>
-      <SEO title="Instructor Panel Placeholder | JADMAA LMS" />
+      <SEO title="Instructor Panel | JADMAA LMS" />
+
+      {/* One-time celebratory approval notification */}
+      {showApprovalNotice && (
+        <aside aria-label="Instructor Approval Notification" className="bg-emerald-600 text-white px-4 py-4 border-b border-emerald-700 shadow-sm animate-fadeIn">
+          <div className="max-w-7xl mx-auto flex items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-emerald-500/80 rounded-xl shrink-0">
+                <Sparkles className="w-5 h-5 text-amber-200" />
+              </div>
+              <div className="text-left text-xs sm:text-sm">
+                <p className="font-bold text-white flex items-center space-x-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                  <span>Instructor Application Approved!</span>
+                </p>
+                <p className="text-emerald-100 text-xs mt-0.5">
+                  Congratulations <strong>{user?.name}</strong>! Your application to become an Instructor has been approved by the Admin. Your account role has now been upgraded to <strong>Instructor</strong>.
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleDismissNotice}
+              className="p-1.5 bg-emerald-700/60 hover:bg-emerald-700 text-emerald-100 hover:text-white rounded-lg transition-colors shrink-0"
+              title="Dismiss"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </aside>
+      )}
 
       <section className="bg-jadmaa-cream py-10 border-b border-jadmaa-border text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2">
@@ -33,7 +75,7 @@ export const InstructorPanel: React.FC = () => {
             Faculty Portal
           </span>
           <h1 className="font-heading font-extrabold text-3xl text-jadmaa-charcoal">
-            Instructor Portal (Grandmaster A. Jeyaraj)
+            Instructor Portal ({user?.name || 'Faculty Member'})
           </h1>
           <p className="text-xs text-jadmaa-textMuted">Instructor management layout ready for live class scheduling and student evaluations.</p>
         </div>

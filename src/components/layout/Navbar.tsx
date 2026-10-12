@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, Settings as SettingsIcon, ChevronDown } from 'lucide-react';
+import { Menu, X, User, LogOut, Settings as SettingsIcon, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { mainNavItems } from '../../data/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
@@ -27,12 +27,16 @@ export const Navbar: React.FC = () => {
     } else if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
       currentNavItems = [
         { id: 'dashboard', label: 'Dashboard', href: '/admin#dashboard' },
+        { id: 'enquiries', label: 'Enquiries', href: '/admin#enquiries' },
         { id: 'courses', label: 'Courses', href: '/admin#courses' },
         { id: 'students', label: 'My Students', href: '/admin#students' },
         { id: 'blogs', label: 'Blogs', href: '/admin#blogs' }
       ];
     } else if (user?.role === 'INSTRUCTOR') {
       currentNavItems = [
+        { id: 'dashboard', label: 'Faculty Portal', href: '/instructor' },
+        { id: 'home', label: 'Home', href: '/' },
+        { id: 'courses', label: 'Courses', href: '/courses' },
         { id: 'students', label: 'My Students', href: '/instructor#students' }
       ];
     }
@@ -86,7 +90,7 @@ export const Navbar: React.FC = () => {
               alt="JADMAA Varmakalai Logo" 
               className="h-[42px] sm:h-12 w-auto object-contain shrink-0"
             />
-            <span className="font-heading font-extrabold text-[16px] sm:text-xl text-[#2B2521] tracking-tight leading-none truncate">
+            <span className="font-heading font-semibold text-[13px] sm:text-[18px] text-[#2B2521] tracking-[0.5px] leading-[1.3125rem] truncate">
               JADMAA <span className="text-[#B12B2B]">VARMAKALAI</span>
             </span>
           </Link>
@@ -134,6 +138,15 @@ export const Navbar: React.FC = () => {
                     </div>
                     
                     <div className="space-y-1">
+                      <Link
+                        to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/student"}
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
+                      >
+                        <LayoutDashboard className="w-4 h-4" />
+                        <span>Dashboard</span>
+                      </Link>
+
                       {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") ? (
                         <button
                           onClick={() => {

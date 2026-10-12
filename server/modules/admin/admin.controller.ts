@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { logAdminAction } from '../../utils/audit.js';
 import bcrypt from 'bcryptjs';
-import { sendNewCourseSuggestionEmail } from '../../services/email/email.service.js';
+import { sendNewCourseSuggestionEmail, sendEnquiryAdminNotificationEmail } from '../../services/email/email.service.js';
 
 const getPagination = (req: Request) => {
   const page = parseInt(req.query.page as string) || 1;
@@ -196,24 +196,24 @@ export const getInstructorById = async (req: Request, res: Response) => {
 
 export const createInstructor = async (req: Request, res: Response) => {
   try {
-    const { email, password, name, phone, displayName, title, bio, specialization, experience } = req.body;
+    const { email, password, name, phone, displayName, title, bio, specialization, experience, avatarUrl } = req.body;
     
     // Check if user exists
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       const passwordHash = await bcrypt.hash(password || 'Jadmaa@123', 10);
       user = await prisma.user.create({
-        data: { name, email, phone, passwordHash, role: 'INSTRUCTOR' }
+        data: { name, email, phone, passwordHash, role: 'INSTRUCTOR', avatarUrl: avatarUrl || null }
       });
     } else {
       user = await prisma.user.update({
         where: { email },
-        data: { role: 'INSTRUCTOR' }
+        data: { role: 'INSTRUCTOR', ...(avatarUrl ? { avatarUrl } : {}) }
       });
     }
 
     const instructor = await prisma.instructor.create({
-      data: { userId: user.id, displayName: displayName || name, title, bio, specialization, experience }
+      data: { userId: user.id, displayName: displayName || name, title, bio, specialization, experience, avatarUrl: avatarUrl || null }
     });
 
     await logAdminAction((req as any).user.id, 'CREATE_INSTRUCTOR', 'Instructor', instructor.id, { email }, req);
@@ -225,10 +225,10 @@ export const createInstructor = async (req: Request, res: Response) => {
 
 export const updateInstructor = async (req: Request, res: Response) => {
   try {
-    const { displayName, title, bio, specialization, experience } = req.body;
+    const { displayName, title, bio, specialization, experience, avatarUrl } = req.body;
     const instructor = await prisma.instructor.update({
       where: { id: (req.params.id as string) },
-      data: { displayName, title, bio, specialization, experience }
+      data: { displayName, title, bio, specialization, experience, ...(avatarUrl !== undefined ? { avatarUrl } : {}) }
     });
     await logAdminAction((req as any).user.id, 'UPDATE_INSTRUCTOR', 'Instructor', instructor.id, null, req);
     res.json({ success: true, data: instructor });
@@ -264,6 +264,148 @@ export const updateInstructorStatus = async (req: Request, res: Response) => {
     
     await logAdminAction((req as any).user.id, 'UPDATE_INSTRUCTOR_STATUS', 'Instructor', instructor.id, { isActive }, req);
     res.json({ success: true, data: instructor });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+/**
+ * List pending/processed instructor applications
+ */
+export const getInstructorApplications = async (req: Request, res: Response) => {
+  try {
+    const settings = await prisma.systemSetting.findMany({
+      where: {
+        key: { startsWith: 'instructor_app_' }
+      },
+      orderBy: { updatedAt: 'desc' }
+    });
+
+    const applications = settings.map((s) => {
+      try {
+        return { key: s.key, ...JSON.parse(s.value) };
+      } catch (_) {
+        return { key: s.key, raw: s.value };
+      }
+    });
+
+    res.json({ success: true, data: applications });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+/**
+ * Approve instructor application:
+ * 1. Upgrades user role to 'INSTRUCTOR'
+ * 2. Creates instructor profile if not present
+ * 3. Sets single-time approval notification flag
+ * 4. Invalidates cached auth session
+ */
+export const approveInstructorApplication = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ success: false, error: { message: 'User ID is required' } });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { instructorProfile: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ success: false, error: { message: 'User not found' } });
+    }
+
+    // Get candidate app details if present
+    const appSetting = await prisma.systemSetting.findUnique({
+      where: { key: `instructor_app_${userId}` }
+    });
+    let appData: any = {};
+    if (appSetting) {
+      try { appData = JSON.parse(appSetting.value); } catch (_) {}
+    }
+
+    // 1. Upgrade user role
+    await prisma.user.update({
+      where: { id: userId },
+      data: { role: 'INSTRUCTOR' }
+    });
+
+    // 2. Create or update instructor profile
+    if (!user.instructorProfile) {
+      await prisma.instructor.create({
+        data: {
+          userId,
+          displayName: appData.displayName || user.name,
+          title: appData.title || 'Instructor',
+          specialization: appData.specialization || 'Varmakalai',
+          experience: appData.experience || '',
+          bio: appData.bio || '',
+          isActive: true
+        }
+      });
+    } else {
+      await prisma.instructor.update({
+        where: { id: user.instructorProfile.id },
+        data: { isActive: true }
+      });
+    }
+
+    // 3. Mark application as APPROVED in system settings
+    if (appSetting) {
+      appData.status = 'APPROVED';
+      appData.approvedAt = new Date().toISOString();
+      await prisma.systemSetting.update({
+        where: { key: `instructor_app_${userId}` },
+        data: { value: JSON.stringify(appData) }
+      });
+    }
+
+    // 4. Set single-time notification flag for next login/session
+    await prisma.systemSetting.upsert({
+      where: { key: `instructor_approved_notice_${userId}` },
+      update: { value: 'UNNOTIFIED', description: 'One-time approval notice' },
+      create: { key: `instructor_approved_notice_${userId}`, value: 'UNNOTIFIED', description: 'One-time approval notice' }
+    });
+
+    invalidateUserCache(userId);
+
+    await logAdminAction((req as any).user.id, 'APPROVE_INSTRUCTOR_APP', 'User', userId, { email: user.email }, req);
+    res.json({ success: true, message: 'Instructor approved successfully' });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+/**
+ * Reject instructor application
+ */
+export const rejectInstructorApplication = async (req: Request, res: Response) => {
+  try {
+    const { userId } = req.body;
+    if (!userId) {
+      return res.status(400).json({ success: false, error: { message: 'User ID is required' } });
+    }
+
+    const appSetting = await prisma.systemSetting.findUnique({
+      where: { key: `instructor_app_${userId}` }
+    });
+
+    if (appSetting) {
+      let appData: any = {};
+      try { appData = JSON.parse(appSetting.value); } catch (_) {}
+      appData.status = 'REJECTED';
+      appData.rejectedAt = new Date().toISOString();
+      await prisma.systemSetting.update({
+        where: { key: `instructor_app_${userId}` },
+        data: { value: JSON.stringify(appData) }
+      });
+    }
+
+    await logAdminAction((req as any).user.id, 'REJECT_INSTRUCTOR_APP', 'User', userId, null, req);
+    res.json({ success: true, message: 'Instructor application rejected' });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
@@ -621,6 +763,73 @@ export const updateEnquiryStatus = async (req: Request, res: Response) => {
     const enquiry = await prisma.enquiry.update({ where: { id: (req.params.id as string) }, data: { status: req.body.status } });
     res.json({ success: true, data: enquiry });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
+};
+
+export const deleteEnquiry = async (req: Request, res: Response) => {
+  try {
+    await prisma.enquiry.delete({ where: { id: (req.params.id as string) } });
+    res.json({ success: true, message: 'Enquiry deleted successfully' });
+  } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
+};
+
+/**
+ * Public endpoint to submit contact / enquiry form
+ */
+export const submitPublicEnquiry = async (req: Request, res: Response) => {
+  try {
+    const { name, mobile, email, category, type, courseTitle, location, message } = req.body;
+
+    if (!name || !mobile) {
+      return res.status(400).json({ success: false, error: { message: 'Name and mobile number are required.' } });
+    }
+
+    // Determine readable type label
+    let typeLabel = 'General Enquiry';
+    if (type === 'ONLINE_CLASS') typeLabel = 'Online Class';
+    else if (type === 'OFFLINE_CLASS') typeLabel = 'Offline Direct Class';
+    else if (type === 'VARMA_TREATMENT') typeLabel = 'Varma Treatment';
+
+    // Build subject line
+    let subject = `[${typeLabel}]`;
+    if (courseTitle) subject += ` ${courseTitle}`;
+    if (location) subject += ` (${location})`;
+
+    // Store in DB
+    const enquiry = await prisma.enquiry.create({
+      data: {
+        name: name.trim(),
+        email: email ? email.trim() : 'no-email@jadmaa.com',
+        phone: mobile.trim(),
+        subject,
+        message: message ? message.trim() : `Enquiry for ${typeLabel}`,
+        status: 'NEW',
+      },
+    });
+
+    // Send email alert to admin(s) via Brevo asynchronously
+    sendEnquiryAdminNotificationEmail({
+      name: name.trim(),
+      phone: mobile.trim(),
+      email: email ? email.trim() : undefined,
+      category: category === 'TREATMENT' ? 'TREATMENT' : 'CLASS',
+      type: type || (category === 'TREATMENT' ? 'VARMA_TREATMENT' : 'OFFLINE_CLASS'),
+      typeLabel,
+      courseTitle: courseTitle ? courseTitle.trim() : undefined,
+      location: location ? location.trim() : undefined,
+      message: message ? message.trim() : undefined,
+    }).catch((err) => {
+      console.error('[EnquiryController] Error sending admin notification email:', err);
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Enquiry submitted successfully. Our team will contact you shortly.',
+      data: enquiry,
+    });
+  } catch (err: any) {
+    console.error('[EnquiryController] submitPublicEnquiry error:', err);
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error while submitting enquiry.' } });
+  }
 };
 
 // --- Administrators (Super Admin) ---

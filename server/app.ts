@@ -13,14 +13,18 @@ import blogRoutes from './modules/blog/blog.routes.js';
 import adminRoutes from './modules/admin/admin.routes.js';
 import dbRoutes from './modules/admin/db.routes.js';
 import reviewsRoutes from './modules/reviews/reviews.routes.js';
+import uploadRoutes from './modules/upload/upload.routes.js';
+import path from 'path';
 
 const app = express();
 
 app.use(express.json({
+  limit: '20mb',
   verify: (req: any, _res, buf) => {
     req.rawBody = buf?.toString();
   }
 }));
+app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cookieParser());
 app.use(cors());
 app.use(helmet({
@@ -60,6 +64,8 @@ app.get('/api/v1/settings', async (req, res) => {
   }
 });
 
+app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/courses', courseRoutes);
 app.use('/api/v1/payments', paymentRoutes);
@@ -69,5 +75,6 @@ app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/db-admin', dbRoutes);
 app.use('/api/v1/reviews', reviewsRoutes);
+app.use('/api/v1/upload', uploadRoutes);
 
 export default app;
