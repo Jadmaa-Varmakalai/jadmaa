@@ -70,3 +70,4 @@ export const authorize = (roles: string[]) => {
 
 export const requireAdmin = authorize(['ADMIN', 'SUPER_ADMIN']);
 export const requireSuperAdmin = authorize(['SUPER_ADMIN']);
+export const requireInstructor = authorize(['INSTRUCTOR', 'ADMIN', 'SUPER_ADMIN']);

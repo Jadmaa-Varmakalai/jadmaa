@@ -14,6 +14,7 @@ import adminRoutes from './modules/admin/admin.routes.js';
 import dbRoutes from './modules/admin/db.routes.js';
 import reviewsRoutes from './modules/reviews/reviews.routes.js';
 import uploadRoutes from './modules/upload/upload.routes.js';
+import instructorRoutes from './modules/instructor/instructor.routes.js';
 import path from 'path';
 
 const app = express();
@@ -76,5 +77,6 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/db-admin', dbRoutes);
 app.use('/api/v1/reviews', reviewsRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/instructor', instructorRoutes);
 
 export default app;
