@@ -141,7 +141,7 @@ export const Courses: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 reveal-stagger">
               {filteredCourses.map(course => (
                 <div key={course.id} className="reveal-child">
-                  <CourseCard course={course} hidePrice />
+                  <CourseCard course={course} />
                 </div>
               ))}
             </div>

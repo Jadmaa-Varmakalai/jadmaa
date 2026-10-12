@@ -295,35 +295,48 @@ export const CourseDetails: React.FC = () => {
           </nav>
 
           {/* Course Details Header */}
-          <header className="mb-8 md:mb-10">
-            <h1 className="font-heading font-bold text-2xl sm:text-3xl lg:text-4xl text-[#111827] leading-tight mb-4">
+          <header className="mb-8 md:mb-10 space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#B12B2B]/10 text-[#B12B2B] border border-[#B12B2B]/20">
+                {course.category}
+              </span>
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#374151] border border-gray-200">
+                Level: {course.level || 'Beginner'}
+              </span>
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                <span>4.9</span>
+                <span className="text-amber-700/70 font-normal">({course.reviewCount || 48} reviews)</span>
+              </span>
+              {course.isFree && (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  FREE STARTER
+                </span>
+              )}
+            </div>
+
+            <h1 className="font-heading font-semibold text-2xl sm:text-3xl lg:text-4xl text-[#111827] leading-tight">
               {displayTitle}
             </h1>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-1 border-b border-[#E5E2DC] pb-6">
-              {/* Categories & Meta */}
-              <div className="flex flex-wrap items-center gap-3 text-sm text-[#5C5148]">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-b border-[#E5E2DC] pb-5">
+              <div className="flex items-center gap-3 text-sm text-[#4B5563]">
+                <div className="w-8 h-8 rounded-full bg-[#B12B2B] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                  {course.instructor.name?.charAt(0) || 'M'}
+                </div>
                 <span>
-                  <strong>Categories:</strong>{' '}
-                  <span className="text-jadmaa-red font-medium">{course.category}</span>
-                  {course.category !== 'Varmakalai' && (
-                    <span className="text-jadmaa-red font-medium">, Varmakalai</span>
-                  )}
-                </span>
-                <span className="text-[#D1CBC3]">•</span>
-                <span>
-                  <strong>Level:</strong> {course.level || 'Beginner'}
+                  Taught by <strong className="text-[#1F2937]">{aasanDisplayName}</strong>
                 </span>
               </div>
 
-              {/* Actions: Share & Copy */}
+              {/* Actions: Share */}
               <div className="flex items-center space-x-3 text-xs md:text-sm">
                 <button 
                   onClick={() => setIsShareModalOpen(true)}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-[#D5D0C7] hover:border-jadmaa-red text-[#4A443D] hover:text-jadmaa-red bg-white transition-colors"
+                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg border border-[#D5D0C7] hover:border-jadmaa-red text-[#4A443D] hover:text-jadmaa-red bg-white shadow-sm transition-colors"
                 >
                   <Share2 className="w-4 h-4" />
-                  <span className="font-medium">Share</span>
+                  <span className="font-medium">Share Course</span>
                 </button>
               </div>
             </div>
@@ -336,16 +349,16 @@ export const CourseDetails: React.FC = () => {
             <main className="lg:col-span-8 space-y-8">
               
               {/* Course Featured Banner / Video Frame */}
-              <div className="relative rounded-xl overflow-hidden aspect-[16/9] bg-black shadow-md border border-[#E5E2DC] group">
+              <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black shadow-lg border border-[#E5E2DC] group">
                 <img 
                   src={course.thumbnail || '/images/course-basic.jpg'} 
                   alt={displayTitle}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/35 flex items-center justify-center backdrop-blur-[1px]">
                   <button 
                     onClick={handleEnrollClick}
-                    className="w-16 h-16 rounded-full bg-jadmaa-red/90 hover:bg-jadmaa-red text-white flex items-center justify-center shadow-xl transition-transform hover:scale-110"
+                    className="w-16 h-16 rounded-full bg-[#B12B2B] hover:bg-[#8E1C1C] text-white flex items-center justify-center shadow-2xl transition-transform hover:scale-110 ring-4 ring-white/30"
                     aria-label="Preview Course"
                   >
                     <Play className="w-7 h-7 fill-current ml-1" />
@@ -353,15 +366,45 @@ export const CourseDetails: React.FC = () => {
                 </div>
               </div>
 
-              {/* Course Meta Banner (Matches jd-course-meta from jadmaa.com) */}
-              <div className="bg-[#FAF2EB] border-l-4 border-jadmaa-red p-4 rounded-r-xl text-sm md:text-base text-[#2D2823] leading-relaxed">
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-                  <span><strong>Duration:</strong> {course.duration || '3 Months'}</span>
-                  <span className="text-[#C4BCB3]">•</span>
-                  <span><strong>Age:</strong> 10+</span>
-                  <span className="text-[#C4BCB3]">•</span>
-                  <span>
-                    <strong>Fee:</strong> {course.isFree ? 'Free' : `₹${course.price.toLocaleString('en-IN')}`}
+              {/* Quick Course Highlights Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-white rounded-xl p-3.5 border border-[#E8DDD0] shadow-sm flex flex-col items-start">
+                  <div className="flex items-center gap-1.5 text-xs text-[#B12B2B] font-semibold mb-1">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Duration</span>
+                  </div>
+                  <span className="font-heading font-bold text-sm sm:text-base text-[#111827]">
+                    {course.duration || '3 Months'}
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl p-3.5 border border-[#E8DDD0] shadow-sm flex flex-col items-start">
+                  <div className="flex items-center gap-1.5 text-xs text-[#B12B2B] font-semibold mb-1">
+                    <Users className="w-3.5 h-3.5" />
+                    <span>Age Group</span>
+                  </div>
+                  <span className="font-heading font-bold text-sm sm:text-base text-[#111827]">
+                    10+ Years
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl p-3.5 border border-[#E8DDD0] shadow-sm flex flex-col items-start">
+                  <div className="flex items-center gap-1.5 text-xs text-[#B12B2B] font-semibold mb-1">
+                    <Award className="w-3.5 h-3.5" />
+                    <span>Certificate</span>
+                  </div>
+                  <span className="font-heading font-bold text-sm sm:text-base text-[#111827]">
+                    Verified JADMAA
+                  </span>
+                </div>
+
+                <div className="bg-white rounded-xl p-3.5 border border-[#E8DDD0] shadow-sm flex flex-col items-start">
+                  <div className="flex items-center gap-1.5 text-xs text-[#B12B2B] font-semibold mb-1">
+                    <BarChart className="w-3.5 h-3.5" />
+                    <span>Access</span>
+                  </div>
+                  <span className="font-heading font-bold text-sm sm:text-base text-[#111827]">
+                    Lifetime
                   </span>
                 </div>
               </div>

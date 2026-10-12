@@ -92,29 +92,21 @@ export const Home: React.FC = () => {
     return () => cancelAnimationFrame(animId);
   }, [coursesDirection, coursesPaused, isCoursesDragging, featuredCourses]);
 
-  // Finite ping-pong smooth auto-scroll animation loop for Testimonials (1 to N, then N to 1)
+  // Continuous seamless infinite auto-scroll loop for Testimonials (Right to Left: 1 to N)
   useEffect(() => {
     const el = testimonialsTrackRef.current;
     if (!el) return;
 
     let animId: number;
-    const speed = 0.8; // pixels per frame
+    const speed = 0.85; // pixels per frame
 
     const step = () => {
       if (!testimonialsPaused && !isTestimonialsDragging && el) {
-        const maxScroll = el.scrollWidth - el.clientWidth;
-        if (maxScroll > 10) {
-          if (testimonialsDirection === 'right') {
-            el.scrollLeft += speed;
-            if (el.scrollLeft >= maxScroll - 2) {
-              setTestimonialsDirection('left');
-            }
-          } else {
-            el.scrollLeft -= speed;
-            if (el.scrollLeft <= 2) {
-              setTestimonialsDirection('right');
-            }
-          }
+        el.scrollLeft += speed;
+        // When scrolled past one full set of reviews, seamlessly offset back
+        const segmentWidth = el.scrollWidth / 3;
+        if (segmentWidth > 0 && el.scrollLeft >= segmentWidth) {
+          el.scrollLeft -= segmentWidth;
         }
       }
       animId = requestAnimationFrame(step);
@@ -122,7 +114,7 @@ export const Home: React.FC = () => {
 
     animId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(animId);
-  }, [testimonialsDirection, testimonialsPaused, isTestimonialsDragging, testimonials]);
+  }, [testimonialsPaused, isTestimonialsDragging, testimonials]);
 
   // Window-level mouse drag handling for Courses track (finite clamped scroll)
   useEffect(() => {
@@ -150,7 +142,7 @@ export const Home: React.FC = () => {
     };
   }, [isCoursesDragging]);
 
-  // Window-level mouse drag handling for Testimonials track (finite clamped scroll)
+  // Window-level mouse drag handling for Testimonials track (infinite wrap)
   useEffect(() => {
     if (!isTestimonialsDragging) return;
 
@@ -158,9 +150,13 @@ export const Home: React.FC = () => {
       const el = testimonialsTrackRef.current;
       if (!el) return;
       e.preventDefault();
-      const maxScroll = el.scrollWidth - el.clientWidth;
       const walk = (e.pageX - testimonialsDragStart.current.startX) * 1.5;
-      el.scrollLeft = Math.max(0, Math.min(maxScroll, testimonialsDragStart.current.scrollLeft - walk));
+      el.scrollLeft = testimonialsDragStart.current.scrollLeft - walk;
+      const segmentWidth = el.scrollWidth / 3;
+      if (segmentWidth > 0) {
+        if (el.scrollLeft >= segmentWidth * 2) el.scrollLeft -= segmentWidth;
+        if (el.scrollLeft < 0) el.scrollLeft += segmentWidth;
+      }
     };
 
     const handleMouseUp = () => {
@@ -185,8 +181,7 @@ export const Home: React.FC = () => {
   };
 
   // Manual roll helpers for Testimonials
-  const scrollTestimonialsBy = (delta: number, newDirection?: 'left' | 'right') => {
-    if (newDirection) setTestimonialsDirection(newDirection);
+  const scrollTestimonialsBy = (delta: number) => {
     if (testimonialsTrackRef.current) {
       testimonialsTrackRef.current.scrollBy({ left: delta, behavior: 'smooth' });
     }
@@ -726,34 +721,24 @@ export const Home: React.FC = () => {
               </h2>
             </div>
 
-            {/* Testimonials Controls: Direction & Manual Roll */}
+            {/* Testimonials Controls: Manual Nudge */}
             <div className="flex items-center gap-3">
-              {/* Scroll Left */}
               <button
                 type="button"
-                onClick={() => scrollTestimonialsBy(-340, 'left')}
-                title="Scroll Left (Roll Left)"
+                onClick={() => scrollTestimonialsBy(-340)}
+                title="Scroll Previous"
                 aria-label="Scroll Reviews Left"
-                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  testimonialsDirection === 'left'
-                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
-                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
-                }`}
+                className="p-2 sm:p-2.5 rounded-full border border-[#E8DDD0] bg-white text-[#2B2521] hover:bg-[#FAF6F0] hover:border-[#B12B2B] hover:text-[#B12B2B] shadow-sm transition-all duration-200"
               >
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
-              {/* Scroll Right */}
               <button
                 type="button"
-                onClick={() => scrollTestimonialsBy(340, 'right')}
-                title="Scroll Right (Roll Right)"
+                onClick={() => scrollTestimonialsBy(340)}
+                title="Scroll Next"
                 aria-label="Scroll Reviews Right"
-                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  testimonialsDirection === 'right'
-                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
-                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
-                }`}
+                className="p-2 sm:p-2.5 rounded-full border border-[#E8DDD0] bg-white text-[#2B2521] hover:bg-[#FAF6F0] hover:border-[#B12B2B] hover:text-[#B12B2B] shadow-sm transition-all duration-200"
               >
                 <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
@@ -782,8 +767,11 @@ export const Home: React.FC = () => {
               onTouchStart={() => setTestimonialsPaused(true)}
               onTouchEnd={() => setTestimonialsPaused(false)}
             >
-              {(testimonials.length > 0 ? testimonials : (mockTestimonials as any)).map((t: any) => (
-                <div key={t.id} className="w-[85vw] sm:w-[350px] shrink-0 bg-white rounded-lg border border-[#E8DDD0] p-5 space-y-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+              {(() => {
+                const baseList = testimonials.length > 0 ? testimonials : (mockTestimonials as any);
+                return [...baseList, ...baseList, ...baseList];
+              })().map((t: any, idx: number) => (
+                <div key={`${t.id}-${idx}`} className="w-[85vw] sm:w-[350px] shrink-0 bg-white rounded-lg border border-[#E8DDD0] p-5 space-y-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
                   <div className="space-y-2">
                     <div className="flex text-amber-500">
                       {[...Array(t.rating)].map((_, i) => (
