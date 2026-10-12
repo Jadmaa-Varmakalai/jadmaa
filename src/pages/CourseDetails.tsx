@@ -5,7 +5,7 @@ import { CurriculumAccordion } from '../components/courses/CurriculumAccordion';
 import { CourseCard } from '../components/courses/CourseCard';
 import { 
   Clock, Award, Play, ChevronRight, Share2, 
-  BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2
+  BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star
 } from 'lucide-react';
 import { courseApi } from '../lib/api/courseApi';
 import { paymentApi } from '../lib/api/paymentApi';
@@ -62,13 +62,6 @@ export const CourseDetails: React.FC = () => {
     fetchCourseData();
   }, [slug]);
 
-  const isMobileDevice = (): boolean => {
-    if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
-    return (
-      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-      window.innerWidth < 768
-    );
-  };
 
   const getButtonText = () => {
     if (!course) return '';
@@ -144,7 +137,6 @@ export const CourseDetails: React.FC = () => {
       }
 
       const { keyId, orderId, amount, currency, prefill } = orderRes.data;
-      const isMobile = isMobileDevice();
 
       // 2. Configure Razorpay Standard Checkout
       const options = {

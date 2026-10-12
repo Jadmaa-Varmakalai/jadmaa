@@ -28,7 +28,6 @@ export const Home: React.FC = () => {
 
   // Testimonials Carousel State
   const testimonialsTrackRef = React.useRef<HTMLDivElement>(null);
-  const [testimonialsDirection, setTestimonialsDirection] = useState<'left' | 'right'>('right');
   const [testimonialsPaused, setTestimonialsPaused] = useState<boolean>(false);
   const [isTestimonialsDragging, setIsTestimonialsDragging] = useState<boolean>(false);
   const testimonialsDragStart = React.useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
