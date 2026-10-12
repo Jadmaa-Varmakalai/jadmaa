@@ -22,8 +22,8 @@ export default {
       },
       fontFamily: {
         heading: ["'Bricolage Grotesque'", "sans-serif"],
-        body: ["'Work Sans'", "sans-serif"],
-        sans: ["'Work Sans'", "sans-serif"],
+        body: ["'Poppins'", "sans-serif"],
+        sans: ["'Poppins'", "sans-serif"],
       },
       boxShadow: {
         jadmaa: "0 4px 20px rgba(43, 37, 33, 0.08)",

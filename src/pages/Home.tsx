@@ -84,18 +84,18 @@ export const Home: React.FC = () => {
             {/* Left Column */}
             <div className="lg:col-span-7 space-y-5 text-left" data-aos="fade-right">
               
-              <div className="text-[#B12B2B] text-[12px] font-bold tracking-[1.2px] uppercase font-body">
+              <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
               </div>
 
-              <h1 className="font-heading font-bold text-[34px] text-[#2B2521] leading-[44.2px] tracking-[-0.5px]">
+              <h1 className="font-heading font-bold text-[clamp(28px,3.8vw,48px)] text-[#2B2521] leading-[1.18] tracking-[-0.5px]">
                 <EditableText 
                   settingKey="home.hero.title" 
                   defaultText="Learn the Ancient Science of Varmakalai" 
                 />
               </h1>
               
-              <p className="font-body text-[#5C5148] text-[17px] leading-[27.2px] max-w-[815px]">
+              <p className="font-body text-[#5C5148] text-[16px] md:text-[17px] leading-[1.6] max-w-xl">
                 <EditableText 
                   settingKey="home.hero.subtitle" 
                   defaultText="Empower your body, sharpen your mind, and preserve a timeless tradition through professional Varmakalai (Varma Kalai) martial arts training." 
@@ -116,41 +116,41 @@ export const Home: React.FC = () => {
               <div className="pt-8 border-t border-[#E8DDD0] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left" data-aos="fade-up" data-aos-delay="100">
                 <div>
                   <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={1000} suffix="+" /></div>
-                  <div className="font-body text-xs sm:text-[12px] text-[#5C5148] mt-1 font-semibold">
+                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
                     <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
                   </div>
                 </div>
 
                 <div>
                   <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={3} /></div>
-                  <div className="font-body text-xs sm:text-[12px] text-[#5C5148] mt-1 font-semibold">
+                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
                     <EditableText settingKey="home.stats.branches" defaultText="Branches" />
                   </div>
                 </div>
 
                 <div>
                   <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={7} /></div>
-                  <div className="font-body text-xs sm:text-[12px] text-[#5C5148] mt-1 font-semibold">
+                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
                     <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
                   </div>
                 </div>
 
                 <div>
-                  <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={10} suffix="+" /></div>
-                  <div className="font-body text-xs sm:text-[12px] text-[#5C5148] mt-1 font-semibold">
-                    <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
+                  <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={15} suffix="+" /></div>
+                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
+                    <EditableText settingKey="home.stats.experience" defaultText="Years Guru Experience" />
                   </div>
                 </div>
               </div>
 
             </div>
 
-            {/* Right Column: Hero Image */}
+            {/* Right Column: Hero Practitioner Kick Image */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[440px]" data-aos="fade-left" data-aos-delay="150">
-              <div className="relative group cursor-pointer w-full flex justify-center lg:justify-end">
+              <div className="relative group cursor-pointer">
                 <img 
                   src="/images/hero-kick-action-transparent.png" 
-                  alt="Varmakalai Training" 
+                  alt="Varmakalai Practitioner Stance" 
                   className="max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>
@@ -427,6 +427,48 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* 6. GROWTH & LEADERSHIP / BUILD YOUR FUTURE SECTION */}
+      <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            <div className="lg:col-span-7 space-y-3" data-aos="fade-right">
+              <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
+                <EditableText settingKey="home.growth.eyebrow" defaultText="Growth & Leadership" />
+              </span>
+              <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
+                <EditableText settingKey="home.growth.title" defaultText="Build Your Future Through Traditional Martial Arts (Varmakalai)" />
+              </h2>
+              <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
+                <EditableText 
+                  settingKey="home.growth.description" 
+                  defaultText="Learning doesn't end with a certificate. Dedicated students can grow from student to certified instructor and branch trainer — building a meaningful career while preserving an ancient tradition." 
+                  multiline={true} 
+                />
+              </p>
+              <div className="pt-2">
+                <Link 
+                  to="/careers" 
+                  className="inline-flex items-center space-x-1.5 font-semibold text-[15px] text-[#B12B2B] hover:text-[#8F2020] transition-colors group font-body"
+                >
+                  <span><EditableText settingKey="home.growth.cta" defaultText="Learn More →" /></span>
+                </Link>
+              </div>
+            </div>
+
+            <div className="lg:col-span-5 flex justify-center" data-aos="fade-left" data-aos-delay="100">
+              <div className="w-full max-w-[480px] overflow-hidden rounded-[14px]">
+                <img 
+                  src="https://jadmaa.com/wp-content/uploads/2026/08/file_000000008884820b9a3c789a8c0be531-1024x683.png" 
+                  alt="Varmakalai martial arts training session at JADMAA" 
+                  className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
+                />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
 
       {/* 7. FEATURED COURSES SECTION */}
       <section className="py-16 bg-white border-b border-[#E8DDD0] text-left">

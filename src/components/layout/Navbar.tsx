@@ -73,8 +73,8 @@ export const Navbar: React.FC = () => {
         }} className="px-3 py-1 bg-white text-jadmaa-red rounded-full text-xs hover:bg-gray-100">Exit Edit Mode</button>
       </div>
     )}
-    <header className={`sticky top-0 z-50 bg-white transition-shadow duration-200 ${
-      scrolled ? 'shadow-[0px_2px_14px_0px_rgba(43,37,33,0.06)] py-3' : 'py-4'
+    <header className={`sticky top-0 z-50 bg-[#FAF6F0] transition-shadow duration-200 border-b border-[#E8DDD0] ${
+      scrolled ? 'shadow-sm py-3' : 'py-4'
     }`}>
       <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
         <div className="flex items-center justify-between">
@@ -84,9 +84,9 @@ export const Navbar: React.FC = () => {
             <img 
               src="/images/logo-1.png" 
               alt="JADMAA Varmakalai Logo" 
-              className="h-[60px] sm:h-[78px] w-auto object-contain"
+              className="h-10 sm:h-12 w-auto object-contain"
             />
-            <span className="font-heading font-bold text-lg tracking-[0.5px] leading-none text-[#2B2521]">
+            <span className="font-heading font-extrabold text-lg sm:text-xl text-[#2B2521] tracking-tight leading-none">
               JADMAA <span className="text-[#B12B2B]">VARMAKALAI</span>
             </span>
           </Link>
@@ -100,10 +100,10 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={item.id}
                   to={item.href}
-                  className={`font-body text-[15px] font-medium tracking-normal px-4 py-3.5 transition-colors duration-150 relative ${
+                  className={`font-body text-[15px] font-medium tracking-normal px-3.5 py-2 transition-colors duration-150 relative ${
                     isActive 
-                      ? 'text-[#B12B2B] after:absolute after:bottom-2 after:left-4 after:right-4 after:h-[2px] after:bg-[#B12B2B]' 
-                      : 'text-[#5C5148] hover:text-[#B12B2B]'
+                      ? 'text-[#B12B2B] after:absolute after:bottom-1 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-[#B12B2B]' 
+                      : 'text-[#2B2521] hover:text-[#B12B2B]'
                   }`}
                 >
                   {item.label}

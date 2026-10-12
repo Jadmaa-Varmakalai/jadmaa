@@ -83,11 +83,10 @@
 .btn-jadmaa-primary {
   background-color: #B12B2B;
   color: #ffffff;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 15px;
   line-height: 1.4;
-  letter-spacing: 0.2px;
   padding: 13px 28px;
   border-radius: 8px;
   display: inline-flex;
@@ -118,12 +117,11 @@
 .btn-jadmaa-outline {
   background-color: transparent;
   color: #B12B2B;
-  font-family: 'Work Sans', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-weight: 600;
   font-size: 15px;
   line-height: 1.4;
-  letter-spacing: 0.2px;
-  padding: 13px 28px;
+  padding: 12px 28px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
@@ -552,33 +550,23 @@ a[role="button"]:active {
 }
 
 /* ==========================================
-   CONSISTENT SCROLL REVEAL SYSTEM (Matched to jadmaa.com)
+   CONSISTENT SCROLL REVEAL SYSTEM
    ========================================== */
 .reveal {
   opacity: 0;
-  /* Mobile values first */
-  transform: translate3d(0, 44px, 0);
-  transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1);
+  transform: translate3d(0, 12px, 0);
+  transition: opacity 550ms cubic-bezier(0.22, 1, 0.36, 1), transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
-}
-@media (min-width: 768px) {
-  .reveal {
-    /* Desktop values */
-    transform: translate3d(0, 34px, 0);
-    transition: opacity 0.75s ease, transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1);
-  }
 }
 .reveal.is-visible {
   opacity: 1;
   transform: translate3d(0, 0, 0);
 }
-
-/* 90ms stagger based on jadmaa.com block staggers */
 .reveal-stagger > .reveal:nth-child(1) { transition-delay: 0ms; }
-.reveal-stagger > .reveal:nth-child(2) { transition-delay: 90ms; }
-.reveal-stagger > .reveal:nth-child(3) { transition-delay: 180ms; }
-.reveal-stagger > .reveal:nth-child(4) { transition-delay: 270ms; }
-.reveal-stagger > .reveal:nth-child(n+5) { transition-delay: 360ms; }
+.reveal-stagger > .reveal:nth-child(2) { transition-delay: 60ms; }
+.reveal-stagger > .reveal:nth-child(3) { transition-delay: 120ms; }
+.reveal-stagger > .reveal:nth-child(4) { transition-delay: 180ms; }
+.reveal-stagger > .reveal:nth-child(n+5) { transition-delay: 220ms; }
 
 .no-js .reveal {
   opacity: 1;
