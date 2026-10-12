@@ -4,7 +4,7 @@ import { SEO } from '../components/common/SEO';
 import { CourseCard } from '../components/courses/CourseCard';
 import { mockTestimonials } from '../data/testimonials';
 import { mockBranches } from '../data/branches';
-import { CheckCircle2, ArrowRight, Star, MapPin, HeartPulse, Shield, Award, Users, ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react';
+import { CheckCircle2, ArrowRight, Star, MapPin, HeartPulse, Shield, Award, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import { courseApi } from '../lib/api/courseApi';
 import type { Course } from '../types';
 import { reviewsApi, type Testimonial } from '../lib/api/reviewsApi';
@@ -60,7 +60,7 @@ export const Home: React.FC = () => {
     fetchTestimonials();
   }, []);
 
-  // Continuous smooth auto-scroll animation loop for Featured Courses
+  // Finite ping-pong smooth auto-scroll animation loop for Featured Courses (1 to 5, then 5 to 1)
   useEffect(() => {
     const el = coursesTrackRef.current;
     if (!el) return;
@@ -70,16 +70,18 @@ export const Home: React.FC = () => {
 
     const step = () => {
       if (!coursesPaused && !isCoursesDragging && el) {
-        if (coursesDirection === 'right') {
-          el.scrollLeft += speed;
-          // When scrolled halfway through the doubled content, loop seamlessly
-          if (el.scrollLeft >= el.scrollWidth / 2) {
-            el.scrollLeft -= el.scrollWidth / 2;
-          }
-        } else {
-          el.scrollLeft -= speed;
-          if (el.scrollLeft <= 0) {
-            el.scrollLeft += el.scrollWidth / 2;
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 10) {
+          if (coursesDirection === 'right') {
+            el.scrollLeft += speed;
+            if (el.scrollLeft >= maxScroll - 2) {
+              setCoursesDirection('left');
+            }
+          } else {
+            el.scrollLeft -= speed;
+            if (el.scrollLeft <= 2) {
+              setCoursesDirection('right');
+            }
           }
         }
       }
@@ -90,25 +92,28 @@ export const Home: React.FC = () => {
     return () => cancelAnimationFrame(animId);
   }, [coursesDirection, coursesPaused, isCoursesDragging, featuredCourses]);
 
-  // Continuous smooth auto-scroll animation loop for Testimonials
+  // Finite ping-pong smooth auto-scroll animation loop for Testimonials (1 to N, then N to 1)
   useEffect(() => {
     const el = testimonialsTrackRef.current;
     if (!el) return;
 
     let animId: number;
-    const speed = 0.75; // pixels per frame
+    const speed = 0.8; // pixels per frame
 
     const step = () => {
       if (!testimonialsPaused && !isTestimonialsDragging && el) {
-        if (testimonialsDirection === 'right') {
-          el.scrollLeft += speed;
-          if (el.scrollLeft >= el.scrollWidth / 2) {
-            el.scrollLeft -= el.scrollWidth / 2;
-          }
-        } else {
-          el.scrollLeft -= speed;
-          if (el.scrollLeft <= 0) {
-            el.scrollLeft += el.scrollWidth / 2;
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 10) {
+          if (testimonialsDirection === 'right') {
+            el.scrollLeft += speed;
+            if (el.scrollLeft >= maxScroll - 2) {
+              setTestimonialsDirection('left');
+            }
+          } else {
+            el.scrollLeft -= speed;
+            if (el.scrollLeft <= 2) {
+              setTestimonialsDirection('right');
+            }
           }
         }
       }
@@ -118,6 +123,58 @@ export const Home: React.FC = () => {
     animId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(animId);
   }, [testimonialsDirection, testimonialsPaused, isTestimonialsDragging, testimonials]);
+
+  // Window-level mouse drag handling for Courses track (finite clamped scroll)
+  useEffect(() => {
+    if (!isCoursesDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const el = coursesTrackRef.current;
+      if (!el) return;
+      e.preventDefault();
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      const walk = (e.pageX - coursesDragStart.current.startX) * 1.5;
+      el.scrollLeft = Math.max(0, Math.min(maxScroll, coursesDragStart.current.scrollLeft - walk));
+    };
+
+    const handleMouseUp = () => {
+      setIsCoursesDragging(false);
+      setCoursesPaused(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isCoursesDragging]);
+
+  // Window-level mouse drag handling for Testimonials track (finite clamped scroll)
+  useEffect(() => {
+    if (!isTestimonialsDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const el = testimonialsTrackRef.current;
+      if (!el) return;
+      e.preventDefault();
+      const maxScroll = el.scrollWidth - el.clientWidth;
+      const walk = (e.pageX - testimonialsDragStart.current.startX) * 1.5;
+      el.scrollLeft = Math.max(0, Math.min(maxScroll, testimonialsDragStart.current.scrollLeft - walk));
+    };
+
+    const handleMouseUp = () => {
+      setIsTestimonialsDragging(false);
+      setTestimonialsPaused(false);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isTestimonialsDragging]);
 
   // Manual roll helpers for Courses
   const scrollCoursesBy = (delta: number, newDirection?: 'left' | 'right') => {
@@ -481,23 +538,12 @@ export const Home: React.FC = () => {
                 title="Scroll Left (Roll Left)"
                 aria-label="Scroll Courses Left"
                 className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  coursesDirection === 'left' && !coursesPaused
+                  coursesDirection === 'left'
                     ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
                     : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
                 }`}
               >
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-
-              {/* Pause / Play Toggle */}
-              <button
-                type="button"
-                onClick={() => setCoursesPaused(!coursesPaused)}
-                title={coursesPaused ? "Resume Auto Scroll" : "Pause Auto Scroll"}
-                aria-label={coursesPaused ? "Play Auto Scroll" : "Pause Auto Scroll"}
-                className="p-2 sm:p-2.5 rounded-full bg-white text-[#2B2521] border border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B] transition-all duration-200"
-              >
-                {coursesPaused ? <Play className="w-4 h-4 sm:w-5 sm:h-5" /> : <Pause className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
 
               {/* Next (Scroll Right / Set Right Direction) */}
@@ -507,7 +553,7 @@ export const Home: React.FC = () => {
                 title="Scroll Right (Roll Right)"
                 aria-label="Scroll Courses Right"
                 className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  coursesDirection === 'right' && !coursesPaused
+                  coursesDirection === 'right'
                     ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
                     : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
                 }`}
@@ -533,20 +579,9 @@ export const Home: React.FC = () => {
               onMouseDown={(e) => {
                 setIsCoursesDragging(true);
                 coursesDragStart.current = {
-                  startX: e.pageX - (coursesTrackRef.current?.offsetLeft || 0),
+                  startX: e.pageX,
                   scrollLeft: coursesTrackRef.current?.scrollLeft || 0,
                 };
-              }}
-              onMouseMove={(e) => {
-                if (!isCoursesDragging || !coursesTrackRef.current) return;
-                e.preventDefault();
-                const x = e.pageX - (coursesTrackRef.current.offsetLeft || 0);
-                const walk = (x - coursesDragStart.current.startX) * 1.5;
-                coursesTrackRef.current.scrollLeft = coursesDragStart.current.scrollLeft - walk;
-              }}
-              onMouseUp={() => {
-                setIsCoursesDragging(false);
-                setCoursesPaused(false);
               }}
               onTouchStart={() => setCoursesPaused(true)}
               onTouchEnd={() => setCoursesPaused(false)}
@@ -554,9 +589,9 @@ export const Home: React.FC = () => {
               {loading ? (
                 <div className="w-full text-center py-8 text-jadmaa-textMuted">Loading courses...</div>
               ) : (
-                [...featuredCourses, ...featuredCourses].map((course, idx) => (
+                featuredCourses.slice(0, 5).map((course) => (
                   <div
-                    key={`${course.id}-${idx}`}
+                    key={course.id}
                     className="w-[85vw] sm:w-[360px] lg:w-[380px] shrink-0"
                   >
                     <CourseCard course={course} hidePrice />
@@ -700,23 +735,12 @@ export const Home: React.FC = () => {
                 title="Scroll Left (Roll Left)"
                 aria-label="Scroll Reviews Left"
                 className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  testimonialsDirection === 'left' && !testimonialsPaused
+                  testimonialsDirection === 'left'
                     ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
                     : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
                 }`}
               >
                 <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-
-              {/* Pause / Play */}
-              <button
-                type="button"
-                onClick={() => setTestimonialsPaused(!testimonialsPaused)}
-                title={testimonialsPaused ? "Resume Auto Scroll" : "Pause Auto Scroll"}
-                aria-label={testimonialsPaused ? "Play Auto Scroll" : "Pause Auto Scroll"}
-                className="p-2 sm:p-2.5 rounded-full bg-white text-[#2B2521] border border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B] transition-all duration-200"
-              >
-                {testimonialsPaused ? <Play className="w-4 h-4 sm:w-5 sm:h-5" /> : <Pause className="w-4 h-4 sm:w-5 sm:h-5" />}
               </button>
 
               {/* Scroll Right */}
@@ -726,7 +750,7 @@ export const Home: React.FC = () => {
                 title="Scroll Right (Roll Right)"
                 aria-label="Scroll Reviews Right"
                 className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  testimonialsDirection === 'right' && !testimonialsPaused
+                  testimonialsDirection === 'right'
                     ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
                     : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
                 }`}
@@ -751,31 +775,15 @@ export const Home: React.FC = () => {
               onMouseDown={(e) => {
                 setIsTestimonialsDragging(true);
                 testimonialsDragStart.current = {
-                  startX: e.pageX - (testimonialsTrackRef.current?.offsetLeft || 0),
+                  startX: e.pageX,
                   scrollLeft: testimonialsTrackRef.current?.scrollLeft || 0,
                 };
-              }}
-              onMouseMove={(e) => {
-                if (!isTestimonialsDragging || !testimonialsTrackRef.current) return;
-                e.preventDefault();
-                const x = e.pageX - (testimonialsTrackRef.current.offsetLeft || 0);
-                const walk = (x - testimonialsDragStart.current.startX) * 1.5;
-                testimonialsTrackRef.current.scrollLeft = testimonialsDragStart.current.scrollLeft - walk;
-              }}
-              onMouseUp={() => {
-                setIsTestimonialsDragging(false);
-                setTestimonialsPaused(false);
               }}
               onTouchStart={() => setTestimonialsPaused(true)}
               onTouchEnd={() => setTestimonialsPaused(false)}
             >
-              {[
-                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any)),
-                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any)),
-                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any)),
-                ...(testimonials.length > 0 ? testimonials : (mockTestimonials as any))
-              ].map((t: any, idx: number) => (
-                <div key={`${t.id}-${idx}`} className="w-[85vw] sm:w-[350px] shrink-0 bg-white rounded-lg border border-[#E8DDD0] p-5 space-y-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+              {(testimonials.length > 0 ? testimonials : (mockTestimonials as any)).map((t: any) => (
+                <div key={t.id} className="w-[85vw] sm:w-[350px] shrink-0 bg-white rounded-lg border border-[#E8DDD0] p-5 space-y-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
                   <div className="space-y-2">
                     <div className="flex text-amber-500">
                       {[...Array(t.rating)].map((_, i) => (
