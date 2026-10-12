@@ -59,7 +59,7 @@ export const Instructors: React.FC = () => {
       await adminApi.createInstructor(formData);
       setIsModalOpen(false);
       setFormData({
-        name: '', email: '', phone: '', password: '', displayName: '', title: '', specialization: '', experience: ''
+        name: '', email: '', phone: '', password: '', displayName: '', title: '', specialization: '', experience: '', avatarUrl: ''
       });
       fetchInstructors();
     } catch (err: any) {
