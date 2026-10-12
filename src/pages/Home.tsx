@@ -265,8 +265,138 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. VARMA WELLNESS & TRADITIONAL THERAPY SECTION */}
-      <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden">
+      {/* 4. TRAINING AT JADMAA SECTION */}
+      <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left">
+        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+          
+          <div className="text-center max-w-3xl mx-auto space-y-2" data-aos="fade-up">
+            <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
+              <EditableText settingKey="home.training.title" defaultText="Training at JADMAA" />
+            </h2>
+            <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
+              <EditableText settingKey="home.training.subtitle" defaultText="What we teach, who it is for, and what you gain from consistent practice." multiline={true} />
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            
+            {/* Box 1: What We Offer */}
+            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
+              <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
+                What We Offer
+              </h3>
+              <ul className="space-y-2 text-[15px] text-[#2B2521] font-body">
+                {[
+                  'Varmakalai Training',
+                  'Kids Self-Defence Training',
+                  'Adult Self-Defence Training',
+                  "Women's Self-Defence Program",
+                  'School Workshops',
+                  'College Workshops',
+                  'Corporate Self-Defence Workshops',
+                  'Personal One-to-One Training',
+                  'Certification Programs',
+                  'Traditional Varma Treatment Sessions',
+                ].map((item) => (
+                  <li key={item} className="flex items-start space-x-2.5 animate-list-item group">
+                    <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                    <span className="leading-[1.5] group-hover:text-[#B12B2B] transition-colors">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Box 2: Who Can Join? */}
+            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
+              <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
+                Who Can Join?
+              </h3>
+              <ul className="space-y-2 text-[15px] text-[#2B2521] font-body">
+                {[
+                  'Children (6+ Years)',
+                  'School Students',
+                  'College Students',
+                  'Women',
+                  'Working Professionals',
+                  'Fitness Enthusiasts',
+                  'Martial Arts Learners',
+                  'Senior Adults (fitness assessment)',
+                ].map((item) => (
+                  <li key={item} className="flex items-start space-x-2.5 animate-list-item group">
+                    <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                    <span className="leading-[1.5] group-hover:text-[#B12B2B] transition-colors">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Box 3: Benefits of Training */}
+            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
+              <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
+                Benefits of Training
+              </h3>
+              <ul className="space-y-2 text-[15px] text-[#2B2521] font-body">
+                {[
+                  'Self-Defence Skills',
+                  'Improved Fitness',
+                  'Better Flexibility',
+                  'Faster Reflexes',
+                  'Increased Confidence',
+                  'Better Focus',
+                  'Mental Discipline',
+                  'Stress Management',
+                  'Leadership Skills',
+                  'Healthy Lifestyle',
+                ].map((item) => (
+                  <li key={item} className="flex items-start space-x-2.5 animate-list-item group">
+                    <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
+                    <span className="leading-[1.5] group-hover:text-[#B12B2B] transition-colors">{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 5. FEATURED COURSES SECTION */}
+      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
+          
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
+            <div>
+              <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
+                <EditableText settingKey="home.courses.eyebrow" defaultText="STRUCTURED CURRICULUM" />
+              </span>
+              <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] mt-1 leading-[1.2]">
+                <EditableText settingKey="home.courses.title" defaultText="Featured Courses" />
+              </h2>
+              <p className="text-[16px] text-[#5C5148] mt-1 font-body">
+                <EditableText settingKey="home.courses.subtitle" defaultText="Online Recorded Courses • Offline Branch Training — explore our self-paced & guided programs." multiline={true} />
+              </p>
+            </div>
+            <Link to="/courses" className="inline-flex items-center space-x-1 font-semibold text-[15px] text-[#B12B2B] hover:text-[#8F2020] group font-body">
+              <span>View all courses</span>
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
+
+          <div className="mobile-swipe-scroll">
+            {loading ? (
+              <div className="col-span-3 text-center py-8 text-jadmaa-textMuted">Loading courses...</div>
+            ) : featuredCourses.map((course) => (
+              <div key={course.id} className="jd-pop reveal-on-scroll">
+                <CourseCard course={course} hidePrice />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. VARMA WELLNESS & TRADITIONAL THERAPY SECTION */}
+      <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left overflow-hidden">
         <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           
           <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]" data-aos="fade-up">
@@ -300,7 +430,7 @@ export const Home: React.FC = () => {
                 {wellnessServices.map((service) => (
                   <div 
                     key={service.title} 
-                    className="p-5 sm:p-6 bg-white rounded-[14px] border border-[#E8DDD0] space-y-3"
+                    className="p-5 sm:p-6 bg-[#FAF6F0] rounded-[14px] border border-[#E8DDD0] space-y-3"
                   >
                     <h4 className="font-heading font-semibold text-[18px] text-[#2B2521] leading-[1.2]">
                       {service.title}
@@ -328,137 +458,6 @@ export const Home: React.FC = () => {
 
           </div>
 
-        </div>
-      </section>
-
-      {/* 5. TRAINING AT JADMAA SECTION */}
-      <section className="py-8 sm:py-12 bg-[#F3ECE0] border-b border-[#E8DDD0] text-left">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-          
-          <div className="text-center max-w-3xl mx-auto space-y-2" data-aos="fade-up">
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
-              <EditableText settingKey="home.training.title" defaultText="Training at JADMAA" />
-            </h2>
-            <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
-              <EditableText settingKey="home.training.subtitle" defaultText="What we teach, who it is for, and what you gain from consistent practice." multiline={true} />
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            
-            {/* Box 1: What We Offer */}
-            <div className="bg-white p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
-              <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
-                What We Offer
-              </h3>
-              <ul className="space-y-2 text-[15px] text-[#2B2521] font-body">
-                {[
-                  'Varmakalai Training',
-                  'Kids Self-Defence Training',
-                  'Adult Self-Defence Training',
-                  "Women's Self-Defence Program",
-                  'School Workshops',
-                  'College Workshops',
-                  'Corporate Self-Defence Workshops',
-                  'Personal One-to-One Training',
-                  'Certification Programs',
-                  'Traditional Varma Treatment Sessions',
-                ].map((item) => (
-                  <li key={item} className="flex items-start space-x-2.5 animate-list-item group">
-                    <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                    <span className="leading-[1.5] group-hover:text-[#B12B2B] transition-colors">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Box 2: Who Can Join? */}
-            <div className="bg-white p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
-              <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
-                Who Can Join?
-              </h3>
-              <ul className="space-y-2 text-[15px] text-[#2B2521] font-body">
-                {[
-                  'Children (6+ Years)',
-                  'School Students',
-                  'College Students',
-                  'Women',
-                  'Working Professionals',
-                  'Fitness Enthusiasts',
-                  'Martial Arts Learners',
-                  'Senior Adults (fitness assessment)',
-                ].map((item) => (
-                  <li key={item} className="flex items-start space-x-2.5 animate-list-item group">
-                    <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                    <span className="leading-[1.5] group-hover:text-[#B12B2B] transition-colors">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Box 3: Benefits of Training */}
-            <div className="bg-white p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
-              <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
-                Benefits of Training
-              </h3>
-              <ul className="space-y-2 text-[15px] text-[#2B2521] font-body">
-                {[
-                  'Self-Defence Skills',
-                  'Improved Fitness',
-                  'Better Flexibility',
-                  'Faster Reflexes',
-                  'Increased Confidence',
-                  'Better Focus',
-                  'Mental Discipline',
-                  'Stress Management',
-                  'Leadership Skills',
-                  'Healthy Lifestyle',
-                ].map((item) => (
-                  <li key={item} className="flex items-start space-x-2.5 animate-list-item group">
-                    <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                    <span className="leading-[1.5] group-hover:text-[#B12B2B] transition-colors">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-          </div>
-
-        </div>
-      </section>
-
-
-      {/* 7. FEATURED COURSES SECTION */}
-      <section className="py-16 bg-white border-b border-[#E8DDD0] text-left">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
-          
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
-            <div>
-              <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
-                <EditableText settingKey="home.courses.eyebrow" defaultText="STRUCTURED CURRICULUM" />
-              </span>
-              <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] mt-1 leading-[1.2]">
-                <EditableText settingKey="home.courses.title" defaultText="Featured Courses" />
-              </h2>
-              <p className="text-[16px] text-[#5C5148] mt-1 font-body">
-                <EditableText settingKey="home.courses.subtitle" defaultText="Online Recorded Courses • Offline Branch Training — explore our self-paced & guided programs." multiline={true} />
-              </p>
-            </div>
-            <Link to="/courses" className="inline-flex items-center space-x-1 font-semibold text-[15px] text-[#B12B2B] hover:text-[#8F2020] group font-body">
-              <span>View all courses</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
-
-          <div className="mobile-swipe-scroll">
-            {loading ? (
-              <div className="col-span-3 text-center py-8 text-jadmaa-textMuted">Loading courses...</div>
-            ) : featuredCourses.map((course) => (
-              <div key={course.id} className="jd-pop reveal-on-scroll">
-                <CourseCard course={course} hidePrice />
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
