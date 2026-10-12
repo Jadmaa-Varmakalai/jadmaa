@@ -74,19 +74,19 @@ export const Navbar: React.FC = () => {
       </div>
     )}
     <header className={`sticky top-0 z-50 bg-[#FAF6F0] transition-shadow duration-200 border-b border-[#E8DDD0] ${
-      scrolled ? 'shadow-sm py-3' : 'py-4'
+      scrolled ? 'shadow-sm py-2 sm:py-3' : 'py-2.5 sm:py-4'
     }`}>
-      <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
+      <div className="max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-10 xl:px-12">
         <div className="flex items-center justify-between">
           
           {/* Logo & Brand Name */}
-          <Link to="/" className="flex items-center space-x-3 group">
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group min-w-0 pr-2">
             <img 
               src="/images/logo-1.png" 
               alt="JADMAA Varmakalai Logo" 
-              className="h-10 sm:h-12 w-auto object-contain"
+              className="h-[42px] sm:h-12 w-auto object-contain shrink-0"
             />
-            <span className="font-heading font-extrabold text-lg sm:text-xl text-[#2B2521] tracking-tight leading-none">
+            <span className="font-heading font-extrabold text-[16px] sm:text-xl text-[#2B2521] tracking-tight leading-none truncate">
               JADMAA <span className="text-[#B12B2B]">VARMAKALAI</span>
             </span>
           </Link>
@@ -181,26 +181,26 @@ export const Navbar: React.FC = () => {
             )}
           </nav>
 
-          {/* Mobile Hamburger */}
-          <div className="flex items-center space-x-2 md:hidden">
+          {/* Mobile Actions: Login + Hamburger */}
+          <div className="flex items-center space-x-2 md:hidden shrink-0">
             {isLoggedIn ? (
               <Link
                 to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/student"}
-                className="px-3 py-1 text-sm font-bold text-white bg-[#B12B2B] rounded"
+                className="px-3 py-1.5 text-[14px] font-semibold text-white bg-[#B12B2B] hover:bg-[#8F2020] rounded-lg transition-colors"
               >
                 Profile
               </Link>
             ) : (
               <Link
                 to="/login"
-                className="px-3 py-1 text-sm font-bold text-white bg-[#B12B2B] rounded"
+                className="px-3 py-1.5 text-[14px] font-semibold text-white bg-[#B12B2B] hover:bg-[#8F2020] rounded-lg transition-colors leading-none inline-flex items-center justify-center"
               >
-                Login / Register
+                Login
               </Link>
             )}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-[#2B2521] hover:text-[#B12B2B]"
+              className="p-1.5 rounded-lg text-[#2B2521] hover:text-[#B12B2B] flex items-center justify-center transition-colors"
               aria-label="Toggle Menu"
             >
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
