@@ -372,7 +372,7 @@ export const getInstructorStudents = async (req: Request, res: Response) => {
         const completedLessons = await prisma.lessonProgress.count({
           where: {
             userId: enr.userId,
-            isCompleted: true,
+            completed: true,
             lesson: { module: { courseId: enr.courseId } }
           }
         });
