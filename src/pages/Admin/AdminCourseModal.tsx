@@ -114,6 +114,13 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
     }
   };
 
+  const extractVideoId = (url: string) => {
+    if (!url) return '';
+    const match = url.trim().match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
+    return match ? match[1] : (url.trim().length === 11 && !url.includes('/') ? url.trim() : '');
+  };
+  const parsedVideoId = extractVideoId(formData.youtubeUrl);
+
   if (!isOpen) return null;
 
   return (
@@ -233,19 +240,42 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
             helperText="Upload thumbnail from your device or paste an image URL"
           />
 
-          {!course && (
-            <div className="space-y-1">
-              <label className="text-sm font-bold text-gray-700">YouTube URL (Optional Shortcut)</label>
-              <input 
-                type="url" 
-                placeholder="https://youtube.com/watch?v=..."
-                value={formData.youtubeUrl}
-                onChange={e => setFormData({...formData, youtubeUrl: e.target.value})}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red"
-              />
-              <p className="text-xs text-gray-500">Adding this will automatically create a starting lesson with this video.</p>
+          {/* YouTube Video Link Field (Available in both Create & Edit mode) */}
+          <div className="space-y-2 p-3.5 bg-red-50/50 rounded-xl border border-red-100">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-gray-800 flex items-center space-x-1.5">
+                <Video className="w-4 h-4 text-jadmaa-red" />
+                <span>YouTube Video Link (Course Video)</span>
+              </label>
+              {parsedVideoId && (
+                <a
+                  href={`https://www.youtube.com/watch?v=${parsedVideoId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-jadmaa-red hover:underline flex items-center space-x-1 font-semibold"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span>Test Video Link</span>
+                </a>
+              )}
             </div>
-          )}
+            <input 
+              type="text" 
+              placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
+              value={formData.youtubeUrl}
+              onChange={e => setFormData({...formData, youtubeUrl: e.target.value})}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-sm"
+            />
+            <p className="text-xs text-gray-500">
+              Students playing this course will watch lessons streamed from this YouTube link. You can update or change this link at any time.
+            </p>
+            {parsedVideoId && (
+              <div className="flex items-center space-x-2 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
+                <PlayCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>Detected YouTube Video ID: <strong>{parsedVideoId}</strong></span>
+              </div>
+            )}
+          </div>
 
           <div className="pt-4 flex justify-end space-x-3">
             <button 
