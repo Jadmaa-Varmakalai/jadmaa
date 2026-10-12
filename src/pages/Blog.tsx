@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
+import { BlogCard } from '../components/common/BlogCard';
 import { blogApi } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
-import { format } from 'date-fns';
 
 export const Blog: React.FC = () => {
   const [blogs, setBlogs] = useState<BlogPost[]>(() => blogApi.getCachedBlogs());
@@ -55,53 +54,7 @@ export const Blog: React.FC = () => {
           ) : blogs.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {blogs.map(blog => (
-                <article 
-                  key={blog.id} 
-                  className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md"
-                >
-                  {/* Thumbnail */}
-                  {blog.thumbnailUrl && (
-                    <Link to={`/blog/${blog.slug}`} className="block overflow-hidden aspect-[16/9] bg-[#FAF6F0]">
-                      <img 
-                        src={blog.thumbnailUrl} 
-                        alt={blog.title} 
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                        loading="lazy"
-                      />
-                    </Link>
-                  )}
-
-                  {/* Post Content */}
-                  <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="text-[19px] sm:text-[20px] font-bold text-[#B12B2B] leading-[1.3] mb-2 hover:text-[#8F2020] transition-colors">
-                      <Link to={`/blog/${blog.slug}`}>
-                        {blog.title}
-                      </Link>
-                    </h3>
-
-                    {/* Meta */}
-                    <div className="text-[12px] text-[#7A6E65] leading-[1.4] mb-3 font-normal">
-                      <span>{format(new Date(blog.createdAt), 'MMMM dd, yyyy')}</span>
-                      <span className="mx-1.5 text-[#E8DDD0]">|</span>
-                      <span>by {blog.author?.name || 'info@jadmaa.com'}</span>
-                    </div>
-
-                    {/* Excerpt */}
-                    <div className="text-[14px] text-[#5C5148] leading-[1.6] line-clamp-3 mb-5">
-                      {blog.excerpt || 'Read the full article to learn more about this topic.'}
-                    </div>
-
-                    {/* Read More Link */}
-                    <div className="mt-auto pt-2">
-                      <Link 
-                        to={`/blog/${blog.slug}`}
-                        className="inline-flex items-center text-[13px] font-medium text-[#B12B2B] hover:text-[#8F2020] hover:underline transition-colors"
-                      >
-                        Read More →
-                      </Link>
-                    </div>
-                  </div>
-                </article>
+                <BlogCard key={blog.id} blog={blog} />
               ))}
             </div>
           ) : (
