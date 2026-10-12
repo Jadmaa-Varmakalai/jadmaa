@@ -8,60 +8,83 @@ interface BlogCardProps {
 }
 
 /**
- * BlogCard — Premium JADMAA split-panel card.
+ * BlogCard — Unified JADMAA LMS Blog Card Component.
  *
- * Upper visual section:
- *   LEFT  — Uploaded thumbnail (object-fit: cover, fills the panel fully).
- *   RIGHT — Blog title at top + smaller JADMAA logo at the bottom of the dark panel.
+ * Upper visual section (Split 50/50):
+ *   LEFT  (50%) — Cream-colored panel displaying the admin-uploaded thumbnail
+ *                 (object-fit: cover, clean cropping, zero distortion).
+ *   RIGHT (50%) — Original white background containing:
+ *                 1. Blog topic/title at the top (clean, readable, auto-wrapping)
+ *                 2. Fixed JADMAA logo below (reduced ~20-25%, centered)
+ *                 3. Fixed "JADMAA VARMAKALAI" branding beneath the logo
  *
- * Lower content section (unchanged from original):
- *   Red blog title link, date, author, excerpt, Read More →
+ * Lower content section (Preserved):
+ *   - Red blog title link
+ *   - Publication date & author
+ *   - Short description / excerpt
+ *   - "Read More →" link
  */
 export const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
-  const fallbackLogo = '/logo.png';
+  const fallbackThumbnail = '/images/course-basic.jpg';
+  const logoSrc = '/logo.png';
+
+  // Format date safely
+  const formattedDate = (() => {
+    try {
+      return format(new Date(blog.createdAt), 'MMMM dd, yyyy');
+    } catch {
+      return 'Recent';
+    }
+  })();
 
   return (
     <article className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group">
       {/* ── Upper visual split panel ─────────────────────────────────── */}
       <Link
         to={`/blog/${blog.slug}`}
-        className="flex h-[188px] sm:h-[200px] overflow-hidden"
+        className="flex h-[195px] sm:h-[205px] overflow-hidden border-b border-[#E8DDD0]"
         aria-label={`Open article: ${blog.title}`}
       >
-        {/* LEFT — Thumbnail */}
-        <div className="w-[52%] shrink-0 overflow-hidden bg-[#FAF6F0]">
+        {/* LEFT — Thumbnail Artwork (Cream Background) */}
+        <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
           <img
-            src={blog.thumbnailUrl || fallbackLogo}
+            src={blog.thumbnailUrl || fallbackThumbnail}
             alt={blog.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover object-left transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               const img = e.target as HTMLImageElement;
-              if (img.src !== fallbackLogo) img.src = fallbackLogo;
+              if (img.src !== fallbackThumbnail) {
+                img.src = fallbackThumbnail;
+              }
             }}
           />
         </div>
 
-        {/* RIGHT — Title + Logo on dark panel */}
-        <div className="w-[48%] bg-[#1A1A1A] flex flex-col px-4 py-4 overflow-hidden">
-          {/* Blog Title — top of panel */}
-          <p className="text-white text-[12.5px] sm:text-[13.5px] font-semibold leading-[1.4] line-clamp-5 flex-1">
-            {blog.title}
-          </p>
+        {/* RIGHT — Blog Title at Top + Fixed Smaller Logo + Brand Text */}
+        <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3.5 py-3.5 sm:px-4 sm:py-4 text-center overflow-hidden border-l border-[#E8DDD0]">
+          {/* 1. Blog topic/title at the top */}
+          <div className="w-full flex items-start justify-center pt-0.5">
+            <p className="text-[#2B2521] text-[12px] sm:text-[13px] font-bold leading-[1.35] line-clamp-2 sm:line-clamp-3 text-center">
+              {blog.title}
+            </p>
+          </div>
 
-          {/* JADMAA branding — bottom of panel, slightly smaller */}
-          <div className="flex items-end justify-start mt-3 gap-2 shrink-0">
-            {/* Logo with CSS filter to make it white on dark bg */}
+          {/* 2 & 3. Smaller fixed JADMAA logo (reduced 20-25%) + branding below */}
+          <div className="flex flex-col items-center justify-center my-auto pt-1 pb-0.5">
             <img
-              src={fallbackLogo}
-              alt="JADMAA"
-              style={{ filter: 'brightness(0) invert(1)', WebkitFilter: 'brightness(0) invert(1)' }}
-              className="w-[42px] h-[42px] sm:w-[48px] sm:h-[48px] object-contain opacity-85"
+              src={logoSrc}
+              alt="JADMAA Varmakalai"
+              className="h-[68px] sm:h-[76px] w-auto max-w-[85%] object-contain transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
             />
-            <div className="flex flex-col leading-[1.1]">
-              <span className="text-white text-[9px] font-bold tracking-wider uppercase opacity-90">JADMAA</span>
-              <span className="text-[#B12B2B] text-[8px] font-semibold tracking-wider uppercase">Varmakalai</span>
+            <div className="mt-1.5 text-center leading-none">
+              <span className="text-[#2B2521] text-[9.5px] sm:text-[10px] font-extrabold tracking-[0.14em] uppercase">
+                JADMAA{' '}
+              </span>
+              <span className="text-[#B12B2B] text-[9.5px] sm:text-[10px] font-bold tracking-[0.14em] uppercase">
+                VARMAKALAI
+              </span>
             </div>
           </div>
         </div>
@@ -78,7 +101,7 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
 
         {/* Meta — date + author */}
         <div className="text-[12px] text-[#7A6E65] leading-[1.4] mb-3 font-normal">
-          <span>{format(new Date(blog.createdAt), 'MMMM dd, yyyy')}</span>
+          <span>{formattedDate}</span>
           <span className="mx-1.5 text-[#E8DDD0]">|</span>
           <span>by {blog.author?.name || 'info@jadmaa.com'}</span>
         </div>
