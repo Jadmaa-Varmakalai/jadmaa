@@ -3,7 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { Phone, Mail, CheckCircle2, MessageCircle, Send, Loader2 } from 'lucide-react';
 import { EditableText } from '../components/common/EditableText';
-import { courseApi, type Course } from '../lib/api/courseApi';
+import { courseApi } from '../lib/api/courseApi';
+import type { Course } from '../types';
 import { adminApi } from '../lib/api/adminApi';
 
 type EnquiryType = 'ONLINE_CLASS' | 'OFFLINE_CLASS' | 'VARMA_TREATMENT';
@@ -122,7 +123,7 @@ export const Contact: React.FC = () => {
             <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-[42px] text-[#2B2521] leading-[1.15]">
               <EditableText settingKey="contact.title" defaultText="Contact JADMAA Varmakalai" />
             </h2>
-            <p className="font-heading font-bold text-[18px] sm:text-[20px] text-[#2B2521] leading-[1.3]">
+            <p className="font-heading font-medium text-[18px] sm:text-[20px] text-[#2B2521] leading-[1.3]">
               <EditableText settingKey="contact.subtitle" defaultText="We'd Love to Hear From You" />
             </p>
             <p className="font-body text-[16px] text-[#5C5148] leading-[1.6] max-w-2xl mx-auto pt-1">
@@ -393,6 +394,10 @@ export const Contact: React.FC = () => {
                         className="w-full px-4 py-2.5 rounded-[8px] border border-[#E8DDD0] bg-white text-[15px] text-[#2B2521] placeholder-[#5C5148]/60 focus:border-[#B12B2B] outline-none resize-none"
                       ></textarea>
                     </div>
+
+                    {errorMessage && (
+                      <p className="text-[13px] text-[#B12B2B]">{errorMessage}</p>
+                    )}
 
                     <div>
                       <button

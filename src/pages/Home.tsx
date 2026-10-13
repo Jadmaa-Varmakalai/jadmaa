@@ -233,7 +233,7 @@ export const Home: React.FC = () => {
                   settingKey="home.hero.title" 
                   defaultText="Learn the Ancient Science of Varmakalai" 
                 />
-              </h2>
+              </h1>
 
               <p className="font-body text-[#5C5148] text-[16px] md:text-[17px] leading-[1.6] max-w-xl">
                 <EditableText 

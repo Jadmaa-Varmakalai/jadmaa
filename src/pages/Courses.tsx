@@ -65,7 +65,7 @@ export const Courses: React.FC = () => {
               settingKey="courses.hero.title"
               defaultText="Explore All Courses"
             />
-          </h2>
+          </h1>
           <p className="text-base md:text-lg text-jadmaa-textMuted max-w-2xl">
             <EditableText
               settingKey="courses.hero.description"
