@@ -6,7 +6,7 @@ let blogsCache: any = null;
 let blogsCacheTime = 0;
 const BLOGS_CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
-const defaultBlogs: any[] = defaultBlogsData as any[];
+const defaultBlogs: any[] = defaultBlogsData as unknown as any[];
 
 function formatBlogResponse(b: any) {
   if (!b) return b;

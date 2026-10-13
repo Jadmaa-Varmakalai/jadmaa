@@ -66,7 +66,22 @@ export const Courses: React.FC = () => {
         await adminApi.deleteCourse(id);
         fetchCourses();
       } catch (err: any) {
-        alert(err.response?.data?.error?.message || 'Failed to delete course');
+        const errorMsg = err.message || err.response?.data?.error?.message || 'Failed to delete course';
+        if (err.data?.hasEnrollments || errorMsg.includes('enrollments')) {
+          const forceConfirm = window.confirm(
+            `${errorMsg}\n\nDo you want to permanently force-delete this course and all its associated test enrollments/records?`
+          );
+          if (forceConfirm) {
+            try {
+              await adminApi.deleteCourse(id, true);
+              fetchCourses();
+            } catch (forceErr: any) {
+              alert(forceErr.message || 'Failed to force-delete course');
+            }
+          }
+        } else {
+          alert(errorMsg);
+        }
       }
     }
   };

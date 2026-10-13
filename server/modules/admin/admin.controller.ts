@@ -623,20 +623,41 @@ export const updateCourse = async (req: Request, res: Response) => {
 
 export const deleteCourse = async (req: Request, res: Response) => {
   try {
+    const courseId = req.params.id as string;
+    const force = req.query.force === 'true';
+
     // Check if course has enrollments or payments
-    const enrollmentsCount = await prisma.enrollment.count({ where: { courseId: (req.params.id as string) } });
-    if (enrollmentsCount > 0) {
-      return res.status(400).json({ success: false, error: { message: 'Cannot delete course with active enrollments. Archive it instead.' } });
+    const enrollmentsCount = await prisma.enrollment.count({ where: { courseId } });
+    if (enrollmentsCount > 0 && !force) {
+      return res.status(400).json({ 
+        success: false, 
+        hasEnrollments: true,
+        error: { message: 'Cannot delete course with active enrollments. Archive it instead, or confirm force delete to remove associated records.' } 
+      });
     }
-    
-    await prisma.course.delete({ where: { id: (req.params.id as string) } });
-    await logAdminAction((req as any).user.id, 'DELETE_COURSE', 'Course', (req.params.id as string), null, req);
+
+    if (force) {
+      await prisma.$transaction(async (tx) => {
+        await tx.lessonProgress.deleteMany({ where: { courseId } });
+        await tx.certificate.deleteMany({ where: { courseId } });
+        await tx.enrollment.deleteMany({ where: { courseId } });
+        await tx.payment.deleteMany({ where: { courseId } });
+        await tx.lesson.deleteMany({ where: { module: { courseId } } });
+        await tx.courseModule.deleteMany({ where: { courseId } });
+        await tx.course.delete({ where: { id: courseId } });
+      });
+    } else {
+      await prisma.course.delete({ where: { id: courseId } });
+    }
+
+    await logAdminAction((req as any).user.id, 'DELETE_COURSE', 'Course', courseId, null, req);
     invalidateCoursesCache();
     res.json({ success: true, data: { message: 'Course deleted successfully' } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
 };
+
 
 export const publishCourse = async (req: Request, res: Response) => {
   try {

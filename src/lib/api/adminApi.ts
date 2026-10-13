@@ -60,7 +60,7 @@ export const adminApi = {
     method: 'PATCH',
     body: JSON.stringify({ isAvailable })
   }),
-  deleteCourse: (id: string) => fetchApi(`/admin/courses/${id}`, { method: 'DELETE' }),
+  deleteCourse: (id: string, force = false) => fetchApi(`/admin/courses/${id}${force ? '?force=true' : ''}`, { method: 'DELETE' }),
   
   // Enrollments
   getEnrollments: (params = {}) => {
