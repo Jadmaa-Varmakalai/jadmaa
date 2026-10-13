@@ -613,15 +613,15 @@ export const Home: React.FC = () => {
             <EditableText settingKey="home.wellness.title" defaultText="Varma Treatment & Traditional Wellness" />
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
             
-            {/* Left Image */}
-            <div className="lg:col-span-4 flex justify-center" data-aos="fade-right">
-              <div className="w-full max-w-[350px] overflow-hidden rounded-[14px] shadow-sm">
+            {/* Left Image - Full size matching section height */}
+            <div className="lg:col-span-4 flex flex-col h-full" data-aos="fade-right">
+              <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-[#FAF6F0]">
                 <img 
                   src="https://jadmaa.com/wp-content/uploads/2026/07/wellness-682x1024.jpg" 
                   alt="Traditional Varma therapy session at JADMAA Varmakalai" 
-                  className="w-full h-[380px] sm:h-[420px] object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
+                  className="w-full h-full min-h-[460px] lg:min-h-[540px] object-cover object-top rounded-[14px] hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>
             </div>

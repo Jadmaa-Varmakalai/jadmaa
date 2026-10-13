@@ -15,53 +15,54 @@ export const ScrollObserver: React.FC = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    document.documentElement.classList.add('jd-js');
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            // Animate only once per the requirements
             observer.unobserve(entry.target);
-            
-            // CRITICAL FIX: Ensure the browser paints the initial opacity: 0 
-            // state before adding .is-visible. Without this, elements above the fold
-            // transition instantly from 1 to 1 because both classes are applied before paint.
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                entry.target.classList.add('is-visible');
-              });
-            });
+            entry.target.classList.add('is-visible');
+            entry.target.classList.add('jd-in');
+            entry.target.classList.add('aos-animate');
           }
         });
       },
       {
         root: null,
-        rootMargin: '0px 0px -20px 0px',
-        threshold: 0.1,
+        rootMargin: '0px 0px -6% 0px',
+        threshold: 0.08,
       }
     );
 
     const observeElements = () => {
-      // Find all elements configured for animation that haven't been observed
-      const selectors = '[data-aos]:not(.is-observed), .reveal:not(.is-observed), .reveal-on-scroll:not(.is-observed), .reveal-child:not(.is-observed)';
+      const selectors = '[data-aos]:not(.is-observed), .reveal:not(.is-observed), .reveal-on-scroll:not(.is-observed), .reveal-child:not(.is-observed), .jd-reveal:not(.is-observed)';
       document.querySelectorAll(selectors).forEach((el) => {
         el.classList.add('reveal');
         el.classList.add('is-observed');
         
-        // Port data-aos-delay to inline transition-delay
         const delay = el.getAttribute('data-aos-delay');
         if (delay) {
           (el as HTMLElement).style.transitionDelay = `${delay}ms`;
         }
 
-        // We rely completely on the IntersectionObserver to fire for elements already in view.
-        // It fires asynchronously, allowing the browser to paint the opacity: 0 state first.
-        observer.observe(el);
+        // Safety sweep: if already in initial viewport, reveal on next frame so above-the-fold content doesn't wait
+        const rect = el.getBoundingClientRect();
+        const vh = window.innerHeight || 800;
+        if (rect.top < vh && rect.bottom > 0) {
+          requestAnimationFrame(() => {
+            el.classList.add('is-visible');
+            el.classList.add('jd-in');
+            el.classList.add('aos-animate');
+          });
+        } else {
+          observer.observe(el);
+        }
       });
     };
 
     observeElements();
 
-    // Use MutationObserver to gracefully handle dynamically loaded content (e.g. course grids)
     const mutationObserver = new MutationObserver(() => {
       observeElements();
     });
@@ -72,7 +73,7 @@ export const ScrollObserver: React.FC = () => {
       observer.disconnect();
       mutationObserver.disconnect();
     };
-  }, []);
+  }, [location.pathname]);
 
   return null;
 };

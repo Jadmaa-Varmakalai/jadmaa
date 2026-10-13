@@ -270,18 +270,79 @@ h1.font-black, h2.font-black {
 }
 
 /* ==========================================
-   SITE-WIDE SCROLL ANIMATIONS
+   JADMAA.COM EXACT SMOOTH SCROLL & REVEAL SYSTEM
    ========================================== */
 
-/* ==========================================
-   SCROLL REVEAL ANIMATIONS REMOVED
-   Elements render immediately without awkward lag/revealing transitions.
-   Interactive hover effects are fully preserved.
-   ========================================== */
-/* 
-   Scroll reveal animations are enabled and handled via AOS.
-   Hover effects remain interactive.
-*/
+/* 1. Smooth Native In-Page Scrolling */
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+}
+
+/* Base scroll reveal (elements start with subtle downward offset & opacity 0) */
+.reveal, [data-aos], .jd-reveal {
+  opacity: 0;
+  transform: translateY(34px);
+  will-change: opacity, transform;
+}
+
+/* Revealed state with jadmaa.com's exact cubic-bezier easing */
+.reveal.is-visible, 
+[data-aos].is-visible, 
+[data-aos].aos-animate, 
+.jd-reveal.jd-in,
+.is-visible {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: opacity 0.75s ease, transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+}
+
+/* Section-level reveal */
+.jd-sec {
+  opacity: 0;
+  transform: translateY(14px);
+  will-change: opacity, transform;
+}
+
+.jd-sec.jd-in, .jd-sec.is-visible {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+}
+
+/* Staggered delay helpers */
+[data-aos-delay="50"]  { transition-delay: 50ms !important; }
+[data-aos-delay="100"] { transition-delay: 100ms !important; }
+[data-aos-delay="150"] { transition-delay: 150ms !important; }
+[data-aos-delay="200"] { transition-delay: 200ms !important; }
+[data-aos-delay="250"] { transition-delay: 250ms !important; }
+[data-aos-delay="300"] { transition-delay: 300ms !important; }
+[data-aos-delay="350"] { transition-delay: 350ms !important; }
+[data-aos-delay="400"] { transition-delay: 400ms !important; }
+
+/* Mobile smoother & stronger rise (from jadmaa.com mobile optimization) */
+@media (max-width: 767px) {
+  .reveal, [data-aos], .jd-reveal {
+    transform: translateY(44px);
+  }
+  .reveal.is-visible, [data-aos].is-visible, [data-aos].aos-animate, .jd-reveal.jd-in, .is-visible {
+    transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
+  }
+  .jd-sec {
+    transform: none;
+  }
+  .jd-sec.jd-in, .jd-sec.is-visible {
+    transition: opacity 0.5s ease !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal, [data-aos], .jd-reveal, .jd-sec {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
 
 /* ==========================================
    SUBTLE, MINIMAL & FEEL-GOOD ANIMATION SYSTEM
