@@ -40,7 +40,7 @@ export const defaultCmsContent: Record<string, string> = {
   'home.stats.tradition': 'Years of Tradition',
   'home.stats.branches': 'Branches',
   'home.stats.courses': 'Structured Courses',
-  'home.stats.experience': 'Years Guru Experience',
+  'home.stats.experience': 'Years Aasan Experience',
 
   // Home: About Teaser
   'home.about.eyebrow': 'ABOUT JADMAA',

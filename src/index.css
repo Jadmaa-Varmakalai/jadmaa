@@ -209,7 +209,7 @@ h1.font-black, h2.font-black {
     transform: translateY(0px); 
   }
   50% { 
-    transform: translateY(-10px); 
+    transform: translateY(-12px); 
   }
   100% { 
     transform: translateY(0px); 
@@ -217,7 +217,7 @@ h1.font-black, h2.font-black {
 }
 
 .animate-jd-pop {
-  animation: jd-pop 0.65s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s both;
+  animation: jd-pop 0.65s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s ease-out;
 }
 
 @media (max-width: 768px) {
@@ -227,13 +227,13 @@ h1.font-black, h2.font-black {
 }
 
 .animate-jd-hero-float {
-  animation: jd-hero-float 4s ease-in-out infinite;
+  animation: jd-hero-float 4s ease-in-out infinite !important;
   will-change: transform;
 }
 
 @media (max-width: 768px) {
   .animate-jd-hero-float {
-    animation-duration: 4.5s;
+    animation-duration: 4.5s !important;
   }
 }
 
@@ -242,9 +242,6 @@ h1.font-black, h2.font-black {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
-  }
-  .animate-jd-hero-float {
-    animation: none !important;
   }
 }
 

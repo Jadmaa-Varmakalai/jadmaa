@@ -73,7 +73,17 @@ export const BlogManager: React.FC = () => {
               type="text" 
               required
               value={currentBlog.title || ''}
-              onChange={(e) => setCurrentBlog({...currentBlog, title: e.target.value, slug: e.target.value.toLowerCase().replace(/\s+/g, '-')})}
+              onChange={(e) => setCurrentBlog({...currentBlog, title: e.target.value, slug: currentBlog.slug || e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')})}
+              className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Topic / Category (Appears on Card)</label>
+            <input 
+              type="text" 
+              placeholder="e.g. Beginner Guide, Women's Self-Defence, Varma Therapy"
+              value={currentBlog.topic || ''}
+              onChange={(e) => setCurrentBlog({...currentBlog, topic: e.target.value})}
               className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
             />
           </div>

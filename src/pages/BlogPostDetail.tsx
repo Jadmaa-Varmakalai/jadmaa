@@ -76,7 +76,7 @@ export const BlogPostDetail: React.FC = () => {
 
   // Related Blogs (excluding current post)
   const relatedBlogs = useMemo(() => {
-    if (!blog) return [];
+    if (!blog || allBlogs.length <= 1) return [];
     return allBlogs
       .filter(b => b.slug !== blog.slug && b.id !== blog.id)
       .slice(0, 3);
@@ -174,35 +174,37 @@ export const BlogPostDetail: React.FC = () => {
             </article>
 
             {/* Post Navigation (Previous / Next) */}
-            <nav className="mt-8 pt-4 flex flex-col sm:flex-row justify-between gap-4 text-left" aria-label="Posts">
-              {prevPost ? (
-                <Link 
-                  to={`/blog/${prevPost.slug}`}
-                  className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors"
-                >
-                  <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
-                    ← Previous Post
-                  </span>
-                  <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
-                    {prevPost.title}
-                  </span>
-                </Link>
-              ) : <div className="flex-1" />}
+            {(prevPost || nextPost) && (
+              <nav className="mt-8 pt-4 flex flex-col sm:flex-row justify-between gap-4 text-left" aria-label="Posts">
+                {prevPost ? (
+                  <Link 
+                    to={`/blog/${prevPost.slug}`}
+                    className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors"
+                  >
+                    <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
+                      ← Previous Post
+                    </span>
+                    <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
+                      {prevPost.title}
+                    </span>
+                  </Link>
+                ) : <div className="flex-1" />}
 
-              {nextPost && (
-                <Link 
-                  to={`/blog/${nextPost.slug}`}
-                  className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors text-right"
-                >
-                  <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
-                    Next Post →
-                  </span>
-                  <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
-                    {nextPost.title}
-                  </span>
-                </Link>
-              )}
-            </nav>
+                {nextPost && (
+                  <Link 
+                    to={`/blog/${nextPost.slug}`}
+                    className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors text-right"
+                  >
+                    <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
+                      Next Post →
+                    </span>
+                    <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
+                      {nextPost.title}
+                    </span>
+                  </Link>
+                )}
+              </nav>
+            )}
           </main>
 
           {/* Related Articles Section (BlogCard style) */}

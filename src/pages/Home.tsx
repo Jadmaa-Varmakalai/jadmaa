@@ -252,33 +252,41 @@ export const Home: React.FC = () => {
                 </Link>
               </div>
 
-              {/* Hero Stats Row */}
-              <div className="pt-8 border-t border-[#E8DDD0] grid grid-cols-2 sm:grid-cols-4 gap-4 text-center sm:text-left">
-                <div>
-                  <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={1000} suffix="+" /></div>
-                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
+              {/* Hero Stats Row - All 4 in single row on mobile (exact jadmaa.com match) */}
+              <div className="pt-6 sm:pt-8 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
+                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                    <CountUp end={1000} suffix="+" />
+                  </div>
+                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
                   </div>
                 </div>
 
-                <div>
-                  <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={3} /></div>
-                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
+                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                    <CountUp end={3} />
+                  </div>
+                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.branches" defaultText="Branches" />
                   </div>
                 </div>
 
-                <div>
-                  <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={7} /></div>
-                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
+                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                    <CountUp end={7} />
+                  </div>
+                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
                   </div>
                 </div>
 
-                <div>
-                  <div className="font-heading font-bold text-2xl sm:text-3xl text-[#2B2521]"><CountUp end={15} suffix="+" /></div>
-                  <div className="font-body text-xs sm:text-sm text-[#5C5148] mt-1 font-medium">
-                    <EditableText settingKey="home.stats.experience" defaultText="Years Guru Experience" />
+                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                    <CountUp end={10} suffix="+" />
+                  </div>
+                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                    <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
                   </div>
                 </div>
               </div>
@@ -286,12 +294,12 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Right Column: Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[440px] animate-jd-pop">
-              <div className="relative group cursor-pointer animate-jd-hero-float">
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0">
+              <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center">
                 <img 
                   src="/images/hero-kick-action-transparent.png" 
                   alt="Varmakalai Practitioner Stance" 
-                  className="max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out"
+                  className="max-h-[440px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out animate-jd-hero-float"
                 />
               </div>
             </div>

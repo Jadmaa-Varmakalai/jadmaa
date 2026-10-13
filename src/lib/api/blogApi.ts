@@ -32,22 +32,6 @@ const normalizeSlug = (s: string) =>
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-const mergeWithDefaults = (posts: BlogPost[]): BlogPost[] => {
-  const map = new Map<string, BlogPost>();
-  for (const def of defaultBlogs) {
-    map.set(def.slug, def);
-  }
-  for (const p of posts) {
-    if (p && p.slug) {
-      map.set(p.slug, {
-        ...(map.get(p.slug) || {}),
-        ...p,
-      });
-    }
-  }
-  return Array.from(map.values());
-};
-
 export const blogApi = {
   getCachedBlogs: (): BlogPost[] => {
     if (memoryBlogsCache && memoryBlogsCache.length > 0) {
@@ -57,28 +41,24 @@ export const blogApi = {
       const cached = sessionStorage.getItem('jadmaa_blogs_cache');
       if (cached) {
         const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const merged = mergeWithDefaults(parsed);
-          memoryBlogsCache = merged;
-          return merged;
+        if (Array.isArray(parsed)) {
+          memoryBlogsCache = parsed;
+          return parsed;
         }
       }
     } catch (_) {}
-    return defaultBlogs;
+    return [];
   },
 
   getBlogs: async (all?: boolean): Promise<BlogPost[]> => {
     try {
       const res = await fetchApi(all ? '/blogs?all=true' : '/blogs');
-      if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
-        const merged = mergeWithDefaults(res.data);
-        if (!all) {
-          memoryBlogsCache = merged;
-          try {
-            sessionStorage.setItem('jadmaa_blogs_cache', JSON.stringify(merged));
-          } catch (_) {}
-        }
-        return merged;
+      if (res?.data && Array.isArray(res.data)) {
+        memoryBlogsCache = res.data;
+        try {
+          sessionStorage.setItem('jadmaa_blogs_cache', JSON.stringify(res.data));
+        } catch (_) {}
+        return res.data;
       }
     } catch (_) {}
 
