@@ -33,7 +33,7 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}): Pro
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
-      }).then(newToken => {
+      }).then(() => {
         return fetchApi(endpoint, options);
       }).catch(err => {
         return Promise.reject(err);

@@ -1,7 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { BrevoService } from './server/services/email/brevo.service.js';
 import app from './server/app.js';
 
@@ -9,6 +8,8 @@ const PORT = 3000;
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    // Dynamic import to avoid missing module errors in production and isolated typecheck
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,
@@ -20,7 +21,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*all', (req, res) => {
+    app.get('*all', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

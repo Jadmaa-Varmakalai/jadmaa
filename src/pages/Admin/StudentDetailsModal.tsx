@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
-import { X, BookOpen, CreditCard, Award, Calendar } from 'lucide-react';
+import { X, BookOpen, CreditCard } from 'lucide-react';
 
 interface StudentDetailsModalProps {
   studentId: string;

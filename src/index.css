@@ -538,13 +538,7 @@ a[role="button"]:active {
   }
 }
 
-/* ==========================================
-   JD-POP — jadmaa.com exact scroll pop
-   cubic-bezier(0.22, 0.61, 0.36, 1) spring
-   ========================================== */
-.jd-pop {
-  /* Removed !important overrides that broke .reveal animations */
-}
+/* .jd-pop — removed override to avoid breaking .reveal animations */
 
 /* ==========================================
    RESPONSIVE TYPOGRAPHY ADJUSTMENTS

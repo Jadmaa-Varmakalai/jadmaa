@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
-import { Search, MoreVertical, CheckCircle, XCircle } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { StudentDetailsModal } from './StudentDetailsModal';
 
 export const Students: React.FC = () => {

@@ -4,6 +4,7 @@ import { logAdminAction } from '../../utils/audit.js';
 import bcrypt from 'bcryptjs';
 import { sendNewCourseSuggestionEmail, sendEnquiryAdminNotificationEmail, sendEnquiryUserAcknowledgementEmail } from '../../services/email/email.service.js';
 import { BrevoService } from '../../services/email/brevo.service.js';
+import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 
 const getPagination = (req: Request) => {
   const page = parseInt(req.query.page as string) || 1;

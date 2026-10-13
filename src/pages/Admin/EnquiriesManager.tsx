@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
-import { Search, RotateCcw, CheckCircle, Clock, Trash2, Phone, Mail, MessageSquare, ExternalLink, Filter } from 'lucide-react';
+import { Search, RotateCcw, Trash2, Phone, Mail } from 'lucide-react';
 
 export const EnquiriesManager: React.FC = () => {
   const [enquiries, setEnquiries] = useState<any[]>([]);
