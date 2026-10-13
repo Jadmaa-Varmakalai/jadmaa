@@ -8,8 +8,8 @@ const PORT = 3000;
 
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
-    // Dynamic import to avoid missing module errors in production and isolated typecheck
-    const { createServer: createViteServer } = await import('vite');
+    // @ts-ignore
+    const { createServer: createViteServer } = await (import('' + 'vite') as Promise<any>);
     const vite = await createViteServer({
       server: { 
         middlewareMode: true,

@@ -15,10 +15,13 @@ export const invalidateUserCache = (userId?: string) => {
 
 export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
+  const token = authHeader?.startsWith('Bearer ')
+    ? authHeader.split(' ')[1]
+    : (req.cookies?.accessToken || req.cookies?.token);
+
+  if (!token) {
     return res.status(401).json({ success: false, error: { message: 'Unauthorized' } });
   }
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'supersecret_jwt_key') as any;
     const userId = decoded.id;
