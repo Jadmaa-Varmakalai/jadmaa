@@ -78,10 +78,20 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
 
   const extractVideoId = (url: string) => {
     if (!url) return '';
-    const match = url
-      .trim()
-      .match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-    return match ? match[1] : url.trim().length === 11 && !url.includes('/') ? url.trim() : '';
+    const trimmed = url.trim();
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+      return trimmed;
+    }
+    const match = trimmed.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
+    );
+    if (match && match[1]) {
+      return match[1];
+    }
+    const fallback = trimmed.match(
+      /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
+    );
+    return fallback && fallback[1] ? fallback[1] : '';
   };
   const parsedVideoId = extractVideoId(formData.youtubeUrl || '');
 

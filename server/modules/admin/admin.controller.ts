@@ -476,11 +476,27 @@ export const createCourse = async (req: Request, res: Response) => {
     
     const course = await prisma.course.create({ data: courseData });
 
+const extractYouTubeId = (input: string): string => {
+  if (!input) return '';
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const match = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
+  );
+  if (match && match[1]) {
+    return match[1];
+  }
+  const fallback = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
+  );
+  return fallback && fallback[1] ? fallback[1] : trimmed;
+};
+
     // Handle Youtube link shortcut
     if (youtubeUrl) {
-      let videoId = youtubeUrl.trim();
-      const match = videoId.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-      if (match) videoId = match[1];
+      const videoId = extractYouTubeId(youtubeUrl);
 
       await prisma.courseModule.create({
         data: {
@@ -523,9 +539,7 @@ export const updateCourse = async (req: Request, res: Response) => {
     if (youtubeUrl !== undefined && youtubeUrl !== null) {
       const trimmed = String(youtubeUrl).trim();
       if (trimmed) {
-        let videoId = trimmed;
-        const match = trimmed.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&?]+)/);
-        if (match) videoId = match[1];
+        const videoId = extractYouTubeId(trimmed);
 
         const firstModule = await prisma.courseModule.findFirst({
           where: { courseId },

@@ -6,6 +6,24 @@ import { courseApi } from '../../lib/api/courseApi';
 import { progressApi } from '../../lib/api/progressApi';
 import { useAuth } from '../../context/AuthContext';
 
+const extractYouTubeVideoId = (input: string): string => {
+  if (!input) return '';
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const match = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
+  );
+  if (match && match[1]) {
+    return match[1];
+  }
+  const fallback = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
+  );
+  return fallback && fallback[1] ? fallback[1] : trimmed;
+};
+
 export const LearnCourse: React.FC = () => {
   const { courseId } = useParams();
   const { isLoggedIn, loading: authLoading } = useAuth();
@@ -180,22 +198,27 @@ export const LearnCourse: React.FC = () => {
         <div className="flex-1 flex flex-col">
           
           {/* Video Player */}
-          <div className="w-full bg-black aspect-video relative flex-shrink-0">
-            {activeVideoId ? (
-              <iframe 
-                src={`https://www.youtube.com/embed/${activeVideoId}?rel=0&modestbranding=1`}
-                title={activeLessonTitle}
-                className="absolute top-0 left-0 w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              ></iframe>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-white flex-col gap-3">
-                <PlayCircle className="w-12 h-12 text-gray-500" />
-                <p>Video not available</p>
+          {(() => {
+            const cleanVideoId = extractYouTubeVideoId(activeVideoId);
+            return (
+              <div className="w-full bg-black aspect-video relative flex-shrink-0">
+                {cleanVideoId ? (
+                  <iframe 
+                    src={`https://www.youtube.com/embed/${cleanVideoId}?rel=0&modestbranding=1`}
+                    title={activeLessonTitle}
+                    className="absolute top-0 left-0 w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center text-white flex-col gap-3">
+                    <PlayCircle className="w-12 h-12 text-gray-500" />
+                    <p>Video not available</p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            );
+          })()}
 
           {/* Lesson Details & Controls */}
           <div className="p-6 bg-white border-b border-gray-200 flex-shrink-0">
