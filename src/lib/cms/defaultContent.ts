@@ -38,9 +38,13 @@ export const defaultCmsContent: Record<string, string> = {
   'home.hero.image': '/images/hero-kick-action-transparent.png',
   
   'home.stats.tradition': 'Years of Tradition',
+  'home.stats.tradition.value': '1000',
   'home.stats.branches': 'Branches',
+  'home.stats.branches.value': '3',
   'home.stats.courses': 'Structured Courses',
+  'home.stats.courses.value': '7',
   'home.stats.experience': 'Years Aasan Experience',
+  'home.stats.experience.value': '10',
 
   // Home: About Teaser
   'home.about.eyebrow': 'ABOUT JADMAA',

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { CurriculumAccordion } from '../components/courses/CurriculumAccordion';
-import { CourseCard } from '../components/courses/CourseCard';
+import { CourseCard, isOnlineCourse } from '../components/courses/CourseCard';
 import { 
   Clock, Award, Play, ChevronRight, Share2, 
-  BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star
+  BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star,
+  Video, MapPin
 } from 'lucide-react';
 import { courseApi } from '../lib/api/courseApi';
 import { paymentApi } from '../lib/api/paymentApi';
@@ -265,10 +266,20 @@ export const CourseDetails: React.FC = () => {
     ? course.title.split('|')[0].trim() 
     : course.title;
 
-  const aasanDisplayName = course.instructor.name?.toLowerCase().startsWith('aasan')
-    ? course.instructor.name
-    : `Aasan - ${course.instructor.name}`;
+  // Sanitized instructor name — never display emails or "Aasan info@jadmaa.com"
+  let rawInstructor = '';
+  if (typeof course.instructor === 'object' && course.instructor !== null) {
+    rawInstructor = (course.instructor as any).name || (course.instructor as any).displayName || '';
+  } else if (typeof course.instructor === 'string') {
+    rawInstructor = course.instructor;
+  }
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawInstructor.trim()) || rawInstructor.includes('@');
+  const isValidInstructor = rawInstructor.trim().length > 0 && !isEmail && !rawInstructor.toLowerCase().includes('info@');
+  const instructorName = isValidInstructor ? rawInstructor.trim() : 'JADMAA Instructor';
 
+  // Only display rating if supported by real data
+  const hasRealRating = typeof course.rating === 'number' && course.rating > 0 && typeof course.reviewCount === 'number' && course.reviewCount > 0;
+  const isOnline = isOnlineCourse(course);
   const isEnrolled = !!(user?.enrolledCourses?.includes(course.id));
 
   return (
@@ -278,7 +289,7 @@ export const CourseDetails: React.FC = () => {
         description={course.description}
       />
 
-      {/* Main Container mirroring jadmaa.com Tutor LMS single course layout */}
+      {/* Main Container mirroring jadmaa.com single course layout */}
       <div className="bg-[#FAF8F5] min-h-screen py-8 md:py-12 text-[#212327] font-sans">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           
@@ -296,17 +307,34 @@ export const CourseDetails: React.FC = () => {
           {/* Course Details Header */}
           <header className="mb-8 md:mb-10 space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#B12B2B]/10 text-[#B12B2B] border border-[#B12B2B]/20">
+              {/* Training Format Badge */}
+              {isOnline ? (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+                  <Video className="w-3.5 h-3.5" />
+                  Recorded Online LMS Course
+                </span>
+              ) : (
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#B12B2B]/10 text-[#B12B2B] border border-[#B12B2B]/20 flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5" />
+                  In-Person Branch Training
+                </span>
+              )}
+
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#1F2937]/10 text-[#1F2937] border border-[#1F2937]/20">
                 {course.category}
               </span>
               <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#374151] border border-gray-200">
-                Level: {course.level || 'Beginner'}
+                Level: {course.level || 'All Levels'}
               </span>
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-                <span>4.9</span>
-                <span className="text-amber-700/70 font-normal">({course.reviewCount || 48} reviews)</span>
-              </span>
+
+              {hasRealRating && (
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                  <span>{course.rating.toFixed(1)}</span>
+                  <span className="text-amber-700/70 font-normal">({course.reviewCount} reviews)</span>
+                </span>
+              )}
+
               {course.isFree && (
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                   FREE STARTER
@@ -318,13 +346,23 @@ export const CourseDetails: React.FC = () => {
               {displayTitle}
             </h1>
 
+            {/* Offline Branch Notice Banner */}
+            {!isOnline && (
+              <div className="p-4 rounded-xl bg-[#FFF8F0] border border-[#F0DBC5] text-[#7A3614] flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-[#B12B2B] shrink-0 mt-0.5" />
+                <div className="text-xs sm:text-sm leading-relaxed">
+                  <strong>Academy Branch Training:</strong> This program is conducted through hands-on, in-person training at our academy branches in <strong>Thanjavur, Kumbakonam, and Ariyalur</strong> under qualified Aasans. It is not an online recorded video course.
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-b border-[#E5E2DC] pb-5">
               <div className="flex items-center gap-3 text-sm text-[#4B5563]">
                 <div className="w-8 h-8 rounded-full bg-[#B12B2B] text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                  {course.instructor.name?.charAt(0) || 'M'}
+                  {instructorName.charAt(0) || 'J'}
                 </div>
                 <span>
-                  Taught by <strong className="text-[#1F2937]">{aasanDisplayName}</strong>
+                  Taught by <strong className="text-[#1F2937]">{instructorName}</strong>
                 </span>
               </div>
 
@@ -531,13 +569,14 @@ export const CourseDetails: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#EFECE6]">
                     <div>
                       <h2 className="font-heading font-bold text-xl sm:text-2xl text-[#111827]">
-                        Curriculum & Video Lessons
+                        {isOnline ? 'Curriculum & Video Lessons' : 'Branch Syllabus & Training Modules'}
                       </h2>
                       <p className="text-xs md:text-sm text-[#706B65] mt-1">
-                        {course.modules.length} modules • {course.totalLessons} lessons total
+                        {course.modules.length} {course.modules.length === 1 ? 'module' : 'modules'}
+                        {isOnline && ` • ${course.totalLessons} lessons total`}
                       </p>
                     </div>
-                    {isEnrolled && (
+                    {isEnrolled && isOnline && (
                       <Link 
                         to={`/learn/${course.id}`}
                         className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors inline-flex items-center space-x-1 self-start sm:self-auto"
@@ -561,12 +600,12 @@ export const CourseDetails: React.FC = () => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-5">
                   <img 
                     src={course.instructor.avatar || '/images/logo-1.png'} 
-                    alt={course.instructor.name}
+                    alt={instructorName}
                     className="w-20 h-20 rounded-full border-2 border-jadmaa-red object-cover bg-white shadow-sm"
                   />
                   <div>
                     <h3 className="font-heading font-bold text-lg sm:text-xl text-[#111827]">
-                      {aasanDisplayName}
+                      {instructorName}
                     </h3>
                     <p className="text-xs sm:text-sm font-semibold text-jadmaa-red mt-0.5">
                       {course.instructor.title || 'Master & Founder, JADMAA Varmakalai'}
@@ -587,19 +626,42 @@ export const CourseDetails: React.FC = () => {
                 
                 {/* Price Display */}
                 <div className="pb-4 border-b border-[#EFECE6]">
-                  <p className="text-xs uppercase tracking-wider font-semibold text-[#8C847A]">Course Fee</p>
+                  <p className="text-xs uppercase tracking-wider font-semibold text-[#8C847A]">
+                    {isOnline ? 'Online Course Fee' : 'Branch Training Fee'}
+                  </p>
                   <div className="flex items-baseline space-x-2 mt-1">
                     <span className="font-heading font-extrabold text-3xl sm:text-4xl text-[#111827]">
                       {course.isFree ? 'Free' : `₹${course.price.toLocaleString('en-IN')}`}
                     </span>
                     {!course.isFree && (
-                      <span className="text-xs text-[#706B65] font-medium">One-time payment</span>
+                      <span className="text-xs text-[#706B65] font-medium">
+                        {isOnline ? 'One-time online payment' : 'Branch academy fee'}
+                      </span>
                     )}
                   </div>
                 </div>
 
-                {/* Primary CTA Button (Razorpay Checkout) */}
-                {isEnrolled ? (
+                {/* Branch Training Action vs Online LMS Enrollment Action */}
+                {!isOnline ? (
+                  <div className="space-y-3">
+                    <Link
+                      to={`/contact?course=${course.slug}`}
+                      className="w-full py-4 px-6 bg-[#B12B2B] hover:bg-[#961F1F] text-white font-bold text-base rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 text-center"
+                    >
+                      <span>Enquire / Book Free Demo Class</span>
+                    </Link>
+                    <a
+                      href="tel:+919345220020"
+                      className="w-full py-3.5 px-4 bg-white border-2 border-[#B12B2B] text-[#B12B2B] hover:bg-red-50 font-bold text-sm rounded-xl transition-all flex items-center justify-center space-x-2"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span>Call Coordinator (+91 93452 20020)</span>
+                    </a>
+                    <div className="text-center text-xs text-[#5C5148] pt-1 leading-relaxed">
+                      🏛️ Supervised hands-on training at our branches in <strong>Thanjavur, Kumbakonam & Ariyalur</strong>.
+                    </div>
+                  </div>
+                ) : isEnrolled ? (
                   <button
                     onClick={() => navigate(`/learn/${course.id}`)}
                     className="w-full py-4 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-base rounded-xl shadow-md transition-all flex items-center justify-center space-x-2"

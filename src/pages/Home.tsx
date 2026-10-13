@@ -10,13 +10,23 @@ import type { Course } from '../types';
 import { reviewsApi, type Testimonial } from '../lib/api/reviewsApi';
 import { CountUp } from '../components/common/CountUp';
 import { EditableText } from '../components/common/EditableText';
+import { useSettings } from '../context/SettingsContext';
 
 export const Home: React.FC = () => {
+  const { settings, isEditing } = useSettings();
+
+  // Read stats from settings with rock-solid defaults matching JADMAA tradition
+  const traditionValue = parseInt(settings['home.stats.tradition.value'] || '1000', 10) || 1000;
+  const branchesValue = parseInt(settings['home.stats.branches.value'] || '3', 10) || 3;
+  const coursesValue = parseInt(settings['home.stats.courses.value'] || '7', 10) || 7;
+  const experienceValue = parseInt(settings['home.stats.experience.value'] || '10', 10) || 10;
+
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>(() => {
     const cached = courseApi.getCachedCourses();
     return cached.length > 0 ? cached : [];
   });
   const [loading, setLoading] = useState(() => courseApi.getCachedCourses().length === 0);
+  const [coursesError, setCoursesError] = useState<string | null>(null);
   const [testimonials, setTestimonials] = useState<Testimonial[]>(() => mockTestimonials as any);
 
   // Featured Courses Carousel State
@@ -38,9 +48,15 @@ export const Home: React.FC = () => {
         const data = await courseApi.getCourses();
         if (data && data.length > 0) {
           setFeaturedCourses(data);
+          setCoursesError(null);
+        } else if (featuredCourses.length === 0) {
+          setFeaturedCourses([]);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Failed to fetch courses', err);
+        if (featuredCourses.length === 0) {
+          setCoursesError(err?.message || 'Failed to load courses');
+        }
       } finally {
         setLoading(false);
       }
@@ -256,7 +272,11 @@ export const Home: React.FC = () => {
               <div className="pt-6 sm:pt-8 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
                   <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
-                    <CountUp end={1000} suffix="+" />
+                    {isEditing ? (
+                      <EditableText settingKey="home.stats.tradition.value" defaultText="1000" />
+                    ) : (
+                      <CountUp end={traditionValue} suffix="+" />
+                    )}
                   </div>
                   <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
@@ -265,7 +285,11 @@ export const Home: React.FC = () => {
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
                   <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
-                    <CountUp end={3} />
+                    {isEditing ? (
+                      <EditableText settingKey="home.stats.branches.value" defaultText="3" />
+                    ) : (
+                      <CountUp end={branchesValue} />
+                    )}
                   </div>
                   <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.branches" defaultText="Branches" />
@@ -274,7 +298,11 @@ export const Home: React.FC = () => {
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
                   <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
-                    <CountUp end={7} />
+                    {isEditing ? (
+                      <EditableText settingKey="home.stats.courses.value" defaultText="7" />
+                    ) : (
+                      <CountUp end={coursesValue} />
+                    )}
                   </div>
                   <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
@@ -283,7 +311,11 @@ export const Home: React.FC = () => {
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
                   <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
-                    <CountUp end={10} suffix="+" />
+                    {isEditing ? (
+                      <EditableText settingKey="home.stats.experience.value" defaultText="10" />
+                    ) : (
+                      <CountUp end={experienceValue} suffix="+" />
+                    )}
                   </div>
                   <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
@@ -589,14 +621,25 @@ export const Home: React.FC = () => {
               onTouchEnd={() => setCoursesPaused(false)}
             >
               {loading ? (
-                <div className="w-full text-center py-8 text-jadmaa-textMuted">Loading courses...</div>
+                <div className="w-full text-center py-12 text-[#706B65] flex items-center justify-center gap-2">
+                  <div className="w-5 h-5 border-2 border-[#B12B2B] border-t-transparent rounded-full animate-spin" />
+                  <span>Loading authentic courses...</span>
+                </div>
+              ) : coursesError && featuredCourses.length === 0 ? (
+                <div className="w-full text-center py-12 text-red-600">
+                  <p className="font-medium">Unable to load courses right now. Please try again.</p>
+                </div>
+              ) : featuredCourses.length === 0 ? (
+                <div className="w-full text-center py-12 text-[#706B65]">
+                  <p className="font-medium">No courses available at this time.</p>
+                </div>
               ) : (
-                featuredCourses.slice(0, 5).map((course) => (
+                featuredCourses.map((course) => (
                   <div
                     key={course.id}
                     className="w-[85vw] sm:w-[360px] lg:w-[380px] shrink-0"
                   >
-                    <CourseCard course={course} hidePrice />
+                    <CourseCard course={course} />
                   </div>
                 ))
               )}
