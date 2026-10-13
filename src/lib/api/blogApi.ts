@@ -18,7 +18,7 @@ export interface BlogPost {
   updatedAt: string;
 }
 
-import defaultBlogsData from '../../data/jadmaa_blogs.json';
+import defaultBlogsData from '../../data/jadmaa_blogs';
 
 let memoryBlogsCache: BlogPost[] | null = null;
 const blogSlugCache = new Map<string, BlogPost>();

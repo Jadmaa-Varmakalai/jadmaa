@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
-import defaultBlogsData from '../../../src/data/jadmaa_blogs.json';
+import defaultBlogsData from '../../../src/data/jadmaa_blogs.js';
 
 let blogsCache: any = null;
 let blogsCacheTime = 0;
