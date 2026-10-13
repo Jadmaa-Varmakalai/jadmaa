@@ -90,12 +90,12 @@ export const Footer: React.FC = () => {
               </svg>
             </a>
 
-            {/* WhatsApp Community */}
+            {/* WhatsApp Channel */}
             <a
-              href="https://chat.whatsapp.com/BOdavYeDSMJ0xREnzyelJh"
+              href="https://whatsapp.com/channel/0029VbDzWmJKQuJDkFXMU03d"
               target="_blank"
               rel="noreferrer"
-              aria-label="Join JADMAA WhatsApp community"
+              aria-label="Join JADMAA WhatsApp channel"
               className="w-10 h-10 rounded-full bg-[rgba(250,246,240,0.08)] border border-[rgba(250,246,240,0.18)] hover:bg-[#E8615C] text-[#FAF6F0] hover:text-[#2B2521] flex items-center justify-center transition-all duration-200"
             >
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -161,10 +161,10 @@ export const Footer: React.FC = () => {
               </a>
 
               <a
-                href="https://chat.whatsapp.com/BOdavYeDSMJ0xREnzyelJh"
+                href="https://whatsapp.com/channel/0029VbDzWmJKQuJDkFXMU03d"
                 target="_blank"
                 rel="noreferrer"
-                aria-label="Join JADMAA WhatsApp community"
+                aria-label="Join JADMAA WhatsApp channel"
                 className="w-8.5 h-8.5 rounded-full bg-[rgba(250,246,240,0.08)] border border-[rgba(250,246,240,0.18)] hover:bg-[#E8615C] text-[#FAF6F0] hover:text-[#2B2521] flex items-center justify-center transition-all duration-200"
               >
                 <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">

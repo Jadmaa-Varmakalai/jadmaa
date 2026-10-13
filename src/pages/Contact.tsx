@@ -190,12 +190,12 @@ export const Contact: React.FC = () => {
                   </p>
                   <div className="pt-1">
                     <a 
-                      href="https://chat.whatsapp.com/BOdavYeDSMJ0xREnzyelJh"
+                      href="https://whatsapp.com/channel/0029VbDzWmJKQuJDkFXMU03d"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-block bg-[#B12B2B] hover:bg-[#8F2020] text-white font-semibold text-[15px] px-6 py-2.5 rounded-[8px] transition-colors"
                     >
-                      Join Our WhatsApp Community
+                      Join Our WhatsApp Channel
                     </a>
                   </div>
                 </div>
