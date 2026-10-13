@@ -10,6 +10,7 @@ export const Courses: React.FC = () => {
   const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -30,6 +31,34 @@ export const Courses: React.FC = () => {
     }, 500);
     return () => clearTimeout(delayDebounceFn);
   }, [search, pagination.page, pagination.limit]);
+
+  const handleToggleAvailability = async (course: any) => {
+    const nextAvailable = course.isAvailable === false;
+    setTogglingId(course.id);
+
+    // Optimistically update table UI
+    setCourses(prev =>
+      prev.map(c => {
+        if (c.id === course.id) {
+          return {
+            ...c,
+            isAvailable: nextAvailable,
+            status: nextAvailable ? 'PUBLISHED' : 'HOLD',
+          };
+        }
+        return c;
+      })
+    );
+
+    try {
+      await adminApi.updateCourseAvailability(course.id, nextAvailable);
+    } catch (err: any) {
+      alert(err.message || 'Failed to update course availability');
+      fetchCourses();
+    } finally {
+      setTogglingId(null);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
@@ -87,15 +116,16 @@ export const Courses: React.FC = () => {
                 <th className="px-6 py-4 font-bold text-gray-700">Instructor</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Price</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Status</th>
+                <th className="px-6 py-4 font-bold text-gray-700">Availability</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Created</th>
                 <th className="px-6 py-4 font-bold text-gray-700 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y">
               {loading && courses.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
               ) : courses.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">No courses found</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No courses found</td></tr>
               ) : (
                 courses.map(course => (
                   <tr key={course.id} className="hover:bg-gray-50">
@@ -103,9 +133,40 @@ export const Courses: React.FC = () => {
                     <td className="px-6 py-4 text-gray-600">{course.instructor?.displayName || 'Unknown'}</td>
                     <td className="px-6 py-4 text-gray-600">₹{course.price}</td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs font-bold rounded-full ${course.status === 'PUBLISHED' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'}`}>
+                      <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
+                        course.status === 'PUBLISHED' 
+                          ? 'bg-emerald-100 text-emerald-700' 
+                          : course.status === 'HOLD'
+                          ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                          : 'bg-gray-100 text-gray-700'
+                      }`}>
                         {course.status}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center space-x-2">
+                        <button
+                          type="button"
+                          role="switch"
+                          aria-checked={course.isAvailable !== false}
+                          disabled={togglingId === course.id}
+                          onClick={() => handleToggleAvailability(course)}
+                          className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-jadmaa-red focus:ring-offset-2 disabled:opacity-50 ${
+                            course.isAvailable !== false ? 'bg-emerald-600' : 'bg-gray-300'
+                          }`}
+                          title={course.isAvailable !== false ? 'Availability: Active (Click to put on Hold)' : 'Availability: On Hold (Click to make Available)'}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                              course.isAvailable !== false ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                          />
+                        </button>
+                        <span className={`text-xs font-semibold ${course.isAvailable !== false ? 'text-emerald-700' : 'text-amber-700'}`}>
+                          {course.isAvailable !== false ? 'Available' : 'Hold'}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{new Date(course.createdAt).toLocaleDateString()}</td>
                     <td className="px-6 py-4 text-right space-x-2">
@@ -142,7 +203,13 @@ export const Courses: React.FC = () => {
               <div key={course.id} className="bg-white border rounded-xl p-4 shadow-sm flex flex-col space-y-3">
                 <div className="flex justify-between items-start gap-2">
                   <h3 className="font-bold text-gray-900 leading-tight">{course.title}</h3>
-                  <span className={`px-2 py-1 text-[10px] font-bold rounded-full shrink-0 ${course.status === 'PUBLISHED' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`px-2 py-1 text-[10px] font-bold rounded-full shrink-0 ${
+                    course.status === 'PUBLISHED' 
+                      ? 'bg-emerald-100 text-emerald-700' 
+                      : course.status === 'HOLD'
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-gray-100 text-gray-700'
+                  }`}>
                     {course.status}
                   </span>
                 </div>
@@ -159,6 +226,31 @@ export const Courses: React.FC = () => {
                   <div className="col-span-2">
                     <span className="block text-xs text-gray-400 font-bold uppercase mb-0.5">Created</span>
                     {new Date(course.createdAt).toLocaleDateString()}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t text-sm">
+                  <span className="text-xs text-gray-500 font-bold uppercase">Availability</span>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={course.isAvailable !== false}
+                      disabled={togglingId === course.id}
+                      onClick={() => handleToggleAvailability(course)}
+                      className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        course.isAvailable !== false ? 'bg-emerald-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                          course.isAvailable !== false ? 'translate-x-5' : 'translate-x-0'
+                        }`}
+                      />
+                    </button>
+                    <span className={`text-xs font-semibold ${course.isAvailable !== false ? 'text-emerald-700' : 'text-amber-700'}`}>
+                      {course.isAvailable !== false ? 'Available' : 'Hold'}
+                    </span>
                   </div>
                 </div>
 

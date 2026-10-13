@@ -56,6 +56,10 @@ export const adminApi = {
     method: 'PATCH',
     body: JSON.stringify(data)
   }),
+  updateCourseAvailability: (id: string, isAvailable: boolean) => fetchApi(`/admin/courses/${id}/availability`, {
+    method: 'PATCH',
+    body: JSON.stringify({ isAvailable })
+  }),
   deleteCourse: (id: string) => fetchApi(`/admin/courses/${id}`, { method: 'DELETE' }),
   
   // Enrollments

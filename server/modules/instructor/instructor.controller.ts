@@ -119,10 +119,14 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    const formatted = courses.map(c => ({
-      ...c,
-      isAvailable: isCourseAvailable(c.id)
-    }));
+    const formatted = courses.map(c => {
+      const available = isCourseAvailable(c.id);
+      return {
+        ...c,
+        isAvailable: available,
+        status: !available && c.status === 'PUBLISHED' ? 'HOLD' : c.status,
+      };
+    });
 
     res.json({ success: true, data: formatted });
   } catch (err: any) {

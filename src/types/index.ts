@@ -36,6 +36,7 @@ export interface Course {
   originalPrice?: number;
   isFree?: boolean;
   isAvailable?: boolean;
+  status?: 'DRAFT' | 'PUBLISHED' | 'HOLD' | 'ARCHIVED' | string;
   isPopular?: boolean;
   rating: number;
   reviewCount: number;

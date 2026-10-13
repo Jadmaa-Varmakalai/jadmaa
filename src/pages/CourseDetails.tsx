@@ -65,7 +65,7 @@ export const CourseDetails: React.FC = () => {
 
   const getButtonText = () => {
     if (!course) return '';
-    if (course.isAvailable === false) return 'Currently Unavailable';
+    if (course.isAvailable === false || course.status === 'HOLD') return 'Enrollments On Hold';
     if (course.isFree) return 'Enroll for Free Now';
     switch (paymentStep) {
       case 'CREATING':
@@ -94,9 +94,9 @@ export const CourseDetails: React.FC = () => {
     
     if (!course) return;
 
-    // Block new enrollments while the course is marked unavailable
-    if (course.isAvailable === false) {
-      alert('This course is currently unavailable for new enrollments. Please check back soon.');
+    // Block new enrollments while the course is marked unavailable or on hold
+    if (course.isAvailable === false || course.status === 'HOLD') {
+      alert('This course is currently on hold for new enrollments. Please check back soon.');
       return;
     }
     
@@ -611,9 +611,9 @@ export const CourseDetails: React.FC = () => {
                   <div>
                     <button
                       onClick={handleEnrollClick}
-                      disabled={course.isAvailable === false || paymentStep === 'CREATING' || paymentStep === 'CHECKOUT_OPEN' || paymentStep === 'VERIFYING' || paymentStep === 'SUCCESS'}
+                      disabled={course.isAvailable === false || course.status === 'HOLD' || paymentStep === 'CREATING' || paymentStep === 'CHECKOUT_OPEN' || paymentStep === 'VERIFYING' || paymentStep === 'SUCCESS'}
                       className={`w-full py-4 px-6 text-white font-bold text-base rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 ${
-                        course.isAvailable === false
+                        course.isAvailable === false || course.status === 'HOLD'
                           ? 'bg-gray-400 cursor-not-allowed'
                           : paymentStep === 'SUCCESS'
                           ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
@@ -633,13 +633,13 @@ export const CourseDetails: React.FC = () => {
                       <span>{getButtonText()}</span>
                     </button>
                     
-                    {course.isAvailable === false && (
+                    {(course.isAvailable === false || course.status === 'HOLD') && (
                       <div className="text-center text-xs mt-3 leading-relaxed bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
-                        This course is <strong>currently unavailable</strong> for new enrollments. Please check back soon or contact us for updates.
+                        This course is <strong>currently on hold</strong> for new enrollments. Please check back soon or contact us for updates.
                       </div>
                     )}
 
-                    {course.isAvailable !== false && !isLoggedIn && (
+                    {course.isAvailable !== false && course.status !== 'HOLD' && !isLoggedIn && (
                       <div className="text-center text-xs text-[#5C5148] mt-3 leading-relaxed">
                         New student?{' '}
                         <Link to="/register" className="text-[#B12B2B] font-semibold hover:underline">

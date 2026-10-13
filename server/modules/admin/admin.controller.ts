@@ -459,10 +459,14 @@ export const getCourses = async (req: Request, res: Response) => {
       prisma.course.count({ where })
     ]);
 
-    const formattedItems = items.map(c => ({
-      ...c,
-      isAvailable: isCourseAvailable(c.id)
-    }));
+    const formattedItems = items.map(c => {
+      const available = isCourseAvailable(c.id);
+      return {
+        ...c,
+        isAvailable: available,
+        status: !available && c.status === 'PUBLISHED' ? 'HOLD' : c.status
+      };
+    });
 
     res.json({ success: true, data: { items: formattedItems, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } } });
   } catch (err: any) {
@@ -483,7 +487,15 @@ export const getCourseById = async (req: Request, res: Response) => {
       }
     });
     if (!course) return res.status(404).json({ success: false, error: { message: 'Course not found' } });
-    res.json({ success: true, data: { ...course, isAvailable: isCourseAvailable(course.id) } });
+    const available = isCourseAvailable(course.id);
+    res.json({
+      success: true,
+      data: {
+        ...course,
+        isAvailable: available,
+        status: !available && course.status === 'PUBLISHED' ? 'HOLD' : course.status
+      }
+    });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
@@ -650,6 +662,37 @@ export const unpublishCourse = async (req: Request, res: Response) => {
     await logAdminAction((req as any).user.id, 'UNPUBLISH_COURSE', 'Course', course.id, null, req);
     invalidateCoursesCache();
     res.json({ success: true, data: course });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+export const updateCourseAvailability = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.id as string;
+    const { isAvailable } = req.body;
+    const available = Boolean(isAvailable);
+
+    await setCourseAvailability(courseId, available);
+    invalidateCoursesCache();
+
+    await logAdminAction(
+      (req as any).user.id,
+      available ? 'ENABLE_COURSE_AVAILABILITY' : 'DISABLE_COURSE_AVAILABILITY',
+      'Course',
+      courseId,
+      { isAvailable: available },
+      req
+    );
+
+    res.json({
+      success: true,
+      data: {
+        id: courseId,
+        isAvailable: available,
+        status: available ? 'PUBLISHED' : 'HOLD',
+      }
+    });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }

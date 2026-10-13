@@ -398,6 +398,8 @@ export const InstructorPanel: React.FC = () => {
                                 className={`px-2.5 py-1 text-[11px] font-bold rounded-full shadow-xs ${
                                   course.status === 'PUBLISHED'
                                     ? 'bg-emerald-600 text-white'
+                                    : course.status === 'HOLD'
+                                    ? 'bg-amber-600 text-white'
                                     : course.status === 'DRAFT'
                                     ? 'bg-amber-500 text-white'
                                     : 'bg-gray-500 text-white'

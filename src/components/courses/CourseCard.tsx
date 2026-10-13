@@ -57,9 +57,9 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
               FREE
             </span>
           )}
-          {course.isAvailable === false && (
-            <span className="px-2.5 py-1 text-xs font-bold bg-gray-700 text-white rounded-lg shadow-sm">
-              Currently Unavailable
+          {(course.isAvailable === false || (course as any).status === 'HOLD') && (
+            <span className="px-2.5 py-1 text-xs font-bold bg-amber-600 text-white rounded-lg shadow-sm">
+              On Hold
             </span>
           )}
         </div>

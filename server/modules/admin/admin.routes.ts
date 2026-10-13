@@ -31,6 +31,7 @@ router.patch('/courses/:id', authenticate, requireAdmin, adminController.updateC
 router.delete('/courses/:id', authenticate, requireAdmin, adminController.deleteCourse);
 router.post('/courses/:id/publish', authenticate, requireAdmin, adminController.publishCourse);
 router.post('/courses/:id/unpublish', authenticate, requireAdmin, adminController.unpublishCourse);
+router.patch('/courses/:id/availability', authenticate, requireAdmin, adminController.updateCourseAvailability);
 
 // Course Modules & Lessons (Managed under course or separate? Under course makes sense but let's just make direct module/lesson routes as needed, or handle inside get/update course). Let's do simple CRUDs on modules/lessons
 router.post('/modules', authenticate, requireAdmin, adminController.createModule);
