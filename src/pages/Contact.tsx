@@ -118,23 +118,27 @@ export const Contact: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Banner Section */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-2">
-            <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-[42px] text-[#2B2521] leading-[1.15]">
+        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
+            <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
+              <EditableText settingKey="contact.hero.eyebrow" defaultText="Get In Touch" />
+            </span>
+            <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-5xl text-jadmaa-charcoal">
               <EditableText settingKey="contact.title" defaultText="Contact JADMAA Varmakalai" />
             </h2>
-            <p className="font-heading font-medium text-[18px] sm:text-[20px] text-[#2B2521] leading-[1.3]">
-              <EditableText settingKey="contact.subtitle" defaultText="We'd Love to Hear From You" />
-            </p>
-            <p className="font-body text-[16px] text-[#5C5148] leading-[1.6] max-w-2xl mx-auto pt-1">
-              Whether you're interested in joining our Varmakalai (Varma Kalai) martial arts training programs, booking a trial class, asking about Varma treatment, or becoming part of our instructor network, our team is here to help.
+            <p className="text-base md:text-lg text-jadmaa-textMuted max-w-2xl">
+              <EditableText 
+                settingKey="contact.description" 
+                defaultText="Whether you're interested in joining our Varmakalai (Varma Kalai) martial arts training programs, booking a trial class, asking about Varma treatment, or becoming part of our instructor network, our team is here to help."
+                multiline
+              />
             </p>
           </div>
         </section>
 
         {/* Contact Info + Enquiry Form Grid */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Left Column: Phone, Email, Connect */}
@@ -427,9 +431,9 @@ export const Contact: React.FC = () => {
         </section>
 
         {/* Our Branches Section */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
+            <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               Our Branches
             </h2>
 

@@ -5,6 +5,7 @@ import bcrypt from 'bcryptjs';
 import { sendNewCourseSuggestionEmail, sendEnquiryAdminNotificationEmail, sendEnquiryUserAcknowledgementEmail } from '../../services/email/email.service.js';
 import { BrevoService } from '../../services/email/brevo.service.js';
 import { invalidateUserCache } from '../../middleware/auth.middleware.js';
+import { invalidateCoursesCache } from '../courses/course.controller.js';
 
 const extractYouTubeId = (input: string): string => {
   if (!input) return '';
@@ -517,6 +518,7 @@ export const createCourse = async (req: Request, res: Response) => {
     }
 
     await logAdminAction((req as any).user.id, 'CREATE_COURSE', 'Course', course.id, { title: course.title }, req);
+    invalidateCoursesCache();
     if (course.status === 'PUBLISHED') {
       sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
     }
@@ -587,6 +589,7 @@ export const updateCourse = async (req: Request, res: Response) => {
     }
 
     await logAdminAction((req as any).user.id, 'UPDATE_COURSE', 'Course', course.id, null, req);
+    invalidateCoursesCache();
     res.json({ success: true, data: course });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
@@ -603,6 +606,7 @@ export const deleteCourse = async (req: Request, res: Response) => {
     
     await prisma.course.delete({ where: { id: (req.params.id as string) } });
     await logAdminAction((req as any).user.id, 'DELETE_COURSE', 'Course', (req.params.id as string), null, req);
+    invalidateCoursesCache();
     res.json({ success: true, data: { message: 'Course deleted successfully' } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
@@ -616,6 +620,7 @@ export const publishCourse = async (req: Request, res: Response) => {
       data: { status: 'PUBLISHED', publishedAt: new Date() }
     });
     await logAdminAction((req as any).user.id, 'PUBLISH_COURSE', 'Course', course.id, null, req);
+    invalidateCoursesCache();
     sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
     res.json({ success: true, data: course });
   } catch (err: any) {
@@ -630,6 +635,7 @@ export const unpublishCourse = async (req: Request, res: Response) => {
       data: { status: 'DRAFT' }
     });
     await logAdminAction((req as any).user.id, 'UNPUBLISH_COURSE', 'Course', course.id, null, req);
+    invalidateCoursesCache();
     res.json({ success: true, data: course });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });

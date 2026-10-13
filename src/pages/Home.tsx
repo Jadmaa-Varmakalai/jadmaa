@@ -302,7 +302,7 @@ export const Home: React.FC = () => {
 
       {/* 2. ABOUT JADMAA TEASER SECTION */}
       <section className="py-12 lg:py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             <div className="lg:col-span-8 space-y-4" data-aos="fade-up">
@@ -407,7 +407,7 @@ export const Home: React.FC = () => {
 
       {/* 4. TRAINING AT JADMAA SECTION */}
       <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
           
           <div className="text-center max-w-3xl mx-auto space-y-2" data-aos="fade-up">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
@@ -599,7 +599,7 @@ export const Home: React.FC = () => {
 
       {/* 6. VARMA WELLNESS & TRADITIONAL THERAPY SECTION */}
       <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left overflow-hidden">
-        <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
           
           <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]" data-aos="fade-up">
             <EditableText settingKey="home.wellness.title" defaultText="Varma Treatment & Traditional Wellness" />

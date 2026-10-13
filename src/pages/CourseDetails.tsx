@@ -65,6 +65,7 @@ export const CourseDetails: React.FC = () => {
 
   const getButtonText = () => {
     if (!course) return '';
+    if (course.isAvailable === false) return 'Currently Unavailable';
     if (course.isFree) return 'Enroll for Free Now';
     switch (paymentStep) {
       case 'CREATING':
@@ -92,6 +93,12 @@ export const CourseDetails: React.FC = () => {
     }
     
     if (!course) return;
+
+    // Block new enrollments while the course is marked unavailable
+    if (course.isAvailable === false) {
+      alert('This course is currently unavailable for new enrollments. Please check back soon.');
+      return;
+    }
     
     if (user?.enrolledCourses?.includes(course.id)) {
       navigate(`/learn/${course.id}`);
@@ -273,7 +280,7 @@ export const CourseDetails: React.FC = () => {
 
       {/* Main Container mirroring jadmaa.com Tutor LMS single course layout */}
       <div className="bg-[#FAF8F5] min-h-screen py-8 md:py-12 text-[#212327] font-sans">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           
           {/* Breadcrumb Trail */}
           <nav aria-label="Breadcrumb" className="flex items-center space-x-2 text-xs md:text-sm text-[#706B65] mb-6">
@@ -604,15 +611,17 @@ export const CourseDetails: React.FC = () => {
                   <div>
                     <button
                       onClick={handleEnrollClick}
-                      disabled={paymentStep === 'CREATING' || paymentStep === 'CHECKOUT_OPEN' || paymentStep === 'VERIFYING' || paymentStep === 'SUCCESS'}
-                      className={`w-full py-4 px-6 text-white font-bold text-base rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 cursor-pointer ${
-                        paymentStep === 'SUCCESS'
-                          ? 'bg-emerald-600 hover:bg-emerald-700'
+                      disabled={course.isAvailable === false || paymentStep === 'CREATING' || paymentStep === 'CHECKOUT_OPEN' || paymentStep === 'VERIFYING' || paymentStep === 'SUCCESS'}
+                      className={`w-full py-4 px-6 text-white font-bold text-base rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center space-x-2 ${
+                        course.isAvailable === false
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : paymentStep === 'SUCCESS'
+                          ? 'bg-emerald-600 hover:bg-emerald-700 cursor-pointer'
                           : paymentStep === 'FAILED'
-                          ? 'bg-amber-700 hover:bg-amber-800'
+                          ? 'bg-amber-700 hover:bg-amber-800 cursor-pointer'
                           : paymentStep === 'CANCELLED'
-                          ? 'bg-[#B12B2B] hover:bg-[#961F1F]'
-                          : 'bg-[#B12B2B] hover:bg-[#961F1F]'
+                          ? 'bg-[#B12B2B] hover:bg-[#961F1F] cursor-pointer'
+                          : 'bg-[#B12B2B] hover:bg-[#961F1F] cursor-pointer'
                       } disabled:opacity-85 disabled:cursor-wait`}
                     >
                       {(paymentStep === 'CREATING' || paymentStep === 'VERIFYING') && (
@@ -624,7 +633,13 @@ export const CourseDetails: React.FC = () => {
                       <span>{getButtonText()}</span>
                     </button>
                     
-                    {!isLoggedIn && (
+                    {course.isAvailable === false && (
+                      <div className="text-center text-xs text-[#5C5148] mt-3 leading-relaxed bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
+                        This course is <strong>currently unavailable</strong> for new enrollments. Please check back soon or contact us for updates.
+                      </div>
+                    )}
+
+                    {course.isAvailable !== false && !isLoggedIn && (
                       <div className="text-center text-xs text-[#5C5148] mt-3 leading-relaxed">
                         New student?{' '}
                         <Link to="/register" className="text-[#B12B2B] font-semibold hover:underline">

@@ -57,6 +57,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
               FREE
             </span>
           )}
+          {course.isAvailable === false && (
+            <span className="px-2.5 py-1 text-xs font-bold bg-gray-700 text-white rounded-lg shadow-sm">
+              Currently Unavailable
+            </span>
+          )}
         </div>
 
         {/* Level badge bottom-right */}

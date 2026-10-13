@@ -28,6 +28,7 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
     thumbnailUrl: '',
     youtubeUrl: '',
     certificateEnabled: true,
+    isAvailable: true,
   });
 
   const [loading, setLoading] = useState(false);
@@ -57,6 +58,7 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
           thumbnailUrl: course.thumbnailUrl || '',
           youtubeUrl: existingYoutubeUrl,
           certificateEnabled: course.certificateEnabled !== false,
+          isAvailable: course.isAvailable !== false,
         });
       } else {
         setFormData({
@@ -71,6 +73,7 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
           thumbnailUrl: '',
           youtubeUrl: '',
           certificateEnabled: true,
+          isAvailable: true,
         });
       }
     }
@@ -258,6 +261,27 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
                 <option value="ARCHIVED">Archived (Hidden from catalog)</option>
               </select>
             </div>
+          </div>
+
+          {/* Availability toggle — blocks new enrollments/purchases while keeping the course visible */}
+          <div className="space-y-1">
+            <label className="text-sm font-bold text-gray-700">Enrollment Availability</label>
+            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+              <input
+                type="checkbox"
+                checked={formData.isAvailable !== false}
+                onChange={(e) => setFormData({ ...formData, isAvailable: e.target.checked })}
+                className="mt-0.5 w-4 h-4 accent-jadmaa-red cursor-pointer"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-gray-800">
+                  Available for new enrollments
+                </span>
+                <span className="block text-[11px] text-gray-500">
+                  When unchecked, students can still view the course but cannot register or purchase it. Existing students keep their access.
+                </span>
+              </span>
+            </label>
           </div>
 
           <ImageUpload

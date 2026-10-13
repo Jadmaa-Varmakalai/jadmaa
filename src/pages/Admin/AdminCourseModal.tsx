@@ -21,7 +21,8 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
     status: 'DRAFT',
     thumbnailUrl: '',
     youtubeUrl: '',
-    instructorId: '' // We will fetch instructors and populate
+    instructorId: '', // We will fetch instructors and populate
+    isAvailable: true,
   });
 
   const [instructors, setInstructors] = useState<any[]>([]);
@@ -47,7 +48,8 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
           status: course.status || 'DRAFT',
           thumbnailUrl: course.thumbnailUrl || '',
           youtubeUrl: existingYoutubeUrl,
-          instructorId: course.instructorId || ''
+          instructorId: course.instructorId || '',
+          isAvailable: course.isAvailable !== false,
         });
 
         // If modules weren't in course prop, fetch complete course details
@@ -73,7 +75,8 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
           status: 'DRAFT',
           thumbnailUrl: '',
           youtubeUrl: '',
-          instructorId: ''
+          instructorId: '',
+          isAvailable: true,
         });
       }
     }
@@ -227,6 +230,27 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
                 <option value="ARCHIVED">Archived</option>
               </select>
             </div>
+          </div>
+
+          {/* Availability toggle — blocks new enrollments/purchases while keeping the course visible */}
+          <div className="space-y-1">
+            <label className="text-sm font-bold text-gray-700">Enrollment Availability</label>
+            <label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition">
+              <input
+                type="checkbox"
+                checked={formData.isAvailable !== false}
+                onChange={e => setFormData({ ...formData, isAvailable: e.target.checked })}
+                className="mt-0.5 w-4 h-4 accent-jadmaa-red cursor-pointer"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-gray-800">
+                  Available for new enrollments
+                </span>
+                <span className="block text-[11px] text-gray-500">
+                  When unchecked, students can still view the course but cannot register or purchase it. Existing students keep their access.
+                </span>
+              </span>
+            </label>
           </div>
 
           <div className="space-y-1">

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { sendNewCourseSuggestionEmail } from '../../services/email/email.service.js';
+import { invalidateCoursesCache } from '../courses/course.controller.js';
 
 // Helper to resolve or create instructor record for the authenticated user
 const getOrCreateInstructorForUser = async (user: any) => {
@@ -160,6 +161,7 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
         duration: courseData.duration || '4 Weeks',
         price: Number(courseData.price) || 0,
         isFree,
+        isAvailable: courseData.isAvailable !== false,
         certificateEnabled: courseData.certificateEnabled !== false,
         status: courseData.status || 'DRAFT',
         thumbnailUrl: courseData.thumbnailUrl || null,
@@ -191,6 +193,7 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
     }
 
     if (course.status === 'PUBLISHED') {
+      invalidateCoursesCache();
       sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
     }
 
@@ -277,6 +280,7 @@ export const updateInstructorCourse = async (req: Request, res: Response) => {
       }
     }
 
+    invalidateCoursesCache();
     res.json({ success: true, data: course });
   } catch (err: any) {
     console.error('updateInstructorCourse error:', err);
@@ -306,6 +310,7 @@ export const deleteInstructorCourse = async (req: Request, res: Response) => {
     }
 
     await prisma.course.delete({ where: { id: courseId } });
+    invalidateCoursesCache();
     res.json({ success: true, message: 'Course deleted successfully' });
   } catch (err: any) {
     console.error('deleteInstructorCourse error:', err);

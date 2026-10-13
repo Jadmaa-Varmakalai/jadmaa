@@ -35,20 +35,23 @@ export const About: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Section 1: Title & Tagline */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-2">
-            <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-[42px] text-[#2B2521] leading-[1.15]">
+        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
+            <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
+              <EditableText settingKey="about.eyebrow" defaultText="Tradition & Lineage" />
+            </span>
+            <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-5xl text-jadmaa-charcoal">
               <EditableText settingKey="about.title" defaultText="About JADMAA Varmakalai" />
             </h2>
-            <p className="font-heading font-medium text-[18px] sm:text-[20px] text-[#2B2521] leading-[1.3]">
+            <p className="text-base md:text-lg text-jadmaa-textMuted max-w-2xl">
               <EditableText settingKey="about.tagline" defaultText="Preserving Tradition. Empowering Generations." />
             </p>
           </div>
         </section>
 
         {/* Section 2: Image + Intro paragraphs */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
               {/* Left Image */}
@@ -92,9 +95,9 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 3: Meet Our Founder */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
+            <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               <EditableText settingKey="about.founder.heading" defaultText="Meet Our Founder" />
             </h2>
 
@@ -119,7 +122,7 @@ export const About: React.FC = () => {
                 <span className="font-body text-[13px] font-semibold text-[#5C5148] uppercase tracking-[1px] block">
                   Founder &amp; Chief Instructor
                 </span>
-                <h3 className="font-heading font-bold text-[22px] sm:text-[26px] text-[#2B2521] leading-[1.2]">
+                <h3 className="font-heading font-medium text-[22px] sm:text-[26px] text-[#2B2521] leading-[1.2]">
                   Bojagarajan
                 </h3>
                 <p className="font-body text-[16px] text-[#5C5148] leading-[1.6] pt-2">
@@ -132,9 +135,9 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 4: Why Choose JADMAA Varmakalai? */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
+            <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               Why Choose JADMAA Varmakalai?
             </h2>
 
@@ -152,12 +155,12 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 5: Vision & Mission (2 boxes side-by-side) */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3">
-                <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
+                <h3 className="font-heading font-medium text-[22px] text-[#2B2521] leading-[1.2]">
                   Our Vision
                 </h3>
                 <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
@@ -166,7 +169,7 @@ export const About: React.FC = () => {
               </div>
 
               <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3">
-                <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
+                <h3 className="font-heading font-medium text-[22px] text-[#2B2521] leading-[1.2]">
                   Our Mission
                 </h3>
                 <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
@@ -179,12 +182,12 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 6: Your best choice & Learn from best instructors */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3">
-                <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
+                <h3 className="font-heading font-medium text-[22px] text-[#2B2521] leading-[1.2]">
                   Your best choice for martial arts training
                 </h3>
                 <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
@@ -193,7 +196,7 @@ export const About: React.FC = () => {
               </div>
 
               <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-4">
-                <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
+                <h3 className="font-heading font-medium text-[22px] text-[#2B2521] leading-[1.2]">
                   Learn from the best martial arts instructors around
                 </h3>
                 <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">

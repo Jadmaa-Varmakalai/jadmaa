@@ -33,12 +33,18 @@ export const createOrder = async (req: Request, res: Response) => {
         price: true,
         isFree: true,
         status: true,
+        isAvailable: true,
       },
     });
 
     if (!course || course.status !== 'PUBLISHED') {
       console.warn(`[Razorpay:createOrder] Course not found or not published: ${courseId}`);
       return res.status(404).json({ success: false, error: { message: 'Course not found or not published' } });
+    }
+
+    if (course.isAvailable === false) {
+      console.warn(`[Razorpay:createOrder] Course is currently unavailable: ${courseId}`);
+      return res.status(403).json({ success: false, error: { message: 'This course is currently unavailable for new enrollments.' } });
     }
 
     console.log(`[Razorpay:createOrder] Course loaded: "${course.title}", price: ₹${course.price}`);

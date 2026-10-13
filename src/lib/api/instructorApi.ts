@@ -10,6 +10,7 @@ export interface InstructorCoursePayload {
   duration?: string;
   price: number;
   isFree?: boolean;
+  isAvailable?: boolean;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   thumbnailUrl?: string;
   youtubeUrl?: string;

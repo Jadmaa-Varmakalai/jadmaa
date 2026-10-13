@@ -3,6 +3,14 @@ import { prisma } from '../../db.js';
 let coursesCache: any = null;
 let lastCacheTime = 0;
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
+const slugCache: Record<string, {data: any, time: number}> = {};
+
+// Clear public course caches (called after admin/instructor edit a course)
+export const invalidateCoursesCache = () => {
+  coursesCache = null;
+  lastCacheTime = 0;
+  Object.keys(slugCache).forEach((k) => delete slugCache[k]);
+};
 
 export const getCourses = async (req: Request, res: Response) => {
   try {
@@ -44,6 +52,7 @@ export const getCourses = async (req: Request, res: Response) => {
       },
       price: c.price,
       isFree: c.isFree,
+      isAvailable: c.isAvailable,
       rating: c.rating || 0,
       reviewCount: c.reviewCount || 0,
       whatYouWillLearn: [], // Need to add to DB or keep empty
@@ -76,8 +85,6 @@ export const getCourses = async (req: Request, res: Response) => {
   }
 };
 
-
-const slugCache: Record<string, {data: any, time: number}> = {};
 
 export const getCourseBySlug = async (req: Request, res: Response) => {
   try {
@@ -124,6 +131,7 @@ export const getCourseBySlug = async (req: Request, res: Response) => {
       },
       price: course.price,
       isFree: course.isFree,
+      isAvailable: course.isAvailable,
       rating: course.rating || 0,
       reviewCount: course.reviewCount || 0,
       whatYouWillLearn: [],

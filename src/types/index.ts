@@ -35,6 +35,7 @@ export interface Course {
   price: number;
   originalPrice?: number;
   isFree?: boolean;
+  isAvailable?: boolean;
   isPopular?: boolean;
   rating: number;
   reviewCount: number;

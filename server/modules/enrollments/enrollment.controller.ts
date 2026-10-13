@@ -12,6 +12,10 @@ export const enrollFreeCourse = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Course not found' } });
     }
 
+    if (course.isAvailable === false) {
+      return res.status(403).json({ success: false, error: { message: 'This course is currently unavailable for new enrollments.' } });
+    }
+
     if (!course.isFree && course.price > 0) {
       return res.status(400).json({ success: false, error: { message: 'Course is not free. Please complete payment.' } });
     }
