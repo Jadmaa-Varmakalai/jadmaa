@@ -1,7 +1,10 @@
 export const API_BASE_URL = '/api/v1';
 
 let isRefreshing = false;
-let failedQueue: any[] = [];
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}> = [];
 
 const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach(prom => {
@@ -15,15 +18,15 @@ const processQueue = (error: Error | null, token: string | null = null) => {
 };
 
 export const fetchApi = async <T = any>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-  let token = localStorage.getItem('jadmaa_token');
+  const token = localStorage.getItem('jadmaa_token');
   
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...options.headers,
+    ...(options.headers as Record<string, string> || {}),
   };
 
-  let response = await fetch(`${API_BASE_URL}${endpoint}`, {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
     credentials: 'same-origin',
     ...options,
     headers,
@@ -31,10 +34,10 @@ export const fetchApi = async <T = any>(endpoint: string, options: RequestInit =
 
   if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register') && !endpoint.includes('/auth/refresh')) {
     if (isRefreshing) {
-      return new Promise((resolve, reject) => {
+      return new Promise<T>((resolve, reject) => {
         failedQueue.push({ resolve, reject });
       }).then(() => {
-        return fetchApi(endpoint, options);
+        return fetchApi<T>(endpoint, options);
       }).catch(err => {
         return Promise.reject(err);
       });
@@ -70,8 +73,7 @@ export const fetchApi = async <T = any>(endpoint: string, options: RequestInit =
       
       processQueue(null, newToken);
 
-      // Retry the original request
-      return fetchApi(endpoint, options);
+      return fetchApi<T>(endpoint, options);
     } catch (err: any) {
       processQueue(err, null);
       localStorage.removeItem('jadmaa_token');
