@@ -634,7 +634,7 @@ export const CourseDetails: React.FC = () => {
                     </button>
                     
                     {course.isAvailable === false && (
-                      <div className="text-center text-xs text-[#5C5148] mt-3 leading-relaxed bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
+                      <div className="text-center text-xs mt-3 leading-relaxed bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2">
                         This course is <strong>currently unavailable</strong> for new enrollments. Please check back soon or contact us for updates.
                       </div>
                     )}
