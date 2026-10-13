@@ -16,6 +16,19 @@ export const isOnlineCourse = (course: Course): boolean => {
   return false;
 };
 
+export const getValidCourseThumbnail = (course: Partial<Course>): string => {
+  const thumb = course.thumbnail?.trim() || '';
+  if (!thumb) return '/images/course-basic.jpg';
+  if (thumb.includes('course-weightloss')) return '/images/course-weightloss-career.jpg';
+  if (thumb.includes('course-intermediate')) return '/images/course-intermediate.jpg';
+  if (thumb.includes('course-kids')) return '/images/course-kids.jpg';
+  if (thumb.includes('course-womens')) return '/images/course-womens.jpg';
+  if (thumb.includes('course-selfdefence')) return '/images/course-selfdefence-all.jpg';
+  if (thumb.includes('course-basic')) return '/images/course-basic.jpg';
+  if (thumb.includes('logo-1')) return '/images/course-basic.jpg';
+  return thumb;
+};
+
 interface CourseCardProps {
   course: Course;
   hidePrice?: boolean;
@@ -50,9 +63,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
   const isOnline = isOnlineCourse(course);
 
   // Safe fallback thumbnail
-  const thumbnailSrc = course.thumbnail && course.thumbnail.trim().length > 0
-    ? course.thumbnail
-    : '/images/hero-traditional.jpg';
+  const thumbnailSrc = getValidCourseThumbnail(course);
 
   // Duration
   const durationText = course.duration && course.duration.trim().length > 0
@@ -72,7 +83,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
           src={thumbnailSrc}
           alt={cleanTitle}
           onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/hero-traditional.jpg';
+            (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
           }}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />

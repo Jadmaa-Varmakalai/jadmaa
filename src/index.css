@@ -279,35 +279,26 @@ html {
   scroll-padding-top: 80px;
 }
 
-/* Base scroll reveal (elements start with subtle downward offset & opacity 0) */
-.reveal, [data-aos], .jd-reveal {
+/* Scroll reveal styles - active when JS initializes */
+html.jd-js .reveal,
+html.jd-js [data-aos],
+html.jd-js .jd-reveal,
+html.jd-js .jd-sec {
   opacity: 0;
-  transform: translateY(34px);
+  transform: translateY(28px);
+  transition: opacity 0.65s cubic-bezier(0.22, 0.61, 0.36, 1), transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
   will-change: opacity, transform;
 }
 
-/* Revealed state with jadmaa.com's exact cubic-bezier easing */
-.reveal.is-visible, 
-[data-aos].is-visible, 
-[data-aos].aos-animate, 
-.jd-reveal.jd-in,
-.is-visible {
+/* Graceful reveal animation when observer triggers */
+html.jd-js .reveal.is-visible, 
+html.jd-js [data-aos].is-visible, 
+html.jd-js [data-aos].aos-animate, 
+html.jd-js .jd-reveal.jd-in,
+html.jd-js .jd-sec.jd-in,
+html.jd-js .is-visible {
   opacity: 1 !important;
   transform: none !important;
-  transition: opacity 0.75s ease, transform 0.75s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
-}
-
-/* Section-level reveal */
-.jd-sec {
-  opacity: 0;
-  transform: translateY(14px);
-  will-change: opacity, transform;
-}
-
-.jd-sec.jd-in, .jd-sec.is-visible {
-  opacity: 1 !important;
-  transform: none !important;
-  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
 }
 
 /* Staggered delay helpers */
@@ -322,22 +313,18 @@ html {
 
 /* Mobile smoother & stronger rise (from jadmaa.com mobile optimization) */
 @media (max-width: 767px) {
-  .reveal, [data-aos], .jd-reveal {
-    transform: translateY(44px);
-  }
-  .reveal.is-visible, [data-aos].is-visible, [data-aos].aos-animate, .jd-reveal.jd-in, .is-visible {
-    transition: opacity 0.8s ease, transform 0.9s cubic-bezier(0.22, 0.61, 0.36, 1) !important;
-  }
-  .jd-sec {
-    transform: none;
-  }
-  .jd-sec.jd-in, .jd-sec.is-visible {
-    transition: opacity 0.5s ease !important;
+  html.jd-js .reveal,
+  html.jd-js [data-aos],
+  html.jd-js .jd-reveal {
+    transform: translateY(34px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reveal, [data-aos], .jd-reveal, .jd-sec {
+  html.jd-js .reveal,
+  html.jd-js [data-aos],
+  html.jd-js .jd-reveal,
+  html.jd-js .jd-sec {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
@@ -670,29 +657,11 @@ a[role="button"]:active {
   }
 }
 
-/* ==========================================
-   CONSISTENT SCROLL REVEAL SYSTEM
-   ========================================== */
-.reveal {
-  opacity: 0;
-  transform: translate3d(0, 12px, 0);
-  transition: opacity 550ms cubic-bezier(0.22, 1, 0.36, 1), transform 550ms cubic-bezier(0.22, 1, 0.36, 1);
-  will-change: opacity, transform;
-}
-.reveal.is-visible {
-  opacity: 1;
-  transform: translate3d(0, 0, 0);
-}
 .reveal-stagger > .reveal:nth-child(1) { transition-delay: 0ms; }
 .reveal-stagger > .reveal:nth-child(2) { transition-delay: 60ms; }
 .reveal-stagger > .reveal:nth-child(3) { transition-delay: 120ms; }
 .reveal-stagger > .reveal:nth-child(4) { transition-delay: 180ms; }
 .reveal-stagger > .reveal:nth-child(n+5) { transition-delay: 220ms; }
-
-.no-js .reveal {
-  opacity: 1;
-  transform: none;
-}
 
 /* ==========================================
    JADMAA BLOG ARTICLE CONTENT STYLING

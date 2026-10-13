@@ -17,44 +17,43 @@ export const ScrollObserver: React.FC = () => {
 
     document.documentElement.classList.add('jd-js');
 
+    const reveal = (el: Element) => {
+      el.classList.add('is-visible', 'jd-in', 'aos-animate');
+    };
+
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             observer.unobserve(entry.target);
-            entry.target.classList.add('is-visible');
-            entry.target.classList.add('jd-in');
-            entry.target.classList.add('aos-animate');
+            reveal(entry.target);
           }
         });
       },
       {
         root: null,
-        rootMargin: '0px 0px -6% 0px',
-        threshold: 0.08,
+        rootMargin: '40px 0px 40px 0px',
+        threshold: 0.05,
       }
     );
 
     const observeElements = () => {
-      const selectors = '[data-aos]:not(.is-observed), .reveal:not(.is-observed), .reveal-on-scroll:not(.is-observed), .reveal-child:not(.is-observed), .jd-reveal:not(.is-observed)';
-      document.querySelectorAll(selectors).forEach((el) => {
-        el.classList.add('reveal');
-        el.classList.add('is-observed');
+      const selectors = '[data-aos]:not(.is-observed), .reveal:not(.is-observed), .reveal-on-scroll:not(.is-observed), .reveal-child:not(.is-observed), .jd-reveal:not(.is-observed), main > section:not(.no-reveal):not(.is-observed)';
+      const elements = document.querySelectorAll(selectors);
+      const vh = window.innerHeight || 800;
+
+      elements.forEach((el) => {
+        el.classList.add('reveal', 'is-observed');
         
         const delay = el.getAttribute('data-aos-delay');
         if (delay) {
           (el as HTMLElement).style.transitionDelay = `${delay}ms`;
         }
 
-        // Safety sweep: if already in initial viewport, reveal on next frame so above-the-fold content doesn't wait
+        // If element is already in or above initial viewport, reveal smoothly
         const rect = el.getBoundingClientRect();
-        const vh = window.innerHeight || 800;
-        if (rect.top < vh && rect.bottom > 0) {
-          requestAnimationFrame(() => {
-            el.classList.add('is-visible');
-            el.classList.add('jd-in');
-            el.classList.add('aos-animate');
-          });
+        if (rect.top < vh - 20 && rect.bottom > 0) {
+          reveal(el);
         } else {
           observer.observe(el);
         }
@@ -62,6 +61,26 @@ export const ScrollObserver: React.FC = () => {
     };
 
     observeElements();
+
+    // Passive scroll listener safety sweep: ensures oncoming elements animate in smoothly on scroll
+    const handleScroll = () => {
+      const vh = window.innerHeight || 800;
+      document.querySelectorAll('.reveal:not(.is-visible), [data-aos]:not(.is-visible)').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < vh - 20) {
+          reveal(el);
+          observer.unobserve(el);
+        }
+      });
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // Global failsafe: guarantees no element ever stays hidden if observer or scroll misses
+    const failsafeTimer = setTimeout(() => {
+      document.querySelectorAll('.reveal, [data-aos], .jd-reveal, .jd-sec').forEach((el) => {
+        reveal(el);
+      });
+    }, 2500);
 
     const mutationObserver = new MutationObserver(() => {
       observeElements();
@@ -72,6 +91,8 @@ export const ScrollObserver: React.FC = () => {
     return () => {
       observer.disconnect();
       mutationObserver.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(failsafeTimer);
     };
   }, [location.pathname]);
 

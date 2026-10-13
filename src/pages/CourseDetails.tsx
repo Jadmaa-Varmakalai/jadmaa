@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { CurriculumAccordion } from '../components/courses/CurriculumAccordion';
-import { CourseCard, isOnlineCourse } from '../components/courses/CourseCard';
+import { CourseCard, isOnlineCourse, getValidCourseThumbnail } from '../components/courses/CourseCard';
 import { 
   Clock, Award, Play, ChevronRight, Share2, 
   BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star,
@@ -388,9 +388,12 @@ export const CourseDetails: React.FC = () => {
               {/* Course Featured Banner / Video Frame */}
               <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black shadow-lg border border-[#E5E2DC] group">
                 <img 
-                  src={course.thumbnail || '/images/course-basic.jpg'} 
+                  src={getValidCourseThumbnail(course)} 
                   alt={displayTitle}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
+                  }}
                 />
                 <div className="absolute inset-0 bg-black/35 flex items-center justify-center backdrop-blur-[1px]">
                   <button 

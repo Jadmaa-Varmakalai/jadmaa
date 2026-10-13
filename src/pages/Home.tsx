@@ -378,11 +378,14 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:col-span-4 flex justify-center" data-aos="zoom-in" data-aos-delay="150">
+            <div className="lg:col-span-4 flex justify-center">
               <div className="w-full max-w-[360px] overflow-hidden rounded-[14px]">
                 <img 
-                  src="https://jadmaa.com/wp-content/uploads/2026/07/pose-dab-red-e1785095608624-653x1024.jpg" 
+                  src="/images/pose-dab-red-e1785095608624-653x1024.jpg" 
                   alt="Varmakalai practitioner demonstrating a traditional stance" 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
+                  }}
                   className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
                 />
               </div>
@@ -565,52 +568,57 @@ export const Home: React.FC = () => {
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
 
-              {/* Prev (Scroll Left / Set Left Direction) */}
-              <button
-                type="button"
-                onClick={() => scrollCoursesBy(-360, 'left')}
-                title="Scroll Left (Roll Left)"
-                aria-label="Scroll Courses Left"
-                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  coursesDirection === 'left'
-                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
-                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
-                }`}
-              >
-                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
+              {featuredCourses.length > 2 && (
+                <>
+                  {/* Prev (Scroll Left / Set Left Direction) */}
+                  <button
+                    type="button"
+                    onClick={() => scrollCoursesBy(-360, 'left')}
+                    title="Scroll Left (Roll Left)"
+                    aria-label="Scroll Courses Left"
+                    className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
+                      coursesDirection === 'left'
+                        ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
+                        : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
+                    }`}
+                  >
+                    <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
 
-              {/* Next (Scroll Right / Set Right Direction) */}
-              <button
-                type="button"
-                onClick={() => scrollCoursesBy(360, 'right')}
-                title="Scroll Right (Roll Right)"
-                aria-label="Scroll Courses Right"
-                className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
-                  coursesDirection === 'right'
-                    ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
-                    : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
-                }`}
-              >
-                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
+                  {/* Next (Scroll Right / Set Right Direction) */}
+                  <button
+                    type="button"
+                    onClick={() => scrollCoursesBy(360, 'right')}
+                    title="Scroll Right (Roll Right)"
+                    aria-label="Scroll Courses Right"
+                    className={`p-2 sm:p-2.5 rounded-full border transition-all duration-200 ${
+                      coursesDirection === 'right'
+                        ? 'bg-[#B12B2B] text-white border-[#B12B2B] shadow-sm'
+                        : 'bg-white text-[#2B2521] border-[#E8DDD0] hover:bg-[#FAF6F0] hover:border-[#B12B2B]'
+                    }`}
+                  >
+                    <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           {/* Carousel Track Container */}
           <div className="relative group">
-            {/* Fade effect at the edges */}
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-[#FAF6F0] to-transparent z-10"></div>
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-[#FAF6F0] to-transparent z-10"></div>
-
             <div
               ref={coursesTrackRef}
-              className="flex gap-6 overflow-x-auto no-scrollbar py-2 cursor-grab active:cursor-grabbing select-none"
+              className={`flex gap-6 overflow-x-auto no-scrollbar py-2 select-none ${
+                featuredCourses.length <= 2
+                  ? 'justify-center'
+                  : 'cursor-grab active:cursor-grabbing justify-start'
+              }`}
               onMouseEnter={() => setCoursesPaused(true)}
               onMouseLeave={() => {
                 if (!isCoursesDragging) setCoursesPaused(false);
               }}
               onMouseDown={(e) => {
+                if (featuredCourses.length <= 2) return;
                 setIsCoursesDragging(true);
                 coursesDragStart.current = {
                   startX: e.pageX,
@@ -659,11 +667,14 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
             
             {/* Left Image - Full size matching section height */}
-            <div className="lg:col-span-4 flex flex-col h-full" data-aos="fade-right">
+            <div className="lg:col-span-4 flex flex-col h-full">
               <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-[#FAF6F0]">
                 <img 
-                  src="https://jadmaa.com/wp-content/uploads/2026/07/wellness-682x1024.jpg" 
+                  src="/images/wellness-682x1024.jpg" 
                   alt="Traditional Varma therapy session at JADMAA Varmakalai" 
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
+                  }}
                   className="w-full h-full min-h-[460px] lg:min-h-[540px] object-cover object-top rounded-[14px] hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>

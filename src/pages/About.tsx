@@ -50,7 +50,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 2: Image + Intro paragraphs */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
@@ -58,8 +58,11 @@ export const About: React.FC = () => {
               <div className="lg:col-span-4 flex justify-center">
                 <div className="w-full max-w-[360px] overflow-hidden rounded-[14px]">
                   <img 
-                    src="https://jadmaa.com/wp-content/uploads/2026/07/pose-dab-red-e1785095608624-653x1024.jpg" 
+                    src="/images/pose-dab-red-e1785095608624-653x1024.jpg" 
                     alt="Varmakalai practitioner demonstrating a traditional stance" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
+                    }}
                     className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>
@@ -95,7 +98,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 3: Meet Our Founder */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
             <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               <EditableText settingKey="about.founder.heading" defaultText="Meet Our Founder" />
@@ -107,8 +110,11 @@ export const About: React.FC = () => {
               <div className="lg:col-span-5 space-y-2.5">
                 <div className="w-full overflow-hidden rounded-[14px]">
                   <img 
-                    src="https://jadmaa.com/wp-content/uploads/2026/07/FB_IMG_1560998802991.jpg-2.jpeg" 
+                    src="/images/founder.webp" 
                     alt="Bojagarajan with his master Aasan R. Rajendran of Madurai - JADMAA Varmakalai lineage" 
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
+                    }}
                     className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>
@@ -135,7 +141,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 4: Why Choose JADMAA Varmakalai? */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
             <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               Why Choose JADMAA Varmakalai?
@@ -155,7 +161,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 5: Vision & Mission (2 boxes side-by-side) */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -182,7 +188,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 6: Your best choice & Learn from best instructors */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -220,7 +226,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 7: Join Now CTA */}
-        <section className="py-12 sm:py-16 bg-[#FAF6F0]">
+        <section className="py-12 sm:py-16 bg-[#FAF6F0]" data-aos="fade-up">
           <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
             <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
               JADMAA Varmakalai welcomes everyone — from beginners taking their first step into martial arts to dedicated practitioners seeking advanced Varmakalai knowledge. Join us and become part of a community committed to preserving tradition while building strength for the future.

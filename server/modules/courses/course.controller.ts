@@ -15,7 +15,7 @@ export const invalidateCoursesCache = () => {
 
 export const getCourses = async (req: Request, res: Response) => {
   try {
-    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
+    res.setHeader('Cache-Control', 'no-cache, private');
 
     if (coursesCache && Date.now() - lastCacheTime < CACHE_TTL) {
       return res.json({ success: true, data: coursesCache });

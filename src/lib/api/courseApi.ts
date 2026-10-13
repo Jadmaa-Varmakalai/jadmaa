@@ -25,33 +25,28 @@ export const courseApi = {
     return [];
   },
 
-  getCourses: async (forceRefresh = false): Promise<Course[]> => {
-    // 1. Return cached instantly if available
-    if (!forceRefresh) {
-      const cached = courseApi.getCachedCourses();
-      if (cached.length > 0) {
-        // Background revalidation
-        fetchApi('/courses').then(res => {
-          if (res?.data && Array.isArray(res.data)) {
-            memoryCoursesCache = res.data;
-            try {
-              sessionStorage.setItem('jadmaa_courses_cache', JSON.stringify(res.data));
-            } catch (_) {}
-          }
-        }).catch(() => {});
-        return cached;
-      }
-    }
+  clearCache: () => {
+    memoryCoursesCache = null;
+    slugCache.clear();
+    try {
+      sessionStorage.removeItem('jadmaa_courses_cache');
+    } catch (_) {}
+  },
 
-    // 2. Initial fetch if cache is empty
-    const res = await fetchApi('/courses');
-    if (res?.data) {
-      memoryCoursesCache = res.data;
-      try {
-        sessionStorage.setItem('jadmaa_courses_cache', JSON.stringify(res.data));
-      } catch (_) {}
+  getCourses: async (forceRefresh = false): Promise<Course[]> => {
+    try {
+      const res = await fetchApi('/courses');
+      if (res?.data && Array.isArray(res.data)) {
+        memoryCoursesCache = res.data;
+        try {
+          sessionStorage.setItem('jadmaa_courses_cache', JSON.stringify(res.data));
+        } catch (_) {}
+        return res.data;
+      }
+    } catch (err) {
+      console.warn('Failed to fetch fresh courses, using cached data if available', err);
     }
-    return res.data || [];
+    return courseApi.getCachedCourses();
   },
 
   getCourseBySlug: async (slug: string): Promise<Course> => {
