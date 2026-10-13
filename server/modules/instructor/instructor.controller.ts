@@ -23,6 +23,24 @@ const getOrCreateInstructorForUser = async (user: any) => {
   return instructor;
 };
 
+const extractYouTubeId = (input: string): string => {
+  if (!input) return '';
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const match = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
+  );
+  if (match && match[1]) {
+    return match[1];
+  }
+  const fallback = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
+  );
+  return fallback && fallback[1] ? fallback[1] : trimmed;
+};
+
 /**
  * Get instructor dashboard metrics & recent items
  */
@@ -149,24 +167,6 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
         publishedAt: courseData.status === 'PUBLISHED' ? new Date() : null
       }
     });
-
-const extractYouTubeId = (input: string): string => {
-  if (!input) return '';
-  const trimmed = input.trim();
-  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-    return trimmed;
-  }
-  const match = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
-  );
-  if (match && match[1]) {
-    return match[1];
-  }
-  const fallback = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
-  );
-  return fallback && fallback[1] ? fallback[1] : trimmed;
-};
 
     // Handle Youtube link shortcut
     if (youtubeUrl) {

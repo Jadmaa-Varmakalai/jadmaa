@@ -36,11 +36,11 @@ export const About: React.FC = () => {
         
         {/* Section 1: Title & Tagline */}
         <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
-          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-2">
-            <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-[42px] text-[#2B2521] leading-[1.15]">
+          <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-2">
+            <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-[42px] text-[#2B2521] leading-[1.15]">
               <EditableText settingKey="about.title" defaultText="About JADMAA Varmakalai" />
-            </h1>
-            <p className="font-heading font-bold text-[18px] sm:text-[20px] text-[#2B2521] leading-[1.3]">
+            </h2>
+            <p className="font-heading font-medium text-[18px] sm:text-[20px] text-[#2B2521] leading-[1.3]">
               <EditableText settingKey="about.tagline" defaultText="Preserving Tradition. Empowering Generations." />
             </p>
           </div>

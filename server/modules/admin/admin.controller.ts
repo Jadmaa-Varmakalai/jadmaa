@@ -6,6 +6,24 @@ import { sendNewCourseSuggestionEmail, sendEnquiryAdminNotificationEmail, sendEn
 import { BrevoService } from '../../services/email/brevo.service.js';
 import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 
+const extractYouTubeId = (input: string): string => {
+  if (!input) return '';
+  const trimmed = input.trim();
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+  const match = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
+  );
+  if (match && match[1]) {
+    return match[1];
+  }
+  const fallback = trimmed.match(
+    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
+  );
+  return fallback && fallback[1] ? fallback[1] : trimmed;
+};
+
 const getPagination = (req: Request) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 20;
@@ -476,24 +494,6 @@ export const createCourse = async (req: Request, res: Response) => {
     
     const course = await prisma.course.create({ data: courseData });
 
-const extractYouTubeId = (input: string): string => {
-  if (!input) return '';
-  const trimmed = input.trim();
-  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-    return trimmed;
-  }
-  const match = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
-  );
-  if (match && match[1]) {
-    return match[1];
-  }
-  const fallback = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
-  );
-  return fallback && fallback[1] ? fallback[1] : trimmed;
-};
-
     // Handle Youtube link shortcut
     if (youtubeUrl) {
       const videoId = extractYouTubeId(youtubeUrl);
@@ -659,11 +659,6 @@ export const deleteModule = async (req: Request, res: Response) => {
     await logAdminAction((req as any).user.id, 'DELETE_MODULE', 'CourseModule', (req.params.id as string), null, req);
     res.json({ success: true, data: { message: 'Deleted' } });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
-};
-
-const extractYouTubeId = (url: string) => {
-  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([^&]{11})/);
-  return match ? match[1] : url;
 };
 
 export const createLesson = async (req: Request, res: Response) => {

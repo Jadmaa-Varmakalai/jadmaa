@@ -73,7 +73,7 @@ export const Careers: React.FC = () => {
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Growth &amp; Leadership
                 </div>
-                <h1 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[40px] text-[#2B2521] leading-[1.15]">
+                <h1 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[40px] text-[#2B2521] leading-[1.15]">
                   <EditableText 
                     settingKey="careers.title" 
                     defaultText="Build Your Future Through Varmakalai (Varma Kalai) Martial Arts" 

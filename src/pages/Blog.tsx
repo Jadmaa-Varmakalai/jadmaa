@@ -37,9 +37,9 @@ export const Blog: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen text-left text-[#2B2521]">
         {/* Header Container */}
         <section className="pt-10 pb-6 px-4 sm:px-6 lg:px-8 max-w-[1200px] mx-auto">
-          <h1 className="text-[32px] sm:text-[40px] font-bold text-[#2B2521] leading-[1.2] mb-3">
+          <h2 className="text-[32px] sm:text-[40px] font-medium text-[#2B2521] leading-[1.2] mb-3">
             Varmakalai Blog
-          </h1>
+          </h2>
           <p className="text-[15px] sm:text-[16px] text-[#5C5148] leading-[1.6] max-w-[900px]">
             Insights on Varmakalai (Varma Kalai) martial arts training, self-defence, and traditional Varma treatment — from the JADMAA Varmakalai team.
           </p>

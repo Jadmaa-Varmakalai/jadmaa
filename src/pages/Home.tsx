@@ -228,13 +228,13 @@ export const Home: React.FC = () => {
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
               </div>
 
-              <h1 className="font-heading font-bold text-[clamp(28px,3.8vw,48px)] text-[#2B2521] leading-[1.18] tracking-[-0.5px]">
+              <h1 className="font-heading font-medium text-[clamp(28px,3.8vw,48px)] text-[#2B2521] leading-[1.18] tracking-[-0.5px]">
                 <EditableText 
                   settingKey="home.hero.title" 
                   defaultText="Learn the Ancient Science of Varmakalai" 
                 />
-              </h1>
-              
+              </h2>
+
               <p className="font-body text-[#5C5148] text-[16px] md:text-[17px] leading-[1.6] max-w-xl">
                 <EditableText 
                   settingKey="home.hero.subtitle" 
