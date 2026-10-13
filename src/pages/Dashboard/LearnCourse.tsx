@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
-import { ChevronLeft, PlayCircle, CheckCircle, Award, FileText, ArrowLeft, ArrowRight, Lock } from 'lucide-react';
+import { ChevronLeft, PlayCircle, CheckCircle, Award, ArrowLeft, ArrowRight } from 'lucide-react';
 import { courseApi } from '../../lib/api/courseApi';
 import { progressApi } from '../../lib/api/progressApi';
 import { useAuth } from '../../context/AuthContext';
@@ -146,7 +146,6 @@ export const LearnCourse: React.FC = () => {
   if (!course) return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Course not found.</div>;
 
   let activeLessonTitle = "";
-  let activeLessonDuration = "";
   let activeVideoId = "";
   let activeModuleTitle = "";
   
@@ -154,7 +153,6 @@ export const LearnCourse: React.FC = () => {
     const found = m.lessons.find((l: any) => l.id === activeLessonId);
     if (found) {
       activeLessonTitle = found.title;
-      activeLessonDuration = found.duration;
       activeVideoId = found.videoUrl || '';
       activeModuleTitle = m.title;
     }

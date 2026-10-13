@@ -14,7 +14,7 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue = [];
 };
 
-export const fetchApi = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
+export const fetchApi = async <T = any>(endpoint: string, options: RequestInit = {}): Promise<T> => {
   let token = localStorage.getItem('jadmaa_token');
   
   const headers: HeadersInit = {

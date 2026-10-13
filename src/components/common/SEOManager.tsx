@@ -8,8 +8,6 @@ export const SEOManager: React.FC = () => {
 
   let title = 'JADMAA — Varmakalai Training & Traditional Tamil Martial Arts';
   let description = 'Learn authentic Varmakalai, traditional Tamil martial arts, and practical self defence. JADMAA offers expert training for all levels, kids, and women.';
-  let keywords = ''; // We will keep this minimal or omit it as requested, but structured data is more important.
-  let schemaType = 'WebApplication';
   let isCourse = false;
   let schemaData: any = {
     "@context": "https://schema.org",

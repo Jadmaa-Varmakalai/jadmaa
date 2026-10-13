@@ -15,7 +15,11 @@ import dbRoutes from './modules/admin/db.routes.js';
 import reviewsRoutes from './modules/reviews/reviews.routes.js';
 import uploadRoutes from './modules/upload/upload.routes.js';
 import instructorRoutes from './modules/instructor/instructor.routes.js';
+import { initCourseAvailability } from './services/courseAvailability.service.js';
 import path from 'path';
+
+// Warm course availability cache from DB
+initCourseAvailability().catch(() => {});
 
 const app = express();
 

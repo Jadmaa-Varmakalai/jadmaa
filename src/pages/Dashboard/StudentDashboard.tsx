@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
-import { PlayCircle, Award, BookOpen, Clock, CheckCircle } from 'lucide-react';
+import { PlayCircle, Award, BookOpen } from 'lucide-react';
 import { progressApi } from '../../lib/api/progressApi';
 import { useAuth } from '../../context/AuthContext';
 
 export const StudentDashboard: React.FC = () => {
-  const { user, isLoggedIn } = useAuth();
+  const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<any>(() => progressApi.getCachedDashboard());
   const [loading, setLoading] = useState(() => !progressApi.getCachedDashboard());

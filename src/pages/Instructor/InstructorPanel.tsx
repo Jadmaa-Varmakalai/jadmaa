@@ -12,10 +12,7 @@ import {
   X,
   ExternalLink,
   GraduationCap,
-  Layers,
-  Award,
   Video,
-  Clock,
   Eye,
   RefreshCw
 } from 'lucide-react';
@@ -34,7 +31,6 @@ export const InstructorPanel: React.FC = () => {
 
   // Dashboard Stats
   const [stats, setStats] = useState<any>(null);
-  const [statsLoading, setStatsLoading] = useState(true);
 
   // Courses state
   const [courses, setCourses] = useState<any[]>([]);
@@ -66,15 +62,12 @@ export const InstructorPanel: React.FC = () => {
 
   const fetchDashboardStats = async () => {
     try {
-      setStatsLoading(true);
       const res = await instructorApi.getDashboard();
       if (res.success) {
         setStats(res.data);
       }
     } catch (err) {
       console.error('Failed to load instructor stats', err);
-    } finally {
-      setStatsLoading(false);
     }
   };
 

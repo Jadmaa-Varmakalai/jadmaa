@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Users, BookOpen, Layers, ShieldAlert, CreditCard, Award, GraduationCap } from 'lucide-react';
+import { Users, BookOpen, CreditCard, GraduationCap } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
 
 export const Overview: React.FC = () => {

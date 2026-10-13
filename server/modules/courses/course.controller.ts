@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
+import { isCourseAvailable } from '../../services/courseAvailability.service.js';
 let coursesCache: any = null;
 let lastCacheTime = 0;
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
@@ -52,7 +53,7 @@ export const getCourses = async (req: Request, res: Response) => {
       },
       price: c.price,
       isFree: c.isFree,
-      isAvailable: (c as any).isAvailable !== false,
+      isAvailable: isCourseAvailable(c.id),
       rating: c.rating || 0,
       reviewCount: c.reviewCount || 0,
       whatYouWillLearn: [], // Need to add to DB or keep empty
@@ -131,7 +132,7 @@ export const getCourseBySlug = async (req: Request, res: Response) => {
       },
       price: course.price,
       isFree: course.isFree,
-      isAvailable: (course as any).isAvailable !== false,
+      isAvailable: isCourseAvailable(course.id),
       rating: course.rating || 0,
       reviewCount: course.reviewCount || 0,
       whatYouWillLearn: [],

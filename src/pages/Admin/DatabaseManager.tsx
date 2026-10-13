@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { dbApi } from '../../lib/api/dbApi';
-import { Database, Search, Edit2, Trash2 } from 'lucide-react';
+import { Database, Trash2 } from 'lucide-react';
 
 export const DatabaseManager: React.FC = () => {
   const [tables, setTables] = useState<string[]>([]);

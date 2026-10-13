@@ -28,7 +28,7 @@ export const paymentApi = {
    * Create Razorpay order on backend
    */
   createOrder: async (courseId: string) => {
-    return fetchApi<RazorpayOrderResponse>('/payments/create-order', {
+    return fetchApi('/payments/create-order', {
       method: 'POST',
       body: JSON.stringify({ courseId }),
     });
@@ -38,12 +38,7 @@ export const paymentApi = {
    * Verify Razorpay payment signature and unlock enrollment
    */
   verifyRazorpayPayment: async (payload: RazorpayVerifyPayload) => {
-    return fetchApi<{
-      paymentId: string;
-      orderId: string;
-      courseId: string;
-      status: string;
-    }>('/payments/razorpay/verify', {
+    return fetchApi('/payments/razorpay/verify', {
       method: 'POST',
       body: JSON.stringify(payload),
     });
@@ -53,16 +48,6 @@ export const paymentApi = {
    * Check order status
    */
   checkStatus: async (merchantOrderId: string) => {
-    return fetchApi<{
-      id: string;
-      merchantOrderId: string;
-      gatewayTransactionId?: string;
-      gateway: string;
-      status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
-      amount: number;
-      courseId: string;
-      courseTitle?: string;
-      paidAt?: string;
-    }>(`/payments/${merchantOrderId}/status`);
+    return fetchApi(`/payments/${merchantOrderId}/status`);
   },
 };

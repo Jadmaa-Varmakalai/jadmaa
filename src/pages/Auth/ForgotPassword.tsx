@@ -14,7 +14,7 @@ export const ForgotPassword: React.FC = () => {
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let timer: ReturnType<typeof setInterval>;
     if (cooldown > 0) {
       timer = setInterval(() => {
         setCooldown(prev => prev - 1);

@@ -6,6 +6,7 @@ import { sendNewCourseSuggestionEmail, sendEnquiryAdminNotificationEmail, sendEn
 import { BrevoService } from '../../services/email/brevo.service.js';
 import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 import { invalidateCoursesCache } from '../courses/course.controller.js';
+import { isCourseAvailable, setCourseAvailability } from '../../services/courseAvailability.service.js';
 
 const extractYouTubeId = (input: string): string => {
   if (!input) return '';
@@ -458,7 +459,12 @@ export const getCourses = async (req: Request, res: Response) => {
       prisma.course.count({ where })
     ]);
 
-    res.json({ success: true, data: { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } } });
+    const formattedItems = items.map(c => ({
+      ...c,
+      isAvailable: isCourseAvailable(c.id)
+    }));
+
+    res.json({ success: true, data: { items: formattedItems, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
@@ -477,7 +483,7 @@ export const getCourseById = async (req: Request, res: Response) => {
       }
     });
     if (!course) return res.status(404).json({ success: false, error: { message: 'Course not found' } });
-    res.json({ success: true, data: course });
+    res.json({ success: true, data: { ...course, isAvailable: isCourseAvailable(course.id) } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
@@ -485,8 +491,7 @@ export const getCourseById = async (req: Request, res: Response) => {
 
 export const createCourse = async (req: Request, res: Response) => {
   try {
-    const data = req.body;
-    const { youtubeUrl, ...courseData } = data;
+    const { youtubeUrl, isAvailable, ...courseData } = req.body;
     
     // Auto-generate slug if not provided
     if (!courseData.slug) {
@@ -494,6 +499,10 @@ export const createCourse = async (req: Request, res: Response) => {
     }
     
     const course = await prisma.course.create({ data: courseData });
+
+    if (isAvailable !== undefined) {
+      await setCourseAvailability(course.id, Boolean(isAvailable));
+    }
 
     // Handle Youtube link shortcut
     if (youtubeUrl) {
@@ -522,7 +531,7 @@ export const createCourse = async (req: Request, res: Response) => {
     if (course.status === 'PUBLISHED') {
       sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
     }
-    res.json({ success: true, data: course });
+    res.json({ success: true, data: { ...course, isAvailable: isCourseAvailable(course.id) } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
@@ -530,13 +539,17 @@ export const createCourse = async (req: Request, res: Response) => {
 
 export const updateCourse = async (req: Request, res: Response) => {
   try {
-    const { youtubeUrl, ...updateData } = req.body;
+    const { youtubeUrl, isAvailable, ...updateData } = req.body;
     const courseId = req.params.id as string;
 
     const course = await prisma.course.update({
       where: { id: courseId },
       data: updateData
     });
+
+    if (isAvailable !== undefined) {
+      await setCourseAvailability(courseId, Boolean(isAvailable));
+    }
 
     if (youtubeUrl !== undefined && youtubeUrl !== null) {
       const trimmed = String(youtubeUrl).trim();

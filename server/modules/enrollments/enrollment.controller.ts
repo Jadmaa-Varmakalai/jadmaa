@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
+import { isCourseAvailable } from '../../services/courseAvailability.service.js';
 
 export const enrollFreeCourse = async (req: Request, res: Response) => {
   try {
@@ -12,7 +13,7 @@ export const enrollFreeCourse = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Course not found' } });
     }
 
-    if ((course as any)?.isAvailable === false) {
+    if (!isCourseAvailable(course.id)) {
       return res.status(403).json({ success: false, error: { message: 'This course is currently unavailable for new enrollments.' } });
     }
 

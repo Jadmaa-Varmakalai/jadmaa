@@ -63,7 +63,6 @@ model Course {
   duration           String?
   price              Float            @default(0)
   isFree             Boolean          @default(false)
-  isAvailable        Boolean          @default(true)
   certificateEnabled Boolean          @default(true)
   status             CourseStatus     @default(DRAFT)
   instructorId       String

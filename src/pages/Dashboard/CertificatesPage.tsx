@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
-import { Award, Download, CheckCircle, ExternalLink } from 'lucide-react';
+import { Award, Download, ExternalLink } from 'lucide-react';
 import { progressApi } from '../../lib/api/progressApi';
 import { useAuth } from '../../context/AuthContext';
 

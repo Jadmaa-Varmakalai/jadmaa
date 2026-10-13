@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { sendNewCourseSuggestionEmail } from '../../services/email/email.service.js';
 import { invalidateCoursesCache } from '../courses/course.controller.js';
+import { isCourseAvailable, setCourseAvailability } from '../../services/courseAvailability.service.js';
 
 // Helper to resolve or create instructor record for the authenticated user
 const getOrCreateInstructorForUser = async (user: any) => {
@@ -118,7 +119,12 @@ export const getInstructorCourses = async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    res.json({ success: true, data: courses });
+    const formatted = courses.map(c => ({
+      ...c,
+      isAvailable: isCourseAvailable(c.id)
+    }));
+
+    res.json({ success: true, data: formatted });
   } catch (err: any) {
     console.error('getInstructorCourses error:', err);
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
@@ -132,7 +138,7 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const instructor = await getOrCreateInstructorForUser(user);
-    const { youtubeUrl, ...courseData } = req.body;
+    const { youtubeUrl, isAvailable, ...courseData } = req.body;
 
     if (!courseData.title) {
       return res.status(400).json({ success: false, error: { message: 'Course title is required' } });
@@ -142,6 +148,7 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
     let baseSlug = courseData.slug || courseData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
     let slug = baseSlug;
     let counter = 1;
+
     while (await prisma.course.findUnique({ where: { slug } })) {
       slug = `${baseSlug}-${counter}`;
       counter++;
@@ -161,14 +168,17 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
         duration: courseData.duration || '4 Weeks',
         price: Number(courseData.price) || 0,
         isFree,
-        isAvailable: courseData.isAvailable !== false,
         certificateEnabled: courseData.certificateEnabled !== false,
         status: courseData.status || 'DRAFT',
         thumbnailUrl: courseData.thumbnailUrl || null,
         instructorId: instructor.id,
         publishedAt: courseData.status === 'PUBLISHED' ? new Date() : null
-      } as any
+      }
     });
+
+    if (isAvailable !== undefined) {
+      await setCourseAvailability(course.id, Boolean(isAvailable));
+    }
 
     // Handle Youtube link shortcut
     if (youtubeUrl) {
@@ -226,7 +236,7 @@ export const updateInstructorCourse = async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, error: { message: 'You do not have permission to edit this course' } });
     }
 
-    const { youtubeUrl, ...updateData } = req.body;
+    const { youtubeUrl, isAvailable, ...updateData } = req.body;
     const isFree = updateData.price !== undefined ? (Number(updateData.price) === 0 || updateData.isFree === true) : existing.isFree;
 
     const course = await prisma.course.update({
@@ -238,6 +248,10 @@ export const updateInstructorCourse = async (req: Request, res: Response) => {
         publishedAt: updateData.status === 'PUBLISHED' && !existing.publishedAt ? new Date() : undefined
       }
     });
+
+    if (isAvailable !== undefined) {
+      await setCourseAvailability(courseId, Boolean(isAvailable));
+    }
 
     // Update or add youtube lesson if provided
     if (youtubeUrl) {

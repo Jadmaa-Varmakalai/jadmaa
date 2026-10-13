@@ -5,6 +5,7 @@ import { razorpayService } from './razorpay.service.js';
 import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 import { invalidateProgressCache } from '../progress/progress.controller.js';
 import { sendCoursePurchaseAdminNotificationEmail } from '../../services/email/email.service.js';
+import { isCourseAvailable } from '../../services/courseAvailability.service.js';
 
 /**
  * 1. CREATE ORDER (Razorpay is the PRIMARY & ONLY customer-facing gateway)
@@ -33,7 +34,6 @@ export const createOrder = async (req: Request, res: Response) => {
         price: true,
         isFree: true,
         status: true,
-        ...({ isAvailable: true } as any),
       },
     });
 
@@ -42,7 +42,7 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Course not found or not published' } });
     }
 
-    if ((course as any)?.isAvailable === false) {
+    if (!isCourseAvailable(course.id)) {
       console.warn(`[Razorpay:createOrder] Course is currently unavailable: ${courseId}`);
       return res.status(403).json({ success: false, error: { message: 'This course is currently unavailable for new enrollments.' } });
     }
