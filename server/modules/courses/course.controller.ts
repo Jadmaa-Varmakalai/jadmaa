@@ -52,7 +52,7 @@ export const getCourses = async (req: Request, res: Response) => {
       },
       price: c.price,
       isFree: c.isFree,
-      isAvailable: c.isAvailable,
+      isAvailable: (c as any).isAvailable !== false,
       rating: c.rating || 0,
       reviewCount: c.reviewCount || 0,
       whatYouWillLearn: [], // Need to add to DB or keep empty
@@ -131,7 +131,7 @@ export const getCourseBySlug = async (req: Request, res: Response) => {
       },
       price: course.price,
       isFree: course.isFree,
-      isAvailable: course.isAvailable,
+      isAvailable: (course as any).isAvailable !== false,
       rating: course.rating || 0,
       reviewCount: course.reviewCount || 0,
       whatYouWillLearn: [],

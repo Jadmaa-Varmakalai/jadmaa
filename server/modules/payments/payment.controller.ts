@@ -33,7 +33,7 @@ export const createOrder = async (req: Request, res: Response) => {
         price: true,
         isFree: true,
         status: true,
-        isAvailable: true,
+        ...({ isAvailable: true } as any),
       },
     });
 
@@ -42,7 +42,7 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Course not found or not published' } });
     }
 
-    if (course.isAvailable === false) {
+    if ((course as any)?.isAvailable === false) {
       console.warn(`[Razorpay:createOrder] Course is currently unavailable: ${courseId}`);
       return res.status(403).json({ success: false, error: { message: 'This course is currently unavailable for new enrollments.' } });
     }

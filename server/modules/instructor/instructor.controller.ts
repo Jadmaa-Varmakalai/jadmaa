@@ -167,7 +167,7 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
         thumbnailUrl: courseData.thumbnailUrl || null,
         instructorId: instructor.id,
         publishedAt: courseData.status === 'PUBLISHED' ? new Date() : null
-      }
+      } as any
     });
 
     // Handle Youtube link shortcut
