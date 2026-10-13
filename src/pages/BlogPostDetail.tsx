@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
+import { BlogCard } from '../components/common/BlogCard';
 import { blogApi } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
 import ReactMarkdown from 'react-markdown';
@@ -73,6 +74,14 @@ export const BlogPostDetail: React.FC = () => {
     return { prevPost: prev, nextPost: next };
   }, [blog, allBlogs]);
 
+  // Related Blogs (excluding current post)
+  const relatedBlogs = useMemo(() => {
+    if (!blog) return [];
+    return allBlogs
+      .filter(b => b.slug !== blog.slug && b.id !== blog.id)
+      .slice(0, 3);
+  }, [blog, allBlogs]);
+
   // Clean HTML check
   const isHtmlContent = useMemo(() => {
     if (!blog?.content) return false;
@@ -106,104 +115,124 @@ export const BlogPostDetail: React.FC = () => {
       />
 
       <div className="bg-[#FAF6F0] min-h-screen py-10 px-4 sm:px-6">
-        <main className="max-w-[750px] mx-auto">
+        <div className="max-w-[1100px] mx-auto">
           {/* Main Article Container */}
-          <article className="bg-white rounded-none sm:rounded-[4px] p-6 sm:p-10 md:p-12 shadow-sm text-left">
-            {/* Post Title */}
-            <h1 className="text-[26px] sm:text-[32px] font-bold text-[#2B2521] leading-[1.25] mb-2 font-heading">
-              {blog.title}
-            </h1>
+          <main className="max-w-[800px] mx-auto">
+            <article className="bg-white rounded-none sm:rounded-[4px] p-6 sm:p-10 md:p-12 shadow-sm text-left">
+              {/* Post Title */}
+              <h1 className="text-[26px] sm:text-[32px] font-bold text-[#2B2521] leading-[1.25] mb-2 font-heading">
+                {blog.title}
+              </h1>
 
-            {/* Post Meta */}
-            <div className="text-[13px] text-[#046bd2] font-semibold leading-[1.45] mb-8 pb-4 border-b border-[#F0F0F0]">
-              <span>By </span>
-              <span className="hover:underline">{blog.author?.name || 'info@jadmaa.com'}</span>
-              <span className="mx-1 text-[#7A6E65]"> / </span>
-              <span className="text-[#046bd2]">
-                {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-              </span>
-            </div>
+              {/* Post Meta */}
+              <div className="text-[13px] text-[#046bd2] font-semibold leading-[1.45] mb-8 pb-4 border-b border-[#F0F0F0]">
+                <span>By </span>
+                <span className="hover:underline">{blog.author?.name || 'info@jadmaa.com'}</span>
+                <span className="mx-1 text-[#7A6E65]"> / </span>
+                <span className="text-[#046bd2]">
+                  {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </span>
+              </div>
 
-            {/* Article Body Content */}
-            <div className="text-[16px] text-[#334155] leading-[1.8] space-y-5 font-normal">
-              {isHtmlContent ? (
-                <div 
-                  className="jadmaa-article-content"
-                  dangerouslySetInnerHTML={{ __html: blog.content }}
-                />
-              ) : (
-                <div className="prose max-w-none text-[#334155] leading-[1.8]">
-                  <ReactMarkdown>{blog.content}</ReactMarkdown>
-                </div>
+              {/* Article Body Content */}
+              <div className="text-[16px] text-[#334155] leading-[1.8] space-y-5 font-normal">
+                {isHtmlContent ? (
+                  <div 
+                    className="jadmaa-article-content"
+                    dangerouslySetInnerHTML={{ __html: blog.content }}
+                  />
+                ) : (
+                  <div className="prose max-w-none text-[#334155] leading-[1.8]">
+                    <ReactMarkdown>{blog.content}</ReactMarkdown>
+                  </div>
+                )}
+              </div>
+
+              {/* FAQ Section */}
+              {faqs.length > 0 && (
+                <section className="mt-10 pt-8 border-t border-[#E8DDD0]">
+                  <h2 className="text-[22px] sm:text-[25px] font-bold text-[#2B2521] mb-6 font-heading">
+                    Frequently Asked Questions
+                  </h2>
+                  <div className="space-y-4">
+                    {faqs.map((faq, idx) => (
+                      <div 
+                        key={idx}
+                        className="bg-white border border-[#E8DDD0] rounded-[12px] p-5 sm:p-6"
+                      >
+                        <h3 className="text-[16px] font-bold text-[#B12B2B] mb-2">
+                          {faq.question}
+                        </h3>
+                        <p className="text-[15px] text-[#2B2521] leading-[1.8] m-0">
+                          {faq.answer}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </section>
               )}
-            </div>
+            </article>
 
-            {/* FAQ Section */}
-            {faqs.length > 0 && (
-              <section className="mt-10 pt-8 border-t border-[#E8DDD0]">
-                <h2 className="text-[22px] sm:text-[25px] font-bold text-[#2B2521] mb-6 font-heading">
-                  Frequently Asked Questions
-                </h2>
-                <div className="space-y-4">
-                  {faqs.map((faq, idx) => (
-                    <div 
-                      key={idx}
-                      className="bg-white border border-[#E8DDD0] rounded-[12px] p-5 sm:p-6"
-                    >
-                      <h3 className="text-[16px] font-bold text-[#B12B2B] mb-2">
-                        {faq.question}
-                      </h3>
-                      <p className="text-[15px] text-[#2B2521] leading-[1.8] m-0">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  ))}
+            {/* Post Navigation (Previous / Next) */}
+            <nav className="mt-8 pt-4 flex flex-col sm:flex-row justify-between gap-4 text-left" aria-label="Posts">
+              {prevPost ? (
+                <Link 
+                  to={`/blog/${prevPost.slug}`}
+                  className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors"
+                >
+                  <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
+                    ← Previous Post
+                  </span>
+                  <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
+                    {prevPost.title}
+                  </span>
+                </Link>
+              ) : <div className="flex-1" />}
+
+              {nextPost && (
+                <Link 
+                  to={`/blog/${nextPost.slug}`}
+                  className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors text-right"
+                >
+                  <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
+                    Next Post →
+                  </span>
+                  <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
+                    {nextPost.title}
+                  </span>
+                </Link>
+              )}
+            </nav>
+          </main>
+
+          {/* Related Articles Section (BlogCard style) */}
+          {relatedBlogs.length > 0 && (
+            <section className="mt-14 pt-10 border-t border-[#E8DDD0] text-left">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-wider block mb-1">
+                    More Articles
+                  </span>
+                  <h2 className="text-[24px] sm:text-[28px] font-bold text-[#2B2521] font-heading">
+                    Related Insights &amp; Stories
+                  </h2>
                 </div>
-              </section>
-            )}
-          </article>
+                <Link
+                  to="/blog"
+                  className="text-[13px] font-semibold text-[#B12B2B] hover:text-[#8F2020] hover:underline"
+                >
+                  View All Blogs →
+                </Link>
+              </div>
 
-          {/* Post Navigation (Previous / Next) */}
-          <nav className="mt-8 pt-4 flex flex-col sm:flex-row justify-between gap-4 text-left" aria-label="Posts">
-            {prevPost ? (
-              <Link 
-                to={`/blog/${prevPost.slug}`}
-                className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors"
-              >
-                <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
-                  ← Previous Post
-                </span>
-                <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
-                  {prevPost.title}
-                </span>
-              </Link>
-            ) : <div className="flex-1" />}
-
-            {nextPost && (
-              <Link 
-                to={`/blog/${nextPost.slug}`}
-                className="group flex-1 bg-white p-4 rounded-[4px] border border-[#E8DDD0] hover:border-[#B12B2B] transition-colors text-right"
-              >
-                <span className="block text-[11px] uppercase tracking-wider text-[#7A6E65] font-semibold mb-1 group-hover:text-[#B12B2B]">
-                  Next Post →
-                </span>
-                <span className="text-[14px] font-medium text-[#2B2521] group-hover:text-[#B12B2B] line-clamp-1">
-                  {nextPost.title}
-                </span>
-              </Link>
-            )}
-          </nav>
-
-          {/* Comment Notice Box */}
-          <div className="mt-8 bg-white rounded-none sm:rounded-[4px] p-6 sm:p-8 border border-[#E8DDD0] text-left">
-            <h3 className="text-[18px] font-bold text-[#2B2521] mb-2">
-              Leave a Comment
-            </h3>
-            <p className="text-[14px] text-[#7A6E65] m-0">
-              You must be <Link to="/login" className="text-[#B12B2B] underline hover:text-[#8F2020]">logged in</Link> to post a comment.
-            </p>
-          </div>
-        </main>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {relatedBlogs.map((item) => (
+                  <BlogCard key={item.id} blog={item} />
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
       </div>
     </>
   );

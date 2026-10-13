@@ -1,28 +1,28 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
-import fs from 'fs';
-import path from 'path';
+import defaultBlogsData from '../../../src/data/jadmaa_blogs.json' with { type: 'json' };
 
 let blogsCache: any = null;
 let blogsCacheTime = 0;
 const BLOGS_CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
-// Safely load default blogs from json for fallback
-const getDefaultBlogs = (): any[] => {
-  try {
-    const jsonPath = path.join(process.cwd(), 'src', 'data', 'jadmaa_blogs.json');
-    if (fs.existsSync(jsonPath)) {
-      const data = fs.readFileSync(jsonPath, 'utf8');
-      return JSON.parse(data);
-    }
-  } catch (err) {
-    console.warn('Could not read jadmaa_blogs.json:', err);
+const defaultBlogs: any[] = defaultBlogsData as any[];
+
+function formatBlogResponse(b: any) {
+  if (!b) return b;
+  let topic = b.topic;
+  let content = b.content || '';
+  const match = content.match(/^<!--topic:(.*?)-->\s*/);
+  if (match) {
+    topic = topic || match[1];
   }
-  return [];
-};
+  return {
+    ...b,
+    topic: topic || b.topic
+  };
+}
 
 export const getBlogs = async (req: Request, res: Response) => {
-  const defaultBlogs = getDefaultBlogs();
   try {
     const isAdmin = req.query.all === 'true';
 
@@ -44,29 +44,32 @@ export const getBlogs = async (req: Request, res: Response) => {
       console.warn('Database error in getBlogs, using fallback:', dbErr);
     }
 
-    if (!blogs || blogs.length === 0) {
-      blogs = defaultBlogs;
+    // Merge database blogs with default blogs so pre-seeded articles always appear
+    const dbSlugs = new Set(blogs.map(b => b.slug.toLowerCase().trim()));
+    const merged = [...blogs.map(formatBlogResponse)];
+    for (const def of defaultBlogs) {
+      if (!dbSlugs.has(def.slug.toLowerCase().trim())) {
+        merged.push(def);
+      }
     }
 
     if (!isAdmin) {
-      blogsCache = blogs;
+      blogsCache = merged;
       blogsCacheTime = Date.now();
     }
 
-    res.json({ success: true, data: blogs });
+    res.json({ success: true, data: merged });
   } catch (error) {
     console.warn('getBlogs error:', error);
-    if (blogsCache && req.query.all !== 'true') {
-      return res.json({ success: true, data: blogsCache });
-    }
-    const fallback = defaultBlogs.length > 0 ? defaultBlogs : [];
-    res.json({ success: true, data: fallback });
+    res.json({ success: true, data: defaultBlogs });
   }
 };
 
 export const getBlogBySlug = async (req: Request, res: Response) => {
-  const slugParam = req.params.slug as string;
-  const defaultBlogs = getDefaultBlogs();
+  const rawParam = req.params.slug as string;
+  const decoded = decodeURIComponent(rawParam).trim();
+  const normalized = decoded.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
   try {
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     let blog: any = null;
@@ -75,28 +78,43 @@ export const getBlogBySlug = async (req: Request, res: Response) => {
       blog = await prisma.blogPost.findFirst({
         where: {
           OR: [
-            { slug: slugParam },
-            { id: slugParam }
+            { slug: rawParam },
+            { slug: decoded },
+            { slug: normalized },
+            { id: rawParam },
+            { id: decoded }
           ]
         },
         include: { author: { select: { name: true, avatarUrl: true } } }
       });
     } catch (dbErr) {
-      console.warn('Database error in getBlogBySlug, checking default blogs:', dbErr);
+      console.warn('Database error in getBlogBySlug:', dbErr);
     }
 
     if (!blog) {
-      const matched = defaultBlogs.find((b: any) => b.slug === slugParam || b.id === slugParam);
+      const matched = defaultBlogs.find((b: any) => 
+        b.slug === rawParam ||
+        b.slug === decoded ||
+        b.slug === normalized ||
+        b.id === rawParam ||
+        b.id === decoded ||
+        (b.title && b.title.toLowerCase().trim() === decoded.toLowerCase().trim())
+      );
       if (matched) {
         return res.json({ success: true, data: matched });
       }
       return res.status(404).json({ success: false, error: { message: 'Blog not found' } });
     }
 
-    res.json({ success: true, data: blog });
+    res.json({ success: true, data: formatBlogResponse(blog) });
   } catch (error) {
     console.warn('getBlogBySlug error:', error);
-    const matched = defaultBlogs.find((b: any) => b.slug === slugParam || b.id === slugParam);
+    const matched = defaultBlogs.find((b: any) => 
+      b.slug === rawParam ||
+      b.slug === decoded ||
+      b.slug === normalized ||
+      b.id === rawParam
+    );
     if (matched) {
       return res.json({ success: true, data: matched });
     }
@@ -107,23 +125,31 @@ export const getBlogBySlug = async (req: Request, res: Response) => {
 export const createBlog = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId || (req as any).user?.id;
-    const { title, slug, content, excerpt, thumbnailUrl, published } = req.body;
+    const { title, slug, content, excerpt, thumbnailUrl, published, topic } = req.body;
     
+    const cleanSlug = (slug || title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `post-${Date.now()}`).trim();
+
+    let finalContent = content || '';
+    if (topic && topic.trim()) {
+      finalContent = finalContent.replace(/^<!--topic:.*?-->\s*/, '');
+      finalContent = `<!--topic:${topic.trim()}-->\n` + finalContent;
+    }
+
     const blog = await prisma.blogPost.create({
       data: {
-        title,
-        slug: slug || title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-        content,
-        excerpt,
-        thumbnailUrl,
-        published: published ?? false,
+        title: title || 'Untitled Post',
+        slug: cleanSlug,
+        content: finalContent,
+        excerpt: excerpt || null,
+        thumbnailUrl: thumbnailUrl || null,
+        published: published ?? true,
         authorId: userId
       }
     });
 
     blogsCache = null;
     blogsCacheTime = 0;
-    res.status(201).json({ success: true, data: blog });
+    res.status(201).json({ success: true, data: formatBlogResponse({ ...blog, topic }) });
   } catch (error: any) {
     res.status(400).json({ success: false, error: { message: error.message || 'Error creating blog' } });
   }
@@ -133,41 +159,56 @@ export const updateBlog = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId || (req as any).user?.id;
     const idOrSlug = req.params.id as string;
-    const { title, slug, content, excerpt, thumbnailUrl, published } = req.body;
+    const decoded = decodeURIComponent(idOrSlug).trim();
+    const normalized = decoded.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const { title, slug, content, excerpt, thumbnailUrl, published, topic } = req.body;
     
-    // Check if existing post exists by id or slug
     let existing = await prisma.blogPost.findFirst({
       where: {
         OR: [
           { id: idOrSlug },
-          { slug: idOrSlug }
+          { id: decoded },
+          { slug: idOrSlug },
+          { slug: decoded },
+          { slug: normalized }
         ]
       }
     });
+
+    let finalContent = content !== undefined ? content : (existing?.content || '');
+    if (topic !== undefined) {
+      finalContent = finalContent.replace(/^<!--topic:.*?-->\s*/, '');
+      if (topic && topic.trim()) {
+        finalContent = `<!--topic:${topic.trim()}-->\n` + finalContent;
+      }
+    }
 
     let blog;
     if (existing) {
       blog = await prisma.blogPost.update({
         where: { id: existing.id },
         data: {
-          title,
-          slug,
-          content,
-          excerpt,
-          thumbnailUrl,
-          published
+          title: title ?? existing.title,
+          slug: slug ?? existing.slug,
+          content: finalContent,
+          excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
+          thumbnailUrl: thumbnailUrl !== undefined ? thumbnailUrl : existing.thumbnailUrl,
+          published: published !== undefined ? published : existing.published
         }
       });
     } else {
-      // Upsert / create in DB if this post was loaded from default JSON
+      const defaultMatch = defaultBlogs.find((b: any) => 
+        b.slug === idOrSlug || b.slug === decoded || b.slug === normalized || b.id === idOrSlug
+      );
+
       blog = await prisma.blogPost.create({
         data: {
-          title: title || 'Untitled Article',
-          slug: slug || idOrSlug,
-          content: content || '',
-          excerpt: excerpt || '',
-          thumbnailUrl: thumbnailUrl || null,
-          published: published ?? true,
+          title: title || defaultMatch?.title || 'Untitled Article',
+          slug: slug || defaultMatch?.slug || normalized,
+          content: finalContent || defaultMatch?.content || '',
+          excerpt: excerpt !== undefined ? excerpt : (defaultMatch?.excerpt || null),
+          thumbnailUrl: thumbnailUrl !== undefined ? thumbnailUrl : (defaultMatch?.thumbnailUrl || null),
+          published: published !== undefined ? published : true,
           authorId: userId
         }
       });
@@ -175,7 +216,7 @@ export const updateBlog = async (req: Request, res: Response) => {
 
     blogsCache = null;
     blogsCacheTime = 0;
-    res.json({ success: true, data: blog });
+    res.json({ success: true, data: formatBlogResponse({ ...blog, topic }) });
   } catch (error: any) {
     res.status(400).json({ success: false, error: { message: error.message || 'Error updating blog' } });
   }

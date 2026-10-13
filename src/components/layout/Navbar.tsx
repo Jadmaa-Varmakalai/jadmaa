@@ -22,7 +22,8 @@ export const Navbar: React.FC = () => {
         { id: 'dashboard', label: 'Dashboard', href: '/student#dashboard' },
         { id: 'home', label: 'Home', href: '/' },
         { id: 'courses', label: 'Courses', href: '/courses' },
-        { id: 'my-courses', label: 'My Courses', href: '/student#my-courses' }
+        { id: 'my-courses', label: 'My Courses', href: '/student#my-courses' },
+        { id: 'blogs', label: 'Blogs', href: '/blog' }
       ];
     } else if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
       currentNavItems = [
@@ -30,14 +31,15 @@ export const Navbar: React.FC = () => {
         { id: 'enquiries', label: 'Enquiries', href: '/admin#enquiries' },
         { id: 'courses', label: 'Courses', href: '/admin#courses' },
         { id: 'students', label: 'My Students', href: '/admin#students' },
-        { id: 'blogs', label: 'Blogs', href: '/admin#blogs' }
+        { id: 'blogs', label: 'Blogs', href: '/blog' }
       ];
     } else if (user?.role === 'INSTRUCTOR') {
       currentNavItems = [
         { id: 'dashboard', label: 'Faculty Portal', href: '/instructor' },
         { id: 'home', label: 'Home', href: '/' },
         { id: 'courses', label: 'Courses', href: '/courses' },
-        { id: 'students', label: 'My Students', href: '/instructor#students' }
+        { id: 'students', label: 'My Students', href: '/instructor#students' },
+        { id: 'blogs', label: 'Blogs', href: '/blog' }
       ];
     }
   }

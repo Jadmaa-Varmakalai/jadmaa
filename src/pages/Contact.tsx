@@ -372,9 +372,9 @@ export const Contact: React.FC = () => {
                           onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                           className="w-full px-4 py-2.5 rounded-[8px] border border-[#E8DDD0] bg-white text-[15px] text-[#2B2521] focus:border-[#B12B2B] outline-none"
                         >
-                          <option value="Thanjavur">📍 Thanjavur (Carmel Nagar, Mariamman Kovil)</option>
-                          <option value="Kumbakonam">📍 Kumbakonam (Town Branch)</option>
-                          <option value="Ariyalur">📍 Ariyalur (City Center)</option>
+                          <option value="Thanjavur">📍 Thanjavur</option>
+                          <option value="Kumbakonam">📍 Kumbakonam</option>
+                          <option value="Ariyalur">📍 Ariyalur</option>
                         </select>
                         <p className="text-[12px] text-[#5C5148] mt-1">
                           {formData.enquiryType === 'VARMA_TREATMENT'

@@ -25,13 +25,17 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     if (location.hash) {
       const hash = location.hash.replace('#', '') as Tab;
-      if (['dashboard', 'enquiries', 'students', 'instructors', 'courses', 'enrollments', 'payments', 'blogs', 'settings', 'database'].includes(hash)) {
+      if (hash === 'blogs') {
+        navigate('/blog', { replace: true });
+        return;
+      }
+      if (['dashboard', 'enquiries', 'students', 'instructors', 'courses', 'enrollments', 'payments', 'settings', 'database'].includes(hash)) {
         setActiveTab(hash);
       }
     } else {
       setActiveTab('dashboard');
     }
-  }, [location.hash]);
+  }, [location.hash, navigate]);
 
   if (loading) {
     return (
@@ -69,7 +73,6 @@ export const AdminPanel: React.FC = () => {
     { id: 'courses', label: 'Courses' },
     { id: 'enrollments', label: 'Enrollments' },
     { id: 'payments', label: 'Payments' },
-    { id: 'blogs', label: 'Blog Manager' },
     { id: 'settings', label: 'Settings' },
   ];
 
