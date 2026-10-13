@@ -61,7 +61,8 @@ app.get('/api/v1/settings', async (req, res) => {
     settingsCache = settings;
     settingsCacheTime = Date.now();
     res.json({ success: true, data: settings });
-  } catch (err) {
+  } catch (err: any) {
+    console.error('[Settings] Error fetching settings:', err);
     if (settingsCache) {
       return res.json({ success: true, data: settingsCache });
     }

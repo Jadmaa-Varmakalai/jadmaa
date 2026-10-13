@@ -28,8 +28,11 @@ export const getReviews = async (req: Request, res: Response) => {
 
     if (!response.ok) {
       const errTxt = await response.text();
-      console.error('Google Places API error:', errTxt);
-      return res.status(500).json({ success: false, error: { message: 'Failed to fetch reviews from Google Places' } });
+      console.warn('Google Places API error (falling back to cache/empty):', response.status, errTxt);
+      if (reviewsCache) {
+        return res.json({ success: true, data: reviewsCache });
+      }
+      return res.json({ success: true, data: [] });
     }
 
     const data = await response.json();
