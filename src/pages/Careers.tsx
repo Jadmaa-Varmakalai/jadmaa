@@ -73,12 +73,12 @@ export const Careers: React.FC = () => {
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Growth &amp; Leadership
                 </div>
-                <h1 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[40px] text-[#2B2521] leading-[1.15]">
+                <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[40px] text-[#2B2521] leading-[1.15]">
                   <EditableText 
                     settingKey="careers.title" 
                     defaultText="Build Your Future Through Varmakalai (Varma Kalai) Martial Arts" 
                   />
-                </h1>
+                </h2>
                 <div className="text-[#5C5148] text-[15.5px] leading-[1.7] pt-2">
                   At JADMAA Varmakalai, learning doesn't end with earning a certificate. We provide a structured pathway that enables dedicated students to develop their skills, gain teaching experience, and pursue rewarding opportunities in the field of martial arts.
                 </div>
