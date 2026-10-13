@@ -43,10 +43,15 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}): Pro
     isRefreshing = true;
 
     try {
+      const storedRefreshToken = localStorage.getItem('jadmaa_refresh_token');
       const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin'
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(storedRefreshToken ? { 'x-refresh-token': storedRefreshToken } : {})
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({ refreshToken: storedRefreshToken })
       });
 
       const refreshData = await refreshResponse.json();
@@ -55,8 +60,13 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}): Pro
         throw new Error(refreshData.error?.message || 'Refresh failed');
       }
 
-      const newToken = refreshData.data.token;
-      localStorage.setItem('jadmaa_token', newToken);
+      const newToken = refreshData.data?.token;
+      if (newToken) {
+        localStorage.setItem('jadmaa_token', newToken);
+      }
+      if (refreshData.data?.refreshToken) {
+        localStorage.setItem('jadmaa_refresh_token', refreshData.data.refreshToken);
+      }
       
       processQueue(null, newToken);
 
@@ -65,6 +75,7 @@ export const fetchApi = async (endpoint: string, options: RequestInit = {}): Pro
     } catch (err: any) {
       processQueue(err, null);
       localStorage.removeItem('jadmaa_token');
+      localStorage.removeItem('jadmaa_refresh_token');
       const responseData = await response.json().catch(() => ({}));
       throw new Error(responseData.error?.message || 'Invalid or expired token');
     } finally {

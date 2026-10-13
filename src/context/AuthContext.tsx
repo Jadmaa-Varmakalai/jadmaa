@@ -48,11 +48,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch (err: any) {
           console.warn('Auth session expired or invalid', err.message);
           localStorage.removeItem('jadmaa_token');
+          localStorage.removeItem('jadmaa_refresh_token');
           localStorage.removeItem('jadmaa_user');
           setUser(null);
         }
       } else {
         localStorage.removeItem('jadmaa_user');
+        localStorage.removeItem('jadmaa_refresh_token');
         setUser(null);
       }
       setLoading(false);
@@ -65,6 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const res = await authApi.login({ email, password: password || 'defaultpass123' });
       if (res.success && res.data) {
         localStorage.setItem('jadmaa_token', res.data.token);
+        if (res.data.refreshToken) {
+          localStorage.setItem('jadmaa_refresh_token', res.data.refreshToken);
+        }
         const loggedInUser = res.data.user;
         try {
           localStorage.setItem('jadmaa_user', JSON.stringify(loggedInUser));
@@ -109,6 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setUser(null);
       localStorage.removeItem('jadmaa_token');
+      localStorage.removeItem('jadmaa_refresh_token');
       localStorage.removeItem('jadmaa_user');
       try {
         sessionStorage.removeItem('jadmaa_enrollments_cache');

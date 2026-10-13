@@ -11,13 +11,13 @@ const generateTokens = (user: any) => {
   const accessToken = jwt.sign(
     { id: user.id, role: user.role },
     process.env.JWT_SECRET || 'supersecret_jwt_key',
-    { expiresIn: '15m' }
+    { expiresIn: '7d' }
   );
   
   const refreshToken = jwt.sign(
     { id: user.id },
     process.env.JWT_REFRESH_SECRET || 'supersecret_refresh_key',
-    { expiresIn: '7d' }
+    { expiresIn: '30d' }
   );
   
   return { accessToken, refreshToken };
@@ -166,14 +166,15 @@ export const login = async (req: Request, res: Response) => {
     res.cookie('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
     });
 
     res.json({ 
       success: true, 
       data: { 
         token: accessToken,
+        refreshToken,
         showInstructorApprovalNotice,
         user: { 
           id: user.id, 
@@ -197,7 +198,7 @@ export const login = async (req: Request, res: Response) => {
 
 export const refresh = async (req: Request, res: Response) => {
   try {
-    const refreshToken = req.cookies?.refreshToken;
+    const refreshToken = req.cookies?.refreshToken || req.body?.refreshToken || (req.headers['x-refresh-token'] as string);
     if (!refreshToken) {
       return res.status(401).json({ success: false, error: { message: 'No refresh token provided' } });
     }
@@ -214,11 +215,17 @@ export const refresh = async (req: Request, res: Response) => {
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000
     });
 
-    res.json({ success: true, data: { token: tokens.accessToken } });
+    res.json({ 
+      success: true, 
+      data: { 
+        token: tokens.accessToken,
+        refreshToken: tokens.refreshToken
+      } 
+    });
   } catch (err) {
     res.status(401).json({ success: false, error: { message: 'Invalid or expired refresh token' } });
   }
