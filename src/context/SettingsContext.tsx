@@ -23,6 +23,10 @@ const getInitialSettings = (): Record<string, string> => {
     const cached = localStorage.getItem('jadmaa_cms_settings');
     if (cached) {
       const parsed = JSON.parse(cached);
+      if (parsed['home.training.title'] === 'Training at JADMAA') {
+        parsed['home.training.title'] = 'Martial Arts Training at JADMAA Varmakalai';
+      }
+      delete parsed['home.training.title_v2'];
       Object.assign(map, parsed);
     }
   } catch (_) {}

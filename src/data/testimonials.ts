@@ -6,7 +6,7 @@ export const mockTestimonials: Testimonial[] = [
     name: "Senthil Kumar",
     role: "IT Professional & Student",
     location: "Thanjavur",
-    content: "Learning Varmakalai under Master Jeyaraj has transformed my posture, focus, and energy levels. The scientific explanation of pressure points makes this ancient art extremely practical and inspiring.",
+    content: "Learning Varmakalai under Master Bojagarajan has transformed my posture, focus, and energy levels. The scientific explanation of pressure points makes this ancient art extremely practical and inspiring.",
     rating: 5,
     avatar: "/images/logo-1.png",
     courseTaken: "Varma Foundation"

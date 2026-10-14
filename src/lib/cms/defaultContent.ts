@@ -71,7 +71,8 @@ export const defaultCmsContent: Record<string, string> = {
 
   // Home: Training
   'home.training.eyebrow': 'ACADEMY SYLLABUS',
-  'home.training.title': 'Training at JADMAA',
+  'home.training.title': 'Martial Arts Training at JADMAA Varmakalai',
+  'home.training.title_v2': 'Martial Arts Training at JADMAA Varmakalai',
   'home.training.subtitle': 'What we teach, who it is for, and what you gain from consistent practice.',
 
   // Home: Growth & Leadership
