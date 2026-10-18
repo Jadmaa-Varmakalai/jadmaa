@@ -452,6 +452,15 @@ export const Home: React.FC = () => {
       <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
           
+          {/* Martial Arts Training Visual */}
+          <div className="flex justify-center" data-aos="fade-up">
+            <img 
+              src="/images/training-stance.png" 
+              alt="Traditional Varmakalai Training Stance at JADMAA" 
+              className="max-h-[220px] sm:max-h-[260px] md:max-h-[280px] w-auto object-contain drop-shadow-[0_12px_24px_rgba(43,37,33,0.12)]"
+            />
+          </div>
+
           <div className="text-center max-w-3xl mx-auto space-y-2" data-aos="fade-up">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               <EditableText settingKey="home.training.title_v2" defaultText="Martial Arts Training at JADMAA Varmakalai" />
@@ -461,10 +470,10 @@ export const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
             
-            {/* Box: Traditional Varmakalai Training Stance */}
-            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] flex flex-col justify-between overflow-hidden relative group">
+            {/* Box 1: Varma in Action */}
+            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
               <div className="space-y-1.5">
                 <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
                   <EditableText settingKey="home.training.image.eyebrow" defaultText="TRADITIONAL DISCIPLINE" />
@@ -472,23 +481,14 @@ export const Home: React.FC = () => {
                 <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
                   <EditableText settingKey="home.training.image.title" defaultText="Varma in Action" />
                 </h3>
-                <p className="text-[14px] text-[#5C5148] font-body leading-[1.5]">
-                  <EditableText 
-                    settingKey="home.training.image.desc" 
-                    defaultText="Master traditional stances, vital point locks, and weaponry under experienced Aasan guidance." 
-                    multiline={true} 
-                  />
-                </p>
               </div>
-
-              <div className="relative mt-3 flex-1 flex items-end justify-center min-h-[300px]">
-                <div className="absolute inset-0 bg-gradient-to-t from-[#B12B2B]/8 via-transparent to-transparent rounded-xl pointer-events-none" />
-                <img 
-                  src="/images/training-stance.png" 
-                  alt="Traditional Varmakalai Training Stance at JADMAA" 
-                  className="max-h-[340px] w-auto object-contain object-bottom drop-shadow-[0_14px_24px_rgba(43,37,33,0.2)] group-hover:scale-105 transition-transform duration-500 ease-out"
+              <p className="text-[14px] text-[#5C5148] font-body leading-[1.5]">
+                <EditableText 
+                  settingKey="home.training.image.desc" 
+                  defaultText="Master traditional stances, vital point locks, and weaponry under experienced Aasan guidance." 
+                  multiline={true} 
                 />
-              </div>
+              </p>
             </div>
 
             {/* Box 1: What We Offer */}
