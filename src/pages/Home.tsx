@@ -75,27 +75,37 @@ export const Home: React.FC = () => {
     fetchTestimonials();
   }, []);
 
-  // Finite ping-pong smooth auto-scroll animation loop for Featured Courses (1 to 5, then 5 to 1)
+  // Finite ping-pong smooth auto-scroll animation loop for Featured Courses
   useEffect(() => {
     const el = coursesTrackRef.current;
     if (!el) return;
 
     let animId: number;
+    let pauseTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isPausedAtEdge = false;
     const speed = 0.8; // pixels per frame
 
     const step = () => {
-      if (!coursesPaused && !isCoursesDragging && el) {
+      if (!coursesPaused && !isCoursesDragging && !isPausedAtEdge && el) {
         const maxScroll = el.scrollWidth - el.clientWidth;
         if (maxScroll > 10) {
           if (coursesDirection === 'right') {
             el.scrollLeft += speed;
             if (el.scrollLeft >= maxScroll - 2) {
-              setCoursesDirection('left');
+              isPausedAtEdge = true;
+              pauseTimeout = setTimeout(() => {
+                setCoursesDirection('left');
+                isPausedAtEdge = false;
+              }, 1500);
             }
           } else {
             el.scrollLeft -= speed;
             if (el.scrollLeft <= 2) {
-              setCoursesDirection('right');
+              isPausedAtEdge = true;
+              pauseTimeout = setTimeout(() => {
+                setCoursesDirection('right');
+                isPausedAtEdge = false;
+              }, 1500);
             }
           }
         }
@@ -104,7 +114,10 @@ export const Home: React.FC = () => {
     };
 
     animId = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(animId);
+    return () => {
+      cancelAnimationFrame(animId);
+      if (pauseTimeout) clearTimeout(pauseTimeout);
+    };
   }, [coursesDirection, coursesPaused, isCoursesDragging, featuredCourses]);
 
   // Continuous seamless infinite auto-scroll loop for Testimonials (Right to Left: 1 to N)
@@ -658,9 +671,9 @@ export const Home: React.FC = () => {
           <div className="relative group">
             <div
               ref={coursesTrackRef}
-              className={`flex gap-6 overflow-x-auto no-scrollbar py-2 select-none ${
+              className={`flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar py-2 select-none ${
                 featuredCourses.length <= 2
-                  ? 'justify-center'
+                  ? 'justify-start md:justify-center'
                   : 'cursor-grab active:cursor-grabbing justify-start'
               }`}
               onMouseEnter={() => setCoursesPaused(true)}
@@ -676,7 +689,9 @@ export const Home: React.FC = () => {
                 };
               }}
               onTouchStart={() => setCoursesPaused(true)}
-              onTouchEnd={() => setCoursesPaused(false)}
+              onTouchEnd={() => {
+                setTimeout(() => setCoursesPaused(false), 2000);
+              }}
             >
               {loading ? (
                 <div className="w-full text-center py-12 text-[#706B65] flex items-center justify-center gap-2">
@@ -695,7 +710,7 @@ export const Home: React.FC = () => {
                 featuredCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="w-[85vw] sm:w-[360px] lg:w-[380px] shrink-0"
+                    className="w-[84vw] max-w-[340px] sm:max-w-none sm:w-[360px] lg:w-[380px] shrink-0"
                   >
                     <CourseCard course={course} />
                   </div>
