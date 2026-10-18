@@ -142,7 +142,7 @@ export const Contact: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Left Column: Phone, Email, Connect */}
-              <div className="lg:col-span-5 space-y-6" data-aos="fade-right">
+              <div className="lg:col-span-5 space-y-6" data-aos="fade-up">
                 
                 {/* Phone Card */}
                 <div className="bg-white p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
@@ -203,7 +203,7 @@ export const Contact: React.FC = () => {
               </div>
 
               {/* Right Column: Enquiry Form */}
-              <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-4" data-aos="fade-left">
+              <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-4" data-aos="fade-up" data-aos-delay="100">
                 <div>
                   <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
                     Send Us an Enquiry

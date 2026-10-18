@@ -12,15 +12,15 @@ import 'aos/dist/aos.css';
 export const ScrollObserver: React.FC = () => {
   const location = useLocation();
 
-  // Initialize AOS once on mount
+  // Initialize AOS once on mount with smooth, unhurried fade-up timing
   useEffect(() => {
     AOS.init({
-      duration: 650,
+      duration: 850,
       easing: 'ease-out-cubic',
       once: true,
-      offset: 50,
+      offset: 40,
       delay: 0,
-      disable: false, // Explicitly false so it runs on desktop, tablets, and mobile!
+      disable: false, // Runs smoothly across desktop, tablets, and mobile
       mirror: false,
       anchorPlacement: 'top-bottom',
     });

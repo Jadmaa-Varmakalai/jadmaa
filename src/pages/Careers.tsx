@@ -69,7 +69,7 @@ export const Careers: React.FC = () => {
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
-              <div className="lg:col-span-7 space-y-3" data-aos="fade-right">
+              <div className="lg:col-span-7 space-y-3" data-aos="fade-up">
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Growth &amp; Leadership
                 </div>
@@ -84,7 +84,7 @@ export const Careers: React.FC = () => {
                 </div>
               </div>
 
-              <div className="lg:col-span-5 flex justify-center" data-aos="fade-left">
+              <div className="lg:col-span-5 flex justify-center" data-aos="fade-up" data-aos-delay="100">
                 <div className="w-full max-w-[480px] overflow-hidden rounded-[14px]">
                   <img 
                     src="https://jadmaa.com/wp-content/uploads/2026/08/file_000000008884820b9a3c789a8c0be531.png"
@@ -187,7 +187,7 @@ export const Careers: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Who Can Apply? */}
-              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3" data-aos="fade-right">
+              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3" data-aos="fade-up">
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Join the path
                 </div>
@@ -218,7 +218,7 @@ export const Careers: React.FC = () => {
               </div>
 
               {/* Grow with JADMAA */}
-              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3 flex flex-col justify-center" data-aos="fade-left">
+              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3 flex flex-col justify-center" data-aos="fade-up" data-aos-delay="100">
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Grow with JADMAA
                 </div>

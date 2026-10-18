@@ -251,7 +251,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Column */}
-            <div className="lg:col-span-7 space-y-5 text-left" data-aos="fade-right">
+            <div className="lg:col-span-7 space-y-5 text-left" data-aos="fade-up">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -339,7 +339,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Right Column: Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0" data-aos="fade-left">
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0" data-aos="fade-up" data-aos-delay="100">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center">
                 <img 
                   src="/images/hero-kick-action-transparent.png" 
@@ -413,7 +413,7 @@ export const Home: React.FC = () => {
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
-            <div className="lg:col-span-6 space-y-4" data-aos="fade-right">
+            <div className="lg:col-span-6 space-y-4" data-aos="fade-up">
               <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
                 <EditableText settingKey="home.why.eyebrow" defaultText="EXCELLENCE & INTEGRITY" />
               </span>
@@ -431,7 +431,7 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:col-span-6" data-aos="fade-left" data-aos-delay="100">
+            <div className="lg:col-span-6" data-aos="fade-up" data-aos-delay="100">
               <div className="bg-white p-6 rounded-2xl border border-[#E8DDD0] shadow-sm space-y-4 hover-lift">
                 <h3 className="font-heading font-bold text-[20px] text-[#2B2521]">
                   <EditableText settingKey="home.why.box.title" defaultText="Why Students Choose JADMAA" />
@@ -469,7 +469,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* Left: Big Martial Arts Stance Image (1st on mobile) */}
-            <div className="lg:col-span-5 flex justify-center items-center" data-aos="fade-right">
+            <div className="lg:col-span-5 flex justify-center items-center" data-aos="fade-up">
               <div className="relative group text-center">
                 <img 
                   src="/images/training-stance.png" 
@@ -480,7 +480,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Right: Section Heading, Subtitle & Additional Content */}
-            <div className="lg:col-span-7 space-y-4" data-aos="fade-left">
+            <div className="lg:col-span-7 space-y-4" data-aos="fade-up" data-aos-delay="100">
               <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
                 <EditableText settingKey="home.training.eyebrow" defaultText="ACADEMY SYLLABUS" />
               </span>
@@ -746,7 +746,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Right Content */}
-            <div className="lg:col-span-8 space-y-5 flex flex-col" data-aos="fade-left" data-aos-delay="100">
+            <div className="lg:col-span-8 space-y-5 flex flex-col" data-aos="fade-up" data-aos-delay="100">
               <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
                 <EditableText 
                   settingKey="home.wellness.description" 

@@ -279,24 +279,14 @@ html {
   scroll-padding-top: 80px;
 }
 
-/* Subtle, polished AOS transforms */
-body[data-aos-easing="ease-out-cubic"] [data-aos],
+/* Subtle, polished fade-up slide animation from cloned jadmaa */
 [data-aos] {
+  opacity: 0 !important;
+  transform: translate3d(0, 26px, 0) !important;
+  transition-property: opacity, transform !important;
+  transition-duration: 0.85s !important;
   transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1) !important;
   will-change: opacity, transform;
-}
-
-[data-aos="fade-up"] {
-  transform: translate3d(0, 28px, 0);
-}
-[data-aos="fade-down"] {
-  transform: translate3d(0, -28px, 0);
-}
-[data-aos="fade-right"] {
-  transform: translate3d(-28px, 0, 0);
-}
-[data-aos="fade-left"] {
-  transform: translate3d(28px, 0, 0);
 }
 
 [data-aos].aos-animate {
