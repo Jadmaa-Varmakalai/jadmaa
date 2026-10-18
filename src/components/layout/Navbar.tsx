@@ -1,6 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, User, LogOut, Settings as SettingsIcon, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { 
+  Menu, 
+  X, 
+  User, 
+  LogOut, 
+  Settings as SettingsIcon, 
+  ChevronDown, 
+  LayoutDashboard,
+  Save,
+  AlertTriangle,
+  Check,
+  Loader2
+} from 'lucide-react';
 import { mainNavItems } from '../../data/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
@@ -13,8 +25,18 @@ export const Navbar: React.FC = () => {
   const [profileOpen, setProfileOpen] = useState(false);
   const [editPromptOpen, setEditPromptOpen] = useState(false);
   const [editPromptText, setEditPromptText] = useState('');
+  const [discardWarningOpen, setDiscardWarningOpen] = useState(false);
+  const [saveSuccessNotice, setSaveSuccessNotice] = useState(false);
 
-  const { isEditing } = useSettings();
+  const { 
+    isEditing, 
+    isSaving, 
+    hasUnsavedChanges, 
+    pendingChangesCount, 
+    saveAllChanges, 
+    discardChanges, 
+    exitEditMode 
+  } = useSettings();
   let currentNavItems = mainNavItems;
   if (isLoggedIn && !isEditing) {
     if (user?.role === 'STUDENT') {
@@ -68,15 +90,99 @@ export const Navbar: React.FC = () => {
     }
   };
 
+  const handleSaveClick = async () => {
+    try {
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
+      await saveAllChanges();
+      setSaveSuccessNotice(true);
+      setTimeout(() => setSaveSuccessNotice(false), 3000);
+    } catch (err) {
+      alert('Failed to save changes. Please make sure you are logged in as an administrator.');
+    }
+  };
+
+  const handleExitClick = () => {
+    if (hasUnsavedChanges) {
+      setDiscardWarningOpen(true);
+    } else {
+      exitEditMode();
+    }
+  };
+
+  const handleDiscardAndExit = () => {
+    discardChanges();
+    setDiscardWarningOpen(false);
+    exitEditMode();
+  };
+
   return (
     <>
     {isEditing && (
-      <div className="bg-jadmaa-red text-white text-center py-2 text-sm font-bold flex items-center justify-center space-x-4">
-        <span>🎨 Visual Edit Mode is Active. Click on text to edit. Changes save automatically.</span>
-        <button onClick={() => {
-          sessionStorage.removeItem('jadmaa_edit_mode');
-          window.location.href = '/';
-        }} className="px-3 py-1 bg-white text-jadmaa-red rounded-full text-xs hover:bg-gray-100">Exit Edit Mode</button>
+      <div className="bg-[#1C1714] text-white border-b border-[#3D332D] px-3 sm:px-6 py-2.5 z-[60] relative shadow-lg">
+        <div className="max-w-[1500px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2.5 sm:gap-4">
+          {/* Status info & unsaved count */}
+          <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm font-medium flex-wrap justify-center sm:justify-start">
+            <span className="inline-flex items-center gap-1.5 bg-[#B12B2B] px-2.5 py-0.5 rounded-full text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
+              Edit Mode
+            </span>
+            <span className="text-gray-300 hidden md:inline text-xs">
+              Click any text on the page to edit.
+            </span>
+            {hasUnsavedChanges ? (
+              <span className="inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                {pendingChangesCount} unsaved change{pendingChangesCount > 1 ? 's' : ''}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-emerald-400 text-xs font-semibold">
+                <Check className="w-3.5 h-3.5 shrink-0" />
+                All changes saved
+              </span>
+            )}
+            {saveSuccessNotice && (
+              <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-0.5 rounded-full text-xs font-semibold animate-fade-in">
+                <Check className="w-3.5 h-3.5 shrink-0" />
+                Saved successfully!
+              </span>
+            )}
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <button
+              onClick={handleSaveClick}
+              disabled={!hasUnsavedChanges || isSaving}
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-bold transition shadow-sm ${
+                hasUnsavedChanges
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer active:scale-95'
+                  : 'bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700/60'
+              }`}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Changes</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleExitClick}
+              className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded-lg text-xs font-semibold transition border border-white/20 hover:border-white/40 active:scale-95"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Exit Edit Mode</span>
+            </button>
+          </div>
+        </div>
       </div>
     )}
     <header className={`sticky top-0 z-50 bg-[#FAF6F0] transition-shadow duration-200 border-b border-[#E8DDD0] ${
@@ -243,12 +349,30 @@ export const Navbar: React.FC = () => {
               <>
                 <Link
                   to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/student"}
+                  onClick={() => setIsOpen(false)}
                   className="block w-full text-center py-2 bg-[#B12B2B] text-white text-sm font-bold rounded"
                 >
                   My Profile
                 </Link>
+
+                {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
+                  <button
+                    onClick={() => {
+                      setIsOpen(false);
+                      setEditPromptOpen(true);
+                    }}
+                    className="flex items-center justify-center space-x-2 w-full py-2 border border-[#B12B2B] text-[#B12B2B] hover:bg-[#B12B2B]/5 text-sm font-bold rounded transition"
+                  >
+                    <SettingsIcon className="w-4 h-4" />
+                    <span>Edit Website</span>
+                  </button>
+                )}
+
                 <button
-                  onClick={logout}
+                  onClick={() => {
+                    setIsOpen(false);
+                    logout();
+                  }}
                   className="block w-full text-center py-2 text-sm font-bold text-[#5C5148] hover:text-[#B12B2B]"
                 >
                   Logout
@@ -258,6 +382,7 @@ export const Navbar: React.FC = () => {
               <div className="flex space-x-2">
                 <Link
                   to="/login"
+                  onClick={() => setIsOpen(false)}
                   className="w-full text-center py-2 bg-[#B12B2B] text-white text-sm font-bold rounded"
                 >
                   Login / Register
@@ -299,6 +424,50 @@ export const Navbar: React.FC = () => {
               Confirm
             </button>
           </form>
+        </div>
+      </div>
+    )}
+
+    {/* Discard Changes Warning Modal */}
+    {discardWarningOpen && (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative text-left border border-gray-100">
+          <button 
+            onClick={() => setDiscardWarningOpen(false)} 
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          
+          <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-4">
+            <AlertTriangle className="w-6 h-6" />
+          </div>
+
+          <h3 className="text-xl font-heading font-bold text-gray-900 mb-2">
+            Discard Unsaved Changes?
+          </h3>
+          
+          <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+            You have <strong className="text-gray-900">{pendingChangesCount} unsaved edit{pendingChangesCount > 1 ? 's' : ''}</strong>. 
+            Exiting now will discard these changes without saving. Do you want to discard your changes or stay in edit website mode?
+          </p>
+
+          <div className="flex flex-col-reverse sm:flex-row gap-2.5 sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setDiscardWarningOpen(false)}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold text-sm transition"
+            >
+              Cancel (Stay in Edit Mode)
+            </button>
+            <button
+              type="button"
+              onClick={handleDiscardAndExit}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-[#B12B2B] hover:bg-red-800 text-white font-semibold text-sm transition shadow-sm"
+            >
+              Discard Changes & Exit
+            </button>
+          </div>
         </div>
       </div>
     )}

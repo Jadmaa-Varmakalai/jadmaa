@@ -10,7 +10,7 @@ interface EditableTextProps {
 }
 
 export const EditableText: React.FC<EditableTextProps> = ({ settingKey, defaultText, className = '', multiline = false }) => {
-  const { settings, isEditing, updateSetting } = useSettings();
+  const { settings, isEditing, stageSetting } = useSettings();
   const text = settings[settingKey] || defaultText;
   const contentEditableRef = useRef<HTMLElement>(null);
 
@@ -29,9 +29,9 @@ export const EditableText: React.FC<EditableTextProps> = ({ settingKey, defaultT
     if (!contentEditableRef.current) return;
     const newText = multiline ? contentEditableRef.current.innerText : contentEditableRef.current.innerHTML;
     
-    // Only update if changed
+    // Stage the change locally in draftSettings instead of auto-saving to API
     if (newText !== text) {
-      updateSetting(settingKey, newText);
+      stageSetting(settingKey, newText);
     }
   };
 
