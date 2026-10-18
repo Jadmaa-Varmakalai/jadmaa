@@ -246,12 +246,12 @@ export const Home: React.FC = () => {
       />
 
       {/* 1. HERO SECTION */}
-      <section className="relative bg-[#FAF6F0] pt-10 pb-12 md:pt-14 md:pb-16 border-b border-[#E8DDD0] overflow-hidden">
+      <section className="relative bg-[#FAF6F0] pt-10 pb-12 md:pt-14 md:pb-16 border-b border-[#E8DDD0] overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Column */}
-            <div className="lg:col-span-7 space-y-5 text-left" data-aos="fade-up">
+            <div className="lg:col-span-7 space-y-5 text-left">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -354,11 +354,11 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 2. ABOUT JADMAA TEASER SECTION */}
-      <section className="py-12 lg:py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden">
+      <section className="py-12 lg:py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            <div className="lg:col-span-8 space-y-4" data-aos="fade-up">
+            <div className="lg:col-span-8 space-y-4">
               <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
                 <EditableText settingKey="home.about.eyebrow" defaultText="About JADMAA" />
               </span>
@@ -409,11 +409,11 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 3. WHY CHOOSE JADMAA SECTION */}
-      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden">
+      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
             
-            <div className="lg:col-span-6 space-y-4" data-aos="fade-up">
+            <div className="lg:col-span-6 space-y-4">
               <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
                 <EditableText settingKey="home.why.eyebrow" defaultText="EXCELLENCE & INTEGRITY" />
               </span>
@@ -462,7 +462,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 4. MARTIAL ARTS TRAINING AT JADMAA VARMAKALAI SECTION */}
-      <section className="py-12 sm:py-16 bg-white border-b border-[#E8DDD0] text-left overflow-hidden">
+      <section className="py-12 sm:py-16 bg-white border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-10 sm:space-y-12">
           
           {/* Top Row: Left Image & Right Section Content */}
@@ -608,7 +608,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 5. FEATURED COURSES SECTION */}
-      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left">
+      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
@@ -722,7 +722,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 6. VARMA WELLNESS & TRADITIONAL THERAPY SECTION */}
-      <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left overflow-hidden">
+      <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
           
           <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]" data-aos="fade-up">
@@ -802,10 +802,10 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 8. BRANCH LOCATIONS SECTION */}
-      <section className="py-16 bg-white border-b border-[#E8DDD0] text-left">
+      <section className="py-16 bg-white border-b border-[#E8DDD0] text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
-          <div className="text-center max-w-2xl mx-auto space-y-2" data-aos="fade-up">
+          <div className="text-center max-w-2xl mx-auto space-y-2">
             <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
               <EditableText settingKey="home.branches.eyebrow" defaultText="BRANCH LOCATIONS" />
             </span>
@@ -817,7 +817,7 @@ export const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-aos="fade-up">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {mockBranches.map((branch, idx) => (
               <div 
                 key={branch.id} 
@@ -840,7 +840,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 9. TESTIMONIALS SECTION */}
-      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left">
+      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
             <div className="text-left">

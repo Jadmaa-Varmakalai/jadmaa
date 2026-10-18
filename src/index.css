@@ -289,13 +289,17 @@ html {
   will-change: opacity, transform;
 }
 
-[data-aos].aos-animate {
+[data-aos].aos-animate,
+[data-aos].is-revealed,
+.reveal-on-scroll.is-revealed,
+.fade-up-scroll.is-revealed {
   transform: translate3d(0, 0, 0) !important;
   opacity: 1 !important;
 }
 
 /* Staggered delay helpers */
 [data-aos-delay="50"]  { transition-delay: 50ms !important; }
+[data-aos-delay="80"]  { transition-delay: 80ms !important; }
 [data-aos-delay="100"] { transition-delay: 100ms !important; }
 [data-aos-delay="150"] { transition-delay: 150ms !important; }
 [data-aos-delay="200"] { transition-delay: 200ms !important; }
@@ -303,14 +307,6 @@ html {
 [data-aos-delay="300"] { transition-delay: 300ms !important; }
 [data-aos-delay="350"] { transition-delay: 350ms !important; }
 [data-aos-delay="400"] { transition-delay: 400ms !important; }
-
-@media (prefers-reduced-motion: reduce) {
-  [data-aos] {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
-  }
-}
 
 /* ==========================================
    SUBTLE, MINIMAL & FEEL-GOOD ANIMATION SYSTEM

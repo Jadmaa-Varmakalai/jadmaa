@@ -5,75 +5,92 @@ import 'aos/dist/aos.css';
 
 /**
  * ScrollObserver:
- * 1. Smoothly resets window scroll on route change.
- * 2. Initializes and manages AOS (Animate On Scroll) globally across all devices.
- * 3. Auto-tags standard page sections and refreshes dynamically rendered content.
+ * 1. Resets window scroll on route change.
+ * 2. Uses native browser IntersectionObserver (100% reliable across all laptops, desktops, and mobile)
+ *    to trigger smooth fade-up slide animation as elements enter viewport.
+ * 3. Also runs AOS for full parity across devices.
  */
 export const ScrollObserver: React.FC = () => {
   const location = useLocation();
 
-  // Initialize AOS once on mount with smooth, unhurried fade-up timing
   useEffect(() => {
-    AOS.init({
-      duration: 850,
-      easing: 'ease-out-cubic',
-      once: true,
-      offset: 40,
-      delay: 0,
-      disable: false, // Runs smoothly across desktop, tablets, and mobile
-      mirror: false,
-      anchorPlacement: 'top-bottom',
-    });
+    // Initialize AOS with smooth timing
+    try {
+      AOS.init({
+        duration: 850,
+        easing: 'ease-out-cubic',
+        once: true,
+        offset: 40,
+        delay: 0,
+        disable: false,
+        mirror: false,
+      });
+    } catch (_) {}
   }, []);
 
-  // Handle route change: scroll to top and refresh AOS
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
 
-    // Auto-tag major sections so any page automatically has smooth scroll reveal
-    const autoTag = () => {
-      document.querySelectorAll('section:not([data-aos]):not(.no-aos), .animate-on-scroll:not([data-aos])').forEach((el) => {
-        el.setAttribute('data-aos', 'fade-up');
+    let observer: IntersectionObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
+
+    const setupObserver = () => {
+      if (observer) observer.disconnect();
+
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('aos-animate');
+              entry.target.classList.add('is-revealed');
+              observer?.unobserve(entry.target);
+            }
+          });
+        },
+        {
+          root: null,
+          rootMargin: '0px 0px -40px 0px',
+          threshold: 0.05,
+        }
+      );
+
+      const elements = document.querySelectorAll(
+        '[data-aos], section:not(.no-aos), .reveal-on-scroll'
+      );
+
+      elements.forEach((el) => {
+        if (!el.getAttribute('data-aos') && el.tagName.toLowerCase() === 'section') {
+          el.setAttribute('data-aos', 'fade-up');
+        }
+        if (!el.classList.contains('is-revealed') && !el.classList.contains('aos-animate')) {
+          observer?.observe(el);
+        }
       });
-      AOS.refreshHard();
+
+      try {
+        AOS.refresh();
+      } catch (_) {}
     };
 
-    autoTag();
+    // Run setup immediately, then at 80ms and 250ms for asynchronous content
+    setupObserver();
+    const t1 = setTimeout(setupObserver, 80);
+    const t2 = setTimeout(setupObserver, 250);
 
-    const t1 = setTimeout(() => {
-      autoTag();
-      AOS.refresh();
-    }, 100);
+    // Watch for dynamically added elements (like loaded courses or blogs)
+    mutationObserver = new MutationObserver(() => {
+      setupObserver();
+    });
 
-    const t2 = setTimeout(() => {
-      autoTag();
-      AOS.refresh();
-    }, 300);
+    mutationObserver.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      if (observer) observer.disconnect();
+      if (mutationObserver) mutationObserver.disconnect();
     };
   }, [location.pathname]);
-
-  // Observer to refresh AOS when async content (courses, blogs, testimonials) mounts
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    const observer = new MutationObserver(() => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        AOS.refresh();
-      }, 100);
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => {
-      observer.disconnect();
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, []);
 
   return null;
 };
