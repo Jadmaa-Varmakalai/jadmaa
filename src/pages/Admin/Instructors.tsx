@@ -124,7 +124,7 @@ export const Instructors: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-heading font-bold text-gray-900">Manage Instructors</h2>
-          <p className="text-xs text-gray-500 mt-0.5">Manage certified faculty and review instructor registration requests</p>
+          <p className="text-xs text-gray-500 mt-0.5">Manage certified instructors and review instructor registration requests</p>
         </div>
 
         <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3">

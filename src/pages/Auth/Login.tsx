@@ -180,7 +180,7 @@ export const Login: React.FC = () => {
                     <span>Apply as an Instructor</span>
                   </span>
                   <p className="text-[11px] text-[#5C5148] mt-0.5">
-                    Want to join JADMAA faculty? Check this to register your instructor profile.
+                    Want to join JADMAA as an instructor? Check this to register your instructor profile.
                   </p>
                 </div>
               </label>

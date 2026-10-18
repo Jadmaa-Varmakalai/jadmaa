@@ -234,7 +234,7 @@ export const Register: React.FC = () => {
                     <span>Apply as an Instructor</span>
                   </span>
                   <p className="text-[11px] text-[#5C5148] mt-0.5">
-                    Check this box if you are a Varmakalai master or trainer applying to join the faculty.
+                    Check this box if you are a Varmakalai master or trainer applying to become an instructor.
                   </p>
                 </div>
               </label>

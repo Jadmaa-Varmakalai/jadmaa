@@ -189,10 +189,10 @@ export const InstructorPanel: React.FC = () => {
           <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div>
               <span className="text-xs font-bold text-jadmaa-red uppercase tracking-wider">
-                Faculty Portal
+                Instructor Portal
               </span>
               <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-jadmaa-charcoal mt-1">
-                Instructor Dashboard ({user?.name || 'Faculty Member'})
+                Instructor Dashboard ({user?.name || 'Instructor'})
               </h1>
               <p className="text-xs text-jadmaa-textMuted mt-1">
                 Create & publish your own martial arts courses, manage enrollments, and track student completion.
@@ -260,7 +260,7 @@ export const InstructorPanel: React.FC = () => {
               <div className="flex items-center space-x-2 text-jadmaa-red">
                 <GraduationCap className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider text-jadmaa-textMuted">
-                  Faculty Status
+                  Instructor Status
                 </span>
               </div>
               <p className="text-base font-bold text-emerald-600 mt-1">
