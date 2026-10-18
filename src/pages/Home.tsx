@@ -470,27 +470,8 @@ export const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
             
-            {/* Box 1: Varma in Action */}
-            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
-              <div className="space-y-1.5">
-                <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
-                  <EditableText settingKey="home.training.image.eyebrow" defaultText="TRADITIONAL DISCIPLINE" />
-                </span>
-                <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
-                  <EditableText settingKey="home.training.image.title" defaultText="Varma in Action" />
-                </h3>
-              </div>
-              <p className="text-[14px] text-[#5C5148] font-body leading-[1.5]">
-                <EditableText 
-                  settingKey="home.training.image.desc" 
-                  defaultText="Master traditional stances, vital point locks, and weaponry under experienced Aasan guidance." 
-                  multiline={true} 
-                />
-              </p>
-            </div>
-
             {/* Box 1: What We Offer */}
             <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
               <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
