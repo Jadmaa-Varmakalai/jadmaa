@@ -720,7 +720,7 @@ export const Home: React.FC = () => {
             <div className="lg:col-span-4 flex flex-col h-full">
               <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-[#FAF6F0]">
                 <img 
-                  src="/images/wellness-682x1024.jpg" 
+                  src="/images/wellness-682x1024.png" 
                   alt="Traditional Varma therapy session at JADMAA Varmakalai" 
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
