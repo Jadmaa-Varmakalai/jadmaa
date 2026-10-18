@@ -284,7 +284,7 @@ export const Home: React.FC = () => {
               {/* Hero Stats Row - All 4 in single row on mobile (exact jadmaa.com match) */}
               <div className="pt-6 sm:pt-8 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.tradition.value" defaultText="1000" />
                     ) : (
@@ -297,7 +297,7 @@ export const Home: React.FC = () => {
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.branches.value" defaultText="3" />
                     ) : (
@@ -310,7 +310,7 @@ export const Home: React.FC = () => {
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.courses.value" defaultText="7" />
                     ) : (
@@ -323,7 +323,7 @@ export const Home: React.FC = () => {
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight">
+                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.experience.value" defaultText="10" />
                     ) : (
@@ -344,6 +344,11 @@ export const Home: React.FC = () => {
                 <img 
                   src="/images/hero-kick-action-transparent.png" 
                   alt="Varmakalai Practitioner Stance" 
+                  fetchPriority="high"
+                  loading="eager"
+                  decoding="async"
+                  width={650}
+                  height={650}
                   className="max-h-[440px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out animate-jd-hero-float"
                 />
               </div>

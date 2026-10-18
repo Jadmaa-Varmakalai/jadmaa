@@ -95,8 +95,17 @@ export const CountUp: React.FC<CountUpProps> = ({ end, duration = 1800, suffix =
     return () => cancelAnimationFrame(animationFrame);
   }, [end, duration, isVisible]);
 
+  const targetLength = (String(end).length + suffix.length + prefix.length);
+
   return (
-    <span ref={elementRef} className="inline-block tabular-nums">
+    <span 
+      ref={elementRef} 
+      className="inline-block tabular-nums"
+      style={{
+        fontVariantNumeric: 'tabular-nums',
+        minWidth: targetLength > 0 ? `${targetLength * 0.62}ch` : undefined,
+      }}
+    >
       {prefix}{count.toLocaleString()}{suffix}
     </span>
   );

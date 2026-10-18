@@ -308,6 +308,13 @@ html {
 [data-aos-delay="350"] { transition-delay: 350ms !important; }
 [data-aos-delay="400"] { transition-delay: 400ms !important; }
 
+/* Ensure the container for dynamic digits has a stable width and zero layout shift */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  display: inline-block;
+  contain: layout;
+}
+
 /* ==========================================
    SUBTLE, MINIMAL & FEEL-GOOD ANIMATION SYSTEM
    ========================================== */
