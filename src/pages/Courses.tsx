@@ -73,7 +73,7 @@ export const Courses: React.FC = () => {
       />
 
       {/* Page Header */}
-      <section className="bg-jadmaa-cream py-12 md:py-16 border-b border-jadmaa-border text-left">
+      <section className="bg-jadmaa-cream py-12 md:py-16 border-b border-jadmaa-border text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
           <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
             <EditableText
@@ -102,7 +102,7 @@ export const Courses: React.FC = () => {
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
           {/* Top Format Selector (Online vs Branch) */}
-          <div className="flex flex-wrap items-center gap-3 p-1.5 bg-[#F0EBE3] rounded-2xl border border-[#E0D7CC] w-fit">
+          <div className="flex flex-wrap items-center gap-3 p-1.5 bg-[#F0EBE3] rounded-2xl border border-[#E0D7CC] w-fit" data-aos="fade-up">
             <button
               onClick={() => setTrainingFilter('all')}
               className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 ${
@@ -139,7 +139,7 @@ export const Courses: React.FC = () => {
           </div>
 
           {/* Filters Bar */}
-          <div className="bg-white p-5 rounded-2xl border border-jadmaa-border shadow-sm space-y-4">
+          <div className="bg-white p-5 rounded-2xl border border-jadmaa-border shadow-sm space-y-4" data-aos="fade-up">
             
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               
@@ -243,9 +243,9 @@ export const Courses: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-                    {onlineCourses.map(course => (
-                      <div key={course.id} className="flex">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch" data-aos="fade-up">
+                    {onlineCourses.map((course, idx) => (
+                      <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
                         <CourseCard course={course} />
                       </div>
                     ))}
@@ -256,7 +256,7 @@ export const Courses: React.FC = () => {
               {/* 2. In-Person Branch Training Section */}
               {branchCourses.length > 0 && (
                 <div className="space-y-6">
-                  <div className="border-b border-[#E8DDD0] pb-4">
+                  <div className="border-b border-[#E8DDD0] pb-4" data-aos="fade-up">
                     <div className="flex items-center gap-2 text-[#B12B2B] text-xs font-bold uppercase tracking-wider">
                       <MapPin className="w-4 h-4" />
                       <span>Academy Branch Training</span>
@@ -269,9 +269,9 @@ export const Courses: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-                    {branchCourses.map(course => (
-                      <div key={course.id} className="flex">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch" data-aos="fade-up">
+                    {branchCourses.map((course, idx) => (
+                      <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
                         <CourseCard course={course} />
                       </div>
                     ))}
@@ -283,7 +283,7 @@ export const Courses: React.FC = () => {
           ) : (
             /* FILTERED VIEW (EITHER ONLINE OR BRANCH ONLY) */
             <div className="space-y-6">
-              <div className="border-b border-[#E8DDD0] pb-4">
+              <div className="border-b border-[#E8DDD0] pb-4" data-aos="fade-up">
                 <h2 className="font-heading font-bold text-2xl sm:text-3xl text-[#1F2937]">
                   {trainingFilter === 'online' ? 'Recorded Online LMS Courses' : 'In-Person Branch Training'}
                 </h2>
@@ -294,9 +294,9 @@ export const Courses: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch">
-                {filteredCourses.map(course => (
-                  <div key={course.id} className="flex">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch" data-aos="fade-up">
+                {filteredCourses.map((course, idx) => (
+                  <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
                     <CourseCard course={course} />
                   </div>
                 ))}

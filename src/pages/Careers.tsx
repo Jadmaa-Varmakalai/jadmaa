@@ -65,11 +65,11 @@ export const Careers: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Banner Section */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
-              <div className="lg:col-span-7 space-y-3">
+              <div className="lg:col-span-7 space-y-3" data-aos="fade-right">
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Growth &amp; Leadership
                 </div>
@@ -84,7 +84,7 @@ export const Careers: React.FC = () => {
                 </div>
               </div>
 
-              <div className="lg:col-span-5 flex justify-center">
+              <div className="lg:col-span-5 flex justify-center" data-aos="fade-left">
                 <div className="w-full max-w-[480px] overflow-hidden rounded-[14px]">
                   <img 
                     src="https://jadmaa.com/wp-content/uploads/2026/08/file_000000008884820b9a3c789a8c0be531.png"
@@ -99,7 +99,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* The Pathway: From Student to Branch Trainer */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <div className="text-center space-y-2">
@@ -112,9 +112,11 @@ export const Careers: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {careerSteps.map((stepItem) => (
+              {careerSteps.map((stepItem, idx) => (
                 <div 
                   key={stepItem.step} 
+                  data-aos="fade-up"
+                  data-aos-delay={idx * 80}
                   className="bg-white p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3 flex flex-col justify-start"
                 >
                   <h5 className="font-heading font-semibold text-[17px] sm:text-[18px] text-[#2B2521] leading-[1.2]">
@@ -143,7 +145,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* Where it can lead: Career Opportunities */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <div className="text-center space-y-2 max-w-2xl mx-auto">
@@ -159,9 +161,11 @@ export const Careers: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-              {opportunities.map((opp) => (
+              {opportunities.map((opp, idx) => (
                 <div 
                   key={opp} 
+                  data-aos="fade-up"
+                  data-aos-delay={(idx % 3) * 100}
                   className="bg-white p-4 rounded-[12px] border border-[#E8DDD0] flex items-center gap-3"
                 >
                   <div className="w-[22px] h-[22px] rounded-full bg-[#B12B2B] text-white text-[12px] font-bold flex items-center justify-center flex-shrink-0">
@@ -178,12 +182,12 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* Join the path & Grow with JADMAA */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
               {/* Who Can Apply? */}
-              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3">
+              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3" data-aos="fade-right">
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Join the path
                 </div>
@@ -214,7 +218,7 @@ export const Careers: React.FC = () => {
               </div>
 
               {/* Grow with JADMAA */}
-              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3 flex flex-col justify-center">
+              <div className="bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-3 flex flex-col justify-center" data-aos="fade-left">
                 <div className="text-[12px] font-bold tracking-[.08em] uppercase text-[#B12B2B]">
                   Grow with JADMAA
                 </div>
@@ -228,7 +232,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* Final CTA Section */}
-        <section className="py-12 sm:py-16 bg-[#FAF6F0]">
+        <section className="py-12 sm:py-16 bg-[#FAF6F0]" data-aos="fade-up">
           <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               Train. Lead. Inspire. Preserve the Legacy.
@@ -236,7 +240,7 @@ export const Careers: React.FC = () => {
             <div>
               <Link 
                 to="/contact" 
-                className="inline-block bg-[#B12B2B] hover:bg-[#8F2020] text-white font-semibold text-[15px] px-8 py-3.5 rounded-[8px] transition-colors"
+                className="inline-block bg-[#B12B2B] hover:bg-[#8F2020] text-white font-semibold text-[15px] px-8 py-3.5 rounded-[8px] transition-colors shadow-sm hover:shadow-md"
               >
                 Enquire About the Instructor Path
               </Link>

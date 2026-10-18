@@ -118,7 +118,7 @@ export const BlogPostDetail: React.FC = () => {
         <div className="max-w-[1100px] mx-auto">
           {/* Main Article Container */}
           <main className="max-w-[800px] mx-auto">
-            <article className="bg-white rounded-none sm:rounded-[4px] p-6 sm:p-10 md:p-12 shadow-sm text-left">
+            <article className="bg-white rounded-none sm:rounded-[4px] p-6 sm:p-10 md:p-12 shadow-sm text-left" data-aos="fade-up">
               {/* Post Title */}
               <h1 className="text-[26px] sm:text-[32px] font-bold text-[#2B2521] leading-[1.25] mb-2 font-heading">
                 {blog.title}

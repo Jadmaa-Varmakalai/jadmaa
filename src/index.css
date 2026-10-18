@@ -279,26 +279,29 @@ html {
   scroll-padding-top: 80px;
 }
 
-/* Scroll reveal styles - active when JS initializes */
-html.jd-js .reveal,
-html.jd-js [data-aos],
-html.jd-js .jd-reveal,
-html.jd-js .jd-sec {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity 0.65s cubic-bezier(0.22, 0.61, 0.36, 1), transform 0.65s cubic-bezier(0.22, 0.61, 0.36, 1);
+/* Subtle, polished AOS transforms */
+body[data-aos-easing="ease-out-cubic"] [data-aos],
+[data-aos] {
+  transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1) !important;
   will-change: opacity, transform;
 }
 
-/* Graceful reveal animation when observer triggers */
-html.jd-js .reveal.is-visible, 
-html.jd-js [data-aos].is-visible, 
-html.jd-js [data-aos].aos-animate, 
-html.jd-js .jd-reveal.jd-in,
-html.jd-js .jd-sec.jd-in,
-html.jd-js .is-visible {
+[data-aos="fade-up"] {
+  transform: translate3d(0, 28px, 0);
+}
+[data-aos="fade-down"] {
+  transform: translate3d(0, -28px, 0);
+}
+[data-aos="fade-right"] {
+  transform: translate3d(-28px, 0, 0);
+}
+[data-aos="fade-left"] {
+  transform: translate3d(28px, 0, 0);
+}
+
+[data-aos].aos-animate {
+  transform: translate3d(0, 0, 0) !important;
   opacity: 1 !important;
-  transform: none !important;
 }
 
 /* Staggered delay helpers */
@@ -311,20 +314,8 @@ html.jd-js .is-visible {
 [data-aos-delay="350"] { transition-delay: 350ms !important; }
 [data-aos-delay="400"] { transition-delay: 400ms !important; }
 
-/* Mobile smoother & stronger rise (from jadmaa.com mobile optimization) */
-@media (max-width: 767px) {
-  html.jd-js .reveal,
-  html.jd-js [data-aos],
-  html.jd-js .jd-reveal {
-    transform: translateY(34px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  html.jd-js .reveal,
-  html.jd-js [data-aos],
-  html.jd-js .jd-reveal,
-  html.jd-js .jd-sec {
+  [data-aos] {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;

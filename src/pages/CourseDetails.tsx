@@ -305,7 +305,7 @@ export const CourseDetails: React.FC = () => {
           </nav>
 
           {/* Course Details Header */}
-          <header className="mb-8 md:mb-10 space-y-4">
+          <header className="mb-8 md:mb-10 space-y-4" data-aos="fade-up">
             <div className="flex flex-wrap items-center gap-2">
               {/* Training Format Badge */}
               {isOnline ? (
@@ -383,7 +383,7 @@ export const CourseDetails: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             
             {/* Left Column: Media & Editorial Content (8 cols) */}
-            <main className="lg:col-span-8 space-y-8">
+            <main className="lg:col-span-8 space-y-8" data-aos="fade-up">
               
               {/* Course Featured Banner / Video Frame */}
               <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black shadow-lg border border-[#E5E2DC] group">
@@ -623,7 +623,7 @@ export const CourseDetails: React.FC = () => {
             </main>
 
             {/* Right Column: Sticky Purchase & Enrollment Sidebar (4 cols) */}
-            <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6">
+            <aside className="lg:col-span-4 lg:sticky lg:top-24 space-y-6" data-aos="fade-up" data-aos-delay="100">
               
               <div className="bg-white rounded-2xl p-6 md:p-7 shadow-lg border border-[#E0DCD5] space-y-6">
                 
@@ -771,7 +771,7 @@ export const CourseDetails: React.FC = () => {
           </div>
 
           {/* Related Courses Section */}
-          <section className="mt-16 pt-12 border-t border-[#E5E2DC]">
+          <section className="mt-16 pt-12 border-t border-[#E5E2DC]" data-aos="fade-up">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl text-[#111827] mb-8">
               Related Varmakalai Programs
             </h2>

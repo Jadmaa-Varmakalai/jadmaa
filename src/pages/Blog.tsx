@@ -55,7 +55,7 @@ export const Blog: React.FC = () => {
 
       <div className="bg-[#FAF6F0] min-h-screen text-left text-[#2B2521]">
         {/* Header Container */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
+        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left" data-aos="fade-up">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3">
               <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
@@ -93,15 +93,16 @@ export const Blog: React.FC = () => {
             ) : error && blogs.length === 0 ? (
               <div className="text-center py-20 text-[#B12B2B]">Error: {error}</div>
             ) : blogs.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {blogs.map(blog => (
-                  <BlogCard 
-                    key={blog.id} 
-                    blog={blog} 
-                    isAdmin={canManageBlogs}
-                    onEdit={() => navigate('/admin#blogs')}
-                    onDelete={handleDeletePost}
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up">
+                {blogs.map((blog, idx) => (
+                  <div key={blog.id} data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
+                    <BlogCard 
+                      blog={blog} 
+                      isAdmin={canManageBlogs}
+                      onEdit={() => navigate('/admin#blogs')}
+                      onDelete={handleDeletePost}
+                    />
+                  </div>
                 ))}
               </div>
             ) : (

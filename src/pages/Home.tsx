@@ -251,7 +251,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Column */}
-            <div className="lg:col-span-7 space-y-5 text-left animate-jd-pop">
+            <div className="lg:col-span-7 space-y-5 text-left" data-aos="fade-right">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -339,7 +339,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Right Column: Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0">
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0" data-aos="fade-left">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center">
                 <img 
                   src="/images/hero-kick-action-transparent.png" 
@@ -817,9 +817,14 @@ export const Home: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {mockBranches.map((branch) => (
-              <div key={branch.id} className="bg-[#FAF6F0] rounded-lg border border-[#E8DDD0] p-5 space-y-3 hover-lift scroll-card-settle">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6" data-aos="fade-up">
+            {mockBranches.map((branch, idx) => (
+              <div 
+                key={branch.id} 
+                className="bg-[#FAF6F0] rounded-lg border border-[#E8DDD0] p-5 space-y-3 hover-lift scroll-card-settle"
+                data-aos="fade-up"
+                data-aos-delay={(idx + 1) * 100}
+              >
                 <div className="flex items-center space-x-2 text-[#B12B2B]">
                   <MapPin className="w-4 h-4" />
                   <span className="font-bold text-xs uppercase tracking-wider">{branch.city}</span>

@@ -1,100 +1,79 @@
 import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import AOS from 'aos';
+import 'aos/dist/aos.css';
 
 /**
- * ScrollObserver: Scrolls window to top smoothly on route change.
- * Implements a lightweight, consistent scroll reveal system (replacing AOS).
+ * ScrollObserver:
+ * 1. Smoothly resets window scroll on route change.
+ * 2. Initializes and manages AOS (Animate On Scroll) globally across all devices.
+ * 3. Auto-tags standard page sections and refreshes dynamically rendered content.
  */
 export const ScrollObserver: React.FC = () => {
   const location = useLocation();
 
+  // Initialize AOS once on mount
+  useEffect(() => {
+    AOS.init({
+      duration: 650,
+      easing: 'ease-out-cubic',
+      once: true,
+      offset: 50,
+      delay: 0,
+      disable: false, // Explicitly false so it runs on desktop, tablets, and mobile!
+      mirror: false,
+      anchorPlacement: 'top-bottom',
+    });
+  }, []);
+
+  // Handle route change: scroll to top and refresh AOS
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+
+    // Auto-tag major sections so any page automatically has smooth scroll reveal
+    const autoTag = () => {
+      document.querySelectorAll('section:not([data-aos]):not(.no-aos), .animate-on-scroll:not([data-aos])').forEach((el) => {
+        el.setAttribute('data-aos', 'fade-up');
+      });
+      AOS.refreshHard();
+    };
+
+    autoTag();
+
+    const t1 = setTimeout(() => {
+      autoTag();
+      AOS.refresh();
+    }, 100);
+
+    const t2 = setTimeout(() => {
+      autoTag();
+      AOS.refresh();
+    }, 300);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [location.pathname]);
 
+  // Observer to refresh AOS when async content (courses, blogs, testimonials) mounts
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
-    document.documentElement.classList.add('jd-js');
-
-    const reveal = (el: Element) => {
-      el.classList.add('is-visible', 'jd-in', 'aos-animate');
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            observer.unobserve(entry.target);
-            reveal(entry.target);
-          }
-        });
-      },
-      {
-        root: null,
-        rootMargin: '40px 0px 40px 0px',
-        threshold: 0.05,
-      }
-    );
-
-    const observeElements = () => {
-      const selectors = '[data-aos]:not(.is-observed), .reveal:not(.is-observed), .reveal-on-scroll:not(.is-observed), .reveal-child:not(.is-observed), .jd-reveal:not(.is-observed), main > section:not(.no-reveal):not(.is-observed)';
-      const elements = document.querySelectorAll(selectors);
-      const vh = window.innerHeight || 800;
-
-      elements.forEach((el) => {
-        el.classList.add('reveal', 'is-observed');
-        
-        const delay = el.getAttribute('data-aos-delay');
-        if (delay) {
-          (el as HTMLElement).style.transitionDelay = `${delay}ms`;
-        }
-
-        // If element is already in or above initial viewport, reveal smoothly
-        const rect = el.getBoundingClientRect();
-        if (rect.top < vh - 20 && rect.bottom > 0) {
-          reveal(el);
-        } else {
-          observer.observe(el);
-        }
-      });
-    };
-
-    observeElements();
-
-    // Passive scroll listener safety sweep: ensures oncoming elements animate in smoothly on scroll
-    const handleScroll = () => {
-      const vh = window.innerHeight || 800;
-      document.querySelectorAll('.reveal:not(.is-visible), [data-aos]:not(.is-visible)').forEach((el) => {
-        const rect = el.getBoundingClientRect();
-        if (rect.top < vh - 20) {
-          reveal(el);
-          observer.unobserve(el);
-        }
-      });
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-
-    // Global failsafe: guarantees no element ever stays hidden if observer or scroll misses
-    const failsafeTimer = setTimeout(() => {
-      document.querySelectorAll('.reveal, [data-aos], .jd-reveal, .jd-sec').forEach((el) => {
-        reveal(el);
-      });
-    }, 2500);
-
-    const mutationObserver = new MutationObserver(() => {
-      observeElements();
+    const observer = new MutationObserver(() => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        AOS.refresh();
+      }, 100);
     });
 
-    mutationObserver.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true });
 
     return () => {
       observer.disconnect();
-      mutationObserver.disconnect();
-      window.removeEventListener('scroll', handleScroll);
-      clearTimeout(failsafeTimer);
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [location.pathname]);
+  }, []);
 
   return null;
 };

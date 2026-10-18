@@ -118,7 +118,7 @@ export const Contact: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Banner Section */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
+        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left" data-aos="fade-up">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
             <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
               <EditableText settingKey="contact.hero.eyebrow" defaultText="Get In Touch" />
@@ -142,7 +142,7 @@ export const Contact: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Left Column: Phone, Email, Connect */}
-              <div className="lg:col-span-5 space-y-6">
+              <div className="lg:col-span-5 space-y-6" data-aos="fade-right">
                 
                 {/* Phone Card */}
                 <div className="bg-white p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
@@ -203,7 +203,7 @@ export const Contact: React.FC = () => {
               </div>
 
               {/* Right Column: Enquiry Form */}
-              <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-4">
+              <div className="lg:col-span-7 bg-white p-6 sm:p-8 rounded-[14px] border border-[#E8DDD0] space-y-4" data-aos="fade-left">
                 <div>
                   <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
                     Send Us an Enquiry
