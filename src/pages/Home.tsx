@@ -449,28 +449,69 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 4. MARTIAL ARTS TRAINING AT JADMAA VARMAKALAI SECTION */}
-      <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
+      <section className="py-12 sm:py-16 bg-white border-b border-[#E8DDD0] text-left overflow-hidden">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-10 sm:space-y-12">
           
-          {/* Martial Arts Training Visual */}
-          <div className="flex justify-center" data-aos="fade-up">
-            <img 
-              src="/images/training-stance.png" 
-              alt="Traditional Varmakalai Training Stance at JADMAA" 
-              className="max-h-[220px] sm:max-h-[260px] md:max-h-[280px] w-auto object-contain drop-shadow-[0_12px_24px_rgba(43,37,33,0.12)]"
-            />
+          {/* Top Row: Left Image & Right Section Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            
+            {/* Left: Big Martial Arts Stance Image (1st on mobile) */}
+            <div className="lg:col-span-5 flex justify-center items-center" data-aos="fade-right">
+              <div className="relative group text-center">
+                <img 
+                  src="/images/training-stance.png" 
+                  alt="Traditional Varmakalai Training Stance at JADMAA" 
+                  className="max-h-[380px] sm:max-h-[440px] lg:max-h-[480px] w-auto object-contain drop-shadow-[0_16px_32px_rgba(43,37,33,0.18)] hover:scale-105 transition-transform duration-500 ease-out"
+                />
+              </div>
+            </div>
+
+            {/* Right: Section Heading, Subtitle & Additional Content */}
+            <div className="lg:col-span-7 space-y-4" data-aos="fade-left">
+              <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
+                <EditableText settingKey="home.training.eyebrow" defaultText="ACADEMY SYLLABUS" />
+              </span>
+              <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[36px] text-[#2B2521] leading-[1.15]">
+                <EditableText settingKey="home.training.title_v2" defaultText="Martial Arts Training at JADMAA Varmakalai" />
+              </h2>
+              <p className="font-body text-[16px] sm:text-[18px] text-[#2B2521] font-medium leading-[1.5]">
+                <EditableText settingKey="home.training.subtitle" defaultText="What we teach, who it is for, and what you gain from consistent practice." multiline={true} />
+              </p>
+              <div className="space-y-3 font-body text-[15px] sm:text-[16px] text-[#5C5148] leading-[1.65]">
+                <p>
+                  <EditableText 
+                    settingKey="home.training.description" 
+                    defaultText="At JADMAA, our authentic Varmakalai syllabus unites classical martial art discipline, vital point knowledge, effective self-defence techniques, and mental focus. Training is structured systematically from fundamentals to advanced applications under experienced Aasan guidance, ensuring safe practice for learners of all ages." 
+                    multiline={true} 
+                  />
+                </p>
+              </div>
+
+              {/* Highlights */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                <div className="flex items-center space-x-2.5 text-[14px] sm:text-[15px] font-medium text-[#2B2521] font-body">
+                  <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0" />
+                  <span><EditableText settingKey="home.training.highlight1" defaultText="Authentic Tamil Lineage" /></span>
+                </div>
+                <div className="flex items-center space-x-2.5 text-[14px] sm:text-[15px] font-medium text-[#2B2521] font-body">
+                  <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0" />
+                  <span><EditableText settingKey="home.training.highlight2" defaultText="Certified Aasan Guidance" /></span>
+                </div>
+                <div className="flex items-center space-x-2.5 text-[14px] sm:text-[15px] font-medium text-[#2B2521] font-body">
+                  <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0" />
+                  <span><EditableText settingKey="home.training.highlight3" defaultText="Systematic Level Progression" /></span>
+                </div>
+                <div className="flex items-center space-x-2.5 text-[14px] sm:text-[15px] font-medium text-[#2B2521] font-body">
+                  <CheckCircle2 className="w-4 h-4 text-[#B12B2B] flex-shrink-0" />
+                  <span><EditableText settingKey="home.training.highlight4" defaultText="All Age Groups & Backgrounds" /></span>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <div className="text-center max-w-3xl mx-auto space-y-2" data-aos="fade-up">
-            <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
-              <EditableText settingKey="home.training.title_v2" defaultText="Martial Arts Training at JADMAA Varmakalai" />
-            </h2>
-            <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
-              <EditableText settingKey="home.training.subtitle" defaultText="What we teach, who it is for, and what you gain from consistent practice." multiline={true} />
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch">
+          {/* Cards below */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch" data-aos="fade-up">
             
             {/* Box 1: What We Offer */}
             <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">

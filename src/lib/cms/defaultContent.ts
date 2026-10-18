@@ -74,6 +74,7 @@ export const defaultCmsContent: Record<string, string> = {
   'home.training.title': 'Martial Arts Training at JADMAA Varmakalai',
   'home.training.title_v2': 'Martial Arts Training at JADMAA Varmakalai',
   'home.training.subtitle': 'What we teach, who it is for, and what you gain from consistent practice.',
+  'home.training.description': 'At JADMAA, our authentic Varmakalai syllabus unites classical martial art discipline, vital point knowledge, effective self-defence techniques, and mental focus. Training is structured systematically from fundamentals to advanced applications under experienced Aasan guidance, ensuring safe practice for learners of all ages.',
 
   // Home: Growth & Leadership
   'home.growth.eyebrow': 'GROWTH & LEADERSHIP',
