@@ -761,6 +761,8 @@ export const updateLesson = async (req: Request, res: Response) => {
     if (data.youtubeVideoId) data.youtubeVideoId = extractYouTubeId(data.youtubeVideoId);
     
     const lesson = await prisma.lesson.update({ where: { id: (req.params.id as string) }, data });
+    // Invalidate server course cache so updated video URLs are immediately visible to students
+    invalidateCoursesCache();
     await logAdminAction((req as any).user.id, 'UPDATE_LESSON', 'Lesson', lesson.id, null, req);
     res.json({ success: true, data: lesson });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }

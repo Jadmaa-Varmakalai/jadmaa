@@ -46,8 +46,9 @@ export const LearnCourse: React.FC = () => {
       try {
         if (!courseId) return;
         
-        // Fetch course
-        const courseData = await courseApi.getCourseBySlug(courseId);
+        // Always fetch fresh data so students see the latest video URLs
+        // (even if an admin/instructor updated them after purchase)
+        const courseData = await courseApi.getCourseForPlayer(courseId);
         setCourse(courseData);
         
         const progRes = await progressApi.getCourseProgress(courseData.id);

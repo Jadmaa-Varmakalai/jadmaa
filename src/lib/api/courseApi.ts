@@ -73,5 +73,27 @@ export const courseApi = {
       slugCache.set(slug, res.data);
     }
     return res.data;
+  },
+
+  /**
+   * Always fetches fresh course data from the server, bypassing all client-side caches.
+   * Use this in the course player so enrolled students always see the latest video URLs
+   * even after an admin or instructor updates them.
+   */
+  getCourseForPlayer: async (slug: string): Promise<Course> => {
+    // Evict any stale cached entry for this slug so the browser doesn't serve old data
+    slugCache.delete(slug);
+    try {
+      sessionStorage.removeItem('jadmaa_courses_cache');
+    } catch (_) {}
+    memoryCoursesCache = null;
+
+    const res = await fetchApi(`/courses/${slug}`);
+    if (!res?.data) {
+      throw new Error('Course not found');
+    }
+    // Store fresh data so subsequent getCourseBySlug calls in the same session are fast
+    slugCache.set(slug, res.data);
+    return res.data;
   }
 };
