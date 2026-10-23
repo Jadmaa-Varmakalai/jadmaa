@@ -6,6 +6,8 @@ import { Footer } from './components/layout/Footer';
 import { AppRoutes } from './routes/AppRoutes';
 import { AuthProvider } from './context/AuthContext';
 import { SettingsProvider } from './context/SettingsContext';
+import { CartProvider } from './context/CartContext';
+import { CartDrawer } from './components/cart/CartDrawer';
 import { WhatsAppButton } from './components/common/WhatsAppButton';
 import { ScrollObserver } from './components/common/ScrollObserver';
 import { SEOManager } from './components/common/SEOManager';
@@ -22,6 +24,7 @@ const AppContent: React.FC = () => {
       <SEOManager />
       <ScrollObserver />
       {!isLearnPlayer && <Navbar />}
+      <CartDrawer />
       <main key={location.pathname} className="flex-grow route-fade">
         <AppRoutes />
       </main>
@@ -37,7 +40,9 @@ export function App() {
       <BrowserRouter>
         <SettingsProvider>
           <AuthProvider>
-            <AppContent />
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
           </AuthProvider>
         </SettingsProvider>
       </BrowserRouter>

@@ -10,6 +10,13 @@ import { Contact } from '../pages/Contact';
 import { Blog } from '../pages/Blog';
 import { BlogPostDetail } from '../pages/BlogPostDetail';
 
+// Store & E-Commerce Pages
+import { Products } from '../pages/Shop/Products';
+import { ProductDetails } from '../pages/Shop/ProductDetails';
+import { Cart } from '../pages/Shop/Cart';
+import { Checkout } from '../pages/Shop/Checkout';
+import { OrderSuccess } from '../pages/Shop/OrderSuccess';
+
 // Auth Pages
 import { Login } from '../pages/Auth/Login';
 import { Register } from '../pages/Auth/Register';
@@ -44,6 +51,18 @@ export const AppRoutes: React.FC = () => {
         <Route path="/about" element={<About />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:slug" element={<CourseDetails />} />
+        
+        {/* Store & E-Commerce Routes */}
+        <Route path="/products" element={<Products />} />
+        <Route path="/shop" element={<Navigate to="/products" replace />} />
+        <Route path="/store" element={<Navigate to="/products" replace />} />
+        <Route path="/products/:slug" element={<ProductDetails />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />
+        <Route path="/orders" element={<Navigate to="/student#orders" replace />} />
+        <Route path="/my-orders" element={<Navigate to="/student#orders" replace />} />
+
         <Route path="/contact" element={<Contact />} />
         <Route path="/careers" element={<Navigate to="/" replace />} />
         <Route path="/blog" element={<Blog />} />

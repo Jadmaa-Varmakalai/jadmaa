@@ -14,6 +14,7 @@ interface SettingsContextType {
   saveAllChanges: () => Promise<void>;
   discardChanges: () => void;
   exitEditMode: () => void;
+  setIsEditing: (val: boolean) => void;
   updateSetting: (key: string, value: string) => Promise<void>;
 }
 
@@ -28,6 +29,7 @@ const SettingsContext = createContext<SettingsContextType>({
   saveAllChanges: async () => {},
   discardChanges: () => {},
   exitEditMode: () => {},
+  setIsEditing: () => {},
   updateSetting: async () => {}
 });
 
@@ -53,6 +55,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const setEditMode = (editing: boolean) => {
+    setIsEditing(editing);
+    if (editing) {
+      sessionStorage.setItem('jadmaa_edit_mode', 'true');
+    } else {
+      sessionStorage.removeItem('jadmaa_edit_mode');
+    }
+  };
 
   useEffect(() => {
     // Check URL for edit parameter - also works after page load
@@ -197,6 +208,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         saveAllChanges,
         discardChanges,
         exitEditMode,
+        setIsEditing: setEditMode,
         updateSetting,
       }}
     >

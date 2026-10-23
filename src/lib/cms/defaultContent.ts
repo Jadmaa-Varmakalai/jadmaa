@@ -152,6 +152,10 @@ export const defaultCmsContent: Record<string, string> = {
   
   'contact.branches.eyebrow': 'VISIT OUR ACADEMIES',
   'contact.branches.title': 'Our Branches',
+
+  // --- SHOP & PRODUCTS ---
+  'shop.hero.title': 'Dojo Gear & <span class="text-jadmaa-red">Martial Arts Equipment</span>',
+  'shop.hero.subtitle': 'Equip your journey with authentic uniforms, sparring protection, master belts, and training equipment for practitioners.',
 };
 
 /**

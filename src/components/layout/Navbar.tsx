@@ -11,11 +11,13 @@ import {
   Save,
   AlertTriangle,
   Check,
-  Loader2
+  Loader2,
+  ShoppingBag
 } from 'lucide-react';
 import { mainNavItems } from '../../data/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
+import { useCart } from '../../context/CartContext';
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,8 +37,11 @@ export const Navbar: React.FC = () => {
     pendingChangesCount, 
     saveAllChanges, 
     discardChanges, 
-    exitEditMode 
+    exitEditMode,
+    setIsEditing
   } = useSettings();
+  const { totalItems, openCart } = useCart();
+  const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   let currentNavItems = mainNavItems;
   if (isLoggedIn && !isEditing) {
     if (user?.role === 'STUDENT') {
@@ -44,14 +49,18 @@ export const Navbar: React.FC = () => {
         { id: 'dashboard', label: 'Dashboard', href: '/student#dashboard' },
         { id: 'home', label: 'Home', href: '/' },
         { id: 'courses', label: 'Courses', href: '/courses' },
+        { id: 'shop', label: 'Shop', href: '/products' },
         { id: 'my-courses', label: 'My Courses', href: '/student#my-courses' },
         { id: 'blogs', label: 'Blogs', href: '/blog' }
       ];
     } else if (user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN') {
       currentNavItems = [
         { id: 'dashboard', label: 'Dashboard', href: '/admin#dashboard' },
-        { id: 'enquiries', label: 'Enquiries', href: '/admin#enquiries' },
+        { id: 'products', label: 'Products', href: '/admin#products' },
+        { id: 'orders', label: 'Orders', href: '/admin#orders' },
         { id: 'courses', label: 'Courses', href: '/admin#courses' },
+        { id: 'shop', label: 'Shop', href: '/products' },
+        { id: 'enquiries', label: 'Enquiries', href: '/admin#enquiries' },
         { id: 'students', label: 'My Students', href: '/admin#students' },
         { id: 'blogs', label: 'Blogs', href: '/blog' }
       ];
@@ -60,6 +69,7 @@ export const Navbar: React.FC = () => {
         { id: 'dashboard', label: 'Instructor Portal', href: '/instructor' },
         { id: 'home', label: 'Home', href: '/' },
         { id: 'courses', label: 'Courses', href: '/courses' },
+        { id: 'shop', label: 'Shop', href: '/products' },
         { id: 'students', label: 'My Students', href: '/instructor#students' },
         { id: 'blogs', label: 'Blogs', href: '/blog' }
       ];
@@ -81,10 +91,13 @@ export const Navbar: React.FC = () => {
 
   const handleEditWebsiteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editPromptText.toLowerCase() === 'edit website') {
+    if (editPromptText.toLowerCase().trim() === 'edit website') {
       setEditPromptOpen(false);
+      setEditPromptText('');
       sessionStorage.setItem('jadmaa_edit_mode', 'true');
-      window.location.href = '/?edit=true';
+      setIsEditing(true);
+      const currentPath = window.location.pathname;
+      window.location.href = `${currentPath}?edit=true`;
     } else {
       alert('Incorrect text. Please type "edit website".');
     }
@@ -300,10 +313,42 @@ export const Navbar: React.FC = () => {
                 </Link>
               </div>
             )}
+
+            {/* Cart Button (Disabled for Admins) */}
+            {!isAdmin && (
+              <button
+                onClick={openCart}
+                className="relative p-2 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center ml-2"
+                title="Shopping Cart"
+                aria-label="Shopping Cart"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#B12B2B] text-white text-[10px] font-extrabold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+            )}
           </nav>
 
-          {/* Mobile Actions: Login + Hamburger */}
+          {/* Mobile Actions: Cart + Login + Hamburger */}
           <div className="flex items-center space-x-2 md:hidden shrink-0">
+            {!isAdmin && (
+              <button
+                onClick={openCart}
+                className="relative p-1.5 text-[#2B2521] hover:text-[#B12B2B] transition-colors cursor-pointer"
+                title="Shopping Cart"
+                aria-label="Shopping Cart"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-[#B12B2B] text-white text-[10px] font-extrabold min-w-[16px] h-[16px] px-0.5 rounded-full flex items-center justify-center">
+                    {totalItems}
+                  </span>
+                )}
+              </button>
+            )}
             {isLoggedIn ? (
               <Link
                 to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/student"}
@@ -367,7 +412,6 @@ export const Navbar: React.FC = () => {
                     <span>Edit Website</span>
                   </button>
                 )}
-
                 <button
                   onClick={() => {
                     setIsOpen(false);

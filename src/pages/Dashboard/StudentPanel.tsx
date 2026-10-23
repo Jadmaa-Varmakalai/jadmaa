@@ -5,9 +5,10 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { StudentDashboard } from './StudentDashboard';
 import { MyCourses } from './MyCourses';
 import { StudentProfile } from './StudentProfile';
+import { StudentOrders } from './StudentOrders';
 import { Courses } from '../Courses';
 
-type Tab = 'dashboard' | 'courses' | 'my-courses' | 'settings';
+type Tab = 'dashboard' | 'courses' | 'my-courses' | 'orders' | 'settings';
 
 export const StudentPanel: React.FC = () => {
   const location = useLocation();
@@ -18,7 +19,7 @@ export const StudentPanel: React.FC = () => {
   useEffect(() => {
     if (location.hash) {
       const hash = location.hash.replace('#', '') as Tab;
-      if (['dashboard', 'courses', 'my-courses', 'settings'].includes(hash)) {
+      if (['dashboard', 'courses', 'my-courses', 'orders', 'settings'].includes(hash)) {
         setActiveTab(hash);
       }
     } else {
@@ -50,6 +51,7 @@ export const StudentPanel: React.FC = () => {
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'courses', label: 'Courses' },
     { id: 'my-courses', label: 'My Courses' },
+    { id: 'orders', label: 'My Orders' },
     { id: 'settings', label: 'Settings' },
   ];
 
@@ -69,7 +71,7 @@ export const StudentPanel: React.FC = () => {
           <h1 className="font-heading font-extrabold text-3xl text-jadmaa-charcoal">
             JADMAA Student Portal
           </h1>
-          <p className="text-xs text-jadmaa-textMuted pb-2">Manage your learning, courses, and profile.</p>
+          <p className="text-xs text-jadmaa-textMuted pb-2">Manage your learning, courses, product purchases, and profile.</p>
           <div className="flex gap-4 border-t border-jadmaa-border/30 pt-3 overflow-x-auto no-scrollbar">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -95,6 +97,7 @@ export const StudentPanel: React.FC = () => {
          {activeTab === 'dashboard' && <StudentDashboard />}
          {activeTab === 'courses' && <Courses />}
          {activeTab === 'my-courses' && <MyCourses />}
+         {activeTab === 'orders' && <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-left"><StudentOrders /></div>}
          {activeTab === 'settings' && <StudentProfile />}
       </div>
     </>

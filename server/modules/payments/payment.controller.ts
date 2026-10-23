@@ -4,7 +4,10 @@ import crypto from 'crypto';
 import { razorpayService } from './razorpay.service.js';
 import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 import { invalidateProgressCache } from '../progress/progress.controller.js';
-import { sendCoursePurchaseAdminNotificationEmail } from '../../services/email/email.service.js';
+import {
+  sendCoursePurchaseAdminNotificationEmail,
+  sendProductOrderAdminNotificationEmail,
+} from '../../services/email/email.service.js';
 import { isCourseAvailable } from '../../services/courseAvailability.service.js';
 
 /**
@@ -377,15 +380,84 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
       const paymentId = paymentEntity?.id;
 
       if (orderId) {
-        const { activatedUserId, purchaseInfo } = await prisma.$transaction(async (tx) => {
+        const { activatedUserId, purchaseInfo, productOrderInfo } = await prisma.$transaction(async (tx) => {
           const payment = await tx.payment.findUnique({
             where: { merchantOrderId: orderId },
             include: { user: true, course: true },
           });
 
           if (!payment) {
+            // Check if this merchantOrderId belongs to a product Order
+            const productOrder = await tx.order.findUnique({
+              where: { merchantOrderId: orderId },
+              include: { items: true, user: true },
+            });
+
+            if (productOrder) {
+              let prodInfo: any = null;
+              if (productOrder.paymentStatus !== 'SUCCESS') {
+                for (const item of productOrder.items) {
+                  if (item.productId) {
+                    const prod = await tx.product.findUnique({ where: { id: item.productId } });
+                    if (prod && prod.stockQuantity >= item.quantity) {
+                      const updatedProd = await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stockQuantity: { decrement: item.quantity } },
+                      });
+                      await tx.inventoryTransaction.create({
+                        data: {
+                          productId: item.productId,
+                          orderId: productOrder.id,
+                          transactionType: 'STOCK_DEDUCTION',
+                          quantityChanged: -item.quantity,
+                          previousStock: prod.stockQuantity,
+                          updatedStock: updatedProd.stockQuantity,
+                          reason: `Order #${productOrder.orderNumber} payment verified via Webhook`,
+                          performedBy: 'SYSTEM / Razorpay Webhook',
+                        },
+                      });
+                    }
+                  }
+                }
+
+                await tx.order.update({
+                  where: { id: productOrder.id },
+                  data: {
+                    paymentStatus: 'SUCCESS',
+                    paymentTransactionId: paymentId || undefined,
+                    orderStatus: 'CONFIRMED',
+                  },
+                });
+
+                prodInfo = {
+                  orderNumber: productOrder.orderNumber,
+                  orderId: productOrder.id,
+                  userName: productOrder.customerName || productOrder.user?.name || 'Valued Customer',
+                  userEmail: productOrder.user?.email || '',
+                  userPhone: productOrder.customerPhone || productOrder.user?.phone || '',
+                  deliveryAddress: productOrder.shippingAddress,
+                  deliveryPincode: productOrder.shippingPincode,
+                  items: productOrder.items.map((i) => ({
+                    productName: i.productName,
+                    unitPrice: i.unitPrice,
+                    quantity: i.quantity,
+                    lineTotal: i.lineTotal,
+                    sku: i.sku,
+                    image: i.image,
+                  })),
+                  subtotal: productOrder.subtotal,
+                  shippingCharge: productOrder.shippingCharge,
+                  totalAmount: productOrder.totalAmount,
+                  paymentMethod: productOrder.paymentMethod,
+                  paymentId: paymentId || '',
+                };
+              }
+
+              return { activatedUserId: null as string | null, purchaseInfo: null, productOrderInfo: prodInfo };
+            }
+
             console.warn(`Webhook order not found in DB: ${orderId}`);
-            return { activatedUserId: null as string | null, purchaseInfo: null };
+            return { activatedUserId: null as string | null, purchaseInfo: null, productOrderInfo: null };
           }
 
           let info: {
@@ -441,7 +513,7 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
             });
           }
 
-          return { activatedUserId: payment.userId, purchaseInfo: info };
+          return { activatedUserId: payment.userId, purchaseInfo: info, productOrderInfo: null };
         });
 
         if (activatedUserId) {
@@ -461,6 +533,12 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
             orderId: purchaseInfo.orderId,
           }).catch((err) => {
             console.error('[Webhook] Failed to send admin purchase notification email:', err);
+          });
+        }
+
+        if (productOrderInfo) {
+          sendProductOrderAdminNotificationEmail(productOrderInfo).catch((err) => {
+            console.error('[Webhook] Failed to send admin product order notification email:', err);
           });
         }
       }

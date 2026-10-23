@@ -1,8 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Users, BookOpen, CreditCard, GraduationCap } from 'lucide-react';
+import { Users, BookOpen, CreditCard, GraduationCap, Plus, ShoppingBag, Layers, Package } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
 
-export const Overview: React.FC = () => {
+interface OverviewProps {
+  onSelectTab?: (tab: string) => void;
+}
+
+export const Overview: React.FC<OverviewProps> = ({ onSelectTab }) => {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +53,68 @@ export const Overview: React.FC = () => {
         </div>
       </div>
       
+      {/* Quick Actions Bar */}
+      <div className="bg-white p-5 rounded-2xl border border-jadmaa-border shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="font-heading font-bold text-xs text-gray-500 uppercase tracking-wider">
+            Quick Actions
+          </h3>
+          <span className="text-[11px] text-gray-400">Academy Store & Operations</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => {
+              if (onSelectTab) onSelectTab('products');
+              window.location.hash = 'products?create=true';
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-jadmaa-red hover:bg-[#8C1E1E] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm hover:shadow transition cursor-pointer"
+          >
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Create Product</span>
+          </button>
+          <button
+            onClick={() => {
+              if (onSelectTab) onSelectTab('products');
+              window.location.hash = 'products';
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            <Package className="w-4 h-4 text-jadmaa-red" />
+            <span>Product Catalog</span>
+          </button>
+          <button
+            onClick={() => {
+              if (onSelectTab) onSelectTab('orders');
+              window.location.hash = 'orders';
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            <ShoppingBag className="w-4 h-4 text-jadmaa-red" />
+            <span>Product Orders</span>
+          </button>
+          <button
+            onClick={() => {
+              if (onSelectTab) onSelectTab('inventory');
+              window.location.hash = 'inventory';
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            <Layers className="w-4 h-4 text-jadmaa-red" />
+            <span>Inventory & Stock</span>
+          </button>
+          <button
+            onClick={() => {
+              if (onSelectTab) onSelectTab('courses');
+              window.location.hash = 'courses';
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 rounded-xl text-xs font-bold transition cursor-pointer"
+          >
+            <BookOpen className="w-4 h-4 text-jadmaa-red" />
+            <span>Courses</span>
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="p-6 bg-white rounded-2xl border border-jadmaa-border shadow-sm">
           <h3 className="font-heading font-bold text-lg mb-4 text-jadmaa-charcoal border-b pb-2">User Metrics</h3>

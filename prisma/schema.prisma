@@ -33,6 +33,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   payments            Payment[]
   refreshSessions     RefreshSession[]
+  orders              Order[]
 }
 
 model Instructor {
@@ -368,3 +369,130 @@ enum EnquiryStatus {
   RESOLVED
   CLOSED
 }
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum InventoryTransactionType {
+  STOCK_ADDITION
+  STOCK_DEDUCTION
+  MANUAL_ADJUSTMENT
+  STOCK_RESTORATION
+}
+
+model ProductCategory {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model Product {
+  id                    String                 @id @default(uuid())
+  name                  String
+  slug                  String                 @unique
+  description           String
+  categoryId            String
+  category              ProductCategory        @relation(fields: [categoryId], references: [id])
+  price                 Float
+  compareAtPrice        Float?
+  images                String[]               @default([])
+  sku                   String                 @unique
+  stockQuantity         Int                    @default(0)
+  lowStockThreshold     Int                    @default(5)
+  isActive              Boolean                @default(true)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  orderItems            OrderItem[]
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([categoryId])
+  @@index([slug])
+  @@index([sku])
+  @@index([isActive])
+}
+
+model Order {
+  id                   String                 @id @default(uuid())
+  orderNumber          String                 @unique
+  userId               String
+  user                 User                   @relation(fields: [userId], references: [id])
+  items                OrderItem[]
+  subtotal             Float
+  shippingCharge       Float                  @default(0)
+  discountAmount       Float                  @default(0)
+  totalAmount          Float
+  shippingAddress      String
+  shippingPincode      String
+  customerName         String
+  customerPhone        String?
+  paymentMethod        String                 @default("RAZORPAY")
+  paymentStatus        PaymentStatus          @default(PENDING)
+  paymentTransactionId String?
+  merchantOrderId      String?                @unique
+  orderStatus          OrderStatus            @default(PENDING)
+  trackingNumber       String?
+  notes                String?
+  isStockRestored      Boolean                @default(false)
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  inventoryTransactions InventoryTransaction[]
+
+  @@index([userId])
+  @@index([orderNumber])
+  @@index([merchantOrderId])
+  @@index([paymentStatus])
+  @@index([orderStatus])
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String
+  sku         String
+  image       String?
+  unitPrice   Float
+  quantity    Int
+  lineTotal   Float
+  createdAt   DateTime @default(now())
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model InventoryTransaction {
+  id              String                   @id @default(uuid())
+  productId       String
+  product         Product                  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderId         String?
+  order           Order?                   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  transactionType InventoryTransactionType
+  quantityChanged Int
+  previousStock   Int
+  updatedStock    Int
+  reason          String
+  performedBy     String
+  createdAt       DateTime                 @default(now())
+
+  @@index([productId])
+  @@index([orderId])
+  @@index([transactionType])
+}
+

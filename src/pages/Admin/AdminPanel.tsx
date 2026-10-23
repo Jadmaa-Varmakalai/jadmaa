@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SEO } from '../../components/common/SEO';
-import { ShieldAlert } from 'lucide-react';
+import { ShieldAlert, Plus } from 'lucide-react';
 import { BlogManager } from './BlogManager';
 import { Overview } from './Overview';
 import { Students } from './Students';
@@ -11,22 +11,44 @@ import { Payments } from './Payments';
 import { DatabaseManager } from './DatabaseManager';
 import { SettingsEditor } from './SettingsEditor';
 import { EnquiriesManager } from './EnquiriesManager';
+import { ProductManager } from './ProductManager';
+import { CategoryManager } from './CategoryManager';
+import { InventoryManager } from './InventoryManager';
+import { OrderManager } from './OrderManager';
 import { useAuth } from '../../context/AuthContext';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 
-type Tab = 'dashboard' | 'enquiries' | 'students' | 'instructors' | 'courses' | 'enrollments' | 'payments' | 'blogs' | 'settings' | 'database';
+type Tab =
+  | 'dashboard'
+  | 'enquiries'
+  | 'students'
+  | 'instructors'
+  | 'courses'
+  | 'products'
+  | 'categories'
+  | 'inventory'
+  | 'orders'
+  | 'enrollments'
+  | 'payments'
+  | 'blogs'
+  | 'settings'
+  | 'database';
 
 export const AdminPanel: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [createProductTrigger, setCreateProductTrigger] = useState(0);
   const { user, isLoggedIn, loading } = useAuth();
 
   useEffect(() => {
     if (location.hash) {
-      const hash = location.hash.replace('#', '') as Tab;
-      if (['dashboard', 'enquiries', 'students', 'instructors', 'courses', 'enrollments', 'payments', 'blogs', 'settings', 'database'].includes(hash)) {
-        setActiveTab(hash);
+      const cleanHash = location.hash.replace('#', '').split('?')[0] as Tab;
+      if (['dashboard', 'enquiries', 'students', 'instructors', 'courses', 'products', 'categories', 'inventory', 'orders', 'enrollments', 'payments', 'blogs', 'settings', 'database'].includes(cleanHash)) {
+        setActiveTab(cleanHash);
+      }
+      if (location.hash.includes('create=true')) {
+        setCreateProductTrigger((prev) => prev + 1);
       }
     } else {
       setActiveTab('dashboard');
@@ -67,8 +89,11 @@ export const AdminPanel: React.FC = () => {
     { id: 'students', label: 'Students' },
     { id: 'instructors', label: 'Instructors' },
     { id: 'courses', label: 'Courses' },
+    { id: 'products', label: 'Store Products' },
+    { id: 'inventory', label: 'Inventory & Stock' },
+    { id: 'orders', label: 'Product Orders' },
     { id: 'enrollments', label: 'Enrollments' },
-    { id: 'payments', label: 'Payments' },
+    { id: 'payments', label: 'Course Payments' },
     { id: 'blogs', label: 'Blogs' },
     { id: 'settings', label: 'Settings' },
   ];
@@ -86,14 +111,36 @@ export const AdminPanel: React.FC = () => {
     <>
       <SEO title="Admin Panel | JADMAA LMS" />
       <section className="bg-jadmaa-cream pt-10 pb-0 border-b border-jadmaa-border text-left">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-2">
-          <span className="text-xs font-bold text-jadmaa-red uppercase tracking-wider">
-            Administrative Management
-          </span>
-          <h1 className="font-heading font-extrabold text-3xl text-jadmaa-charcoal">
-            JADMAA Admin Portal
-          </h1>
-          <p className="text-xs text-jadmaa-textMuted pb-2">Manage enquiries, courses, users, and the Academy Journal.</p>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span className="text-xs font-bold text-jadmaa-red uppercase tracking-wider">
+                Administrative Management
+              </span>
+              <h1 className="font-heading font-extrabold text-3xl text-jadmaa-charcoal">
+                JADMAA Admin Portal
+              </h1>
+              <p className="text-xs text-jadmaa-textMuted pt-0.5">
+                Manage products, inventory, orders, courses, and academy operations.
+              </p>
+            </div>
+
+            {/* Direct Create Product Action Button in Admin Header */}
+            <div className="flex items-center gap-2.5 shrink-0 self-start sm:self-auto">
+              <button
+                onClick={() => {
+                  setActiveTab('products');
+                  setCreateProductTrigger((prev) => prev + 1);
+                  navigate('/admin#products?create=true', { replace: true });
+                }}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-jadmaa-red hover:bg-[#8C1E1E] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm hover:shadow transition cursor-pointer"
+                title="Create a new store product"
+              >
+                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <span>Create Product</span>
+              </button>
+            </div>
+          </div>
 
           {/* Admin Navigation Tabs */}
           <div className="flex gap-4 border-t border-jadmaa-border/40 pt-3 overflow-x-auto no-scrollbar">
@@ -119,11 +166,15 @@ export const AdminPanel: React.FC = () => {
       
       <section className="py-8 bg-gray-50 text-left min-h-screen">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {activeTab === 'dashboard' && <Overview />}
+          {activeTab === 'dashboard' && <Overview onSelectTab={(tab) => handleTabClick(tab as Tab)} />}
           {activeTab === 'enquiries' && <EnquiriesManager />}
           {activeTab === 'students' && <Students />}
           {activeTab === 'instructors' && <Instructors />}
           {activeTab === 'courses' && <Courses />}
+          {activeTab === 'products' && <ProductManager createTrigger={createProductTrigger} />}
+          {activeTab === 'categories' && <CategoryManager />}
+          {activeTab === 'inventory' && <InventoryManager />}
+          {activeTab === 'orders' && <OrderManager />}
           {activeTab === 'enrollments' && <Enrollments />}
           {activeTab === 'payments' && <Payments />}
           {activeTab === 'blogs' && <BlogManager />}
