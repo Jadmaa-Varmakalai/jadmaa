@@ -19,10 +19,10 @@ export const mockCourses: Course[] = [
     originalPrice: 2999,
     isPopular: true,
     instructor: {
-      name: "Grandmaster A. Jeyaraj",
+      name: "Aasan Bojagarajan",
       title: "Founder & Chief Instructor, JADMAA Varmakalai",
       avatar: "/images/logo-1.png",
-      bio: "With over 15+ years of dedicated practice and teaching across Tamil Nadu, Master Jeyaraj has trained thousands of students in traditional Varmakalai, Siddha healing, and defensive martial arts."
+      bio: "With over 15+ years of dedicated practice and teaching across Tamil Nadu, Aasan Bojagarajan has trained thousands of students in traditional Varmakalai, Siddha healing, and defensive martial arts."
     },
     whatYouWillLearn: [
       "Anatomy and location of primary Varma pressure points",
@@ -92,10 +92,10 @@ export const mockCourses: Course[] = [
     price: 3499,
     originalPrice: 4999,
     instructor: {
-      name: "Grandmaster A. Jeyaraj",
+      name: "Aasan Bojagarajan",
       title: "Founder & Chief Instructor, JADMAA Varmakalai",
       avatar: "/images/logo-1.png",
-      bio: "Master Jeyaraj specializes in authentic Adimurai striking combinations and precise Varma therapeutic counters."
+      bio: "Aasan Bojagarajan specializes in authentic Adimurai striking combinations and precise Varma therapeutic counters."
     },
     whatYouWillLearn: [
       "Advanced joint-locking mechanisms (Pootu & Thattu)",
@@ -196,7 +196,7 @@ export const mockCourses: Course[] = [
     price: 1799,
     originalPrice: 2999,
     instructor: {
-      name: "Grandmaster A. Jeyaraj",
+      name: "Aasan Bojagarajan",
       title: "Founder & Chief Instructor, JADMAA Varmakalai",
       avatar: "/images/logo-1.png",
       bio: "Pioneer of women's tactical self-defence programs across educational institutions in Tamil Nadu."
@@ -289,7 +289,7 @@ export const mockCourses: Course[] = [
     price: 5999,
     originalPrice: 8999,
     instructor: {
-      name: "Grandmaster A. Jeyaraj",
+      name: "Aasan Bojagarajan",
       title: "Founder & Chief Instructor, JADMAA Varmakalai",
       avatar: "/images/logo-1.png",
       bio: "Master Instructor overseeing complete JADMAA certification standards."

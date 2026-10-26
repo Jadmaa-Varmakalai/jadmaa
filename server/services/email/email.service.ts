@@ -105,13 +105,13 @@ export const sendNewCourseSuggestionEmail = async (courseId: string) => {
             <h3 style="margin-top: 0; color: #2B2521;">${course.title}</h3>
             <p style="font-size: 14px; line-height: 1.5; color: #4A4A4A;">${course.subtitle || course.description}</p>
             <p style="font-size: 14px; margin-bottom: 0; color: #4A4A4A;">
-              <strong>Instructor:</strong> ${course.instructor?.displayName || 'Grandmaster'}<br />
+              <strong>Instructor:</strong> ${course.instructor?.displayName || 'Aasan'}<br />
               <strong>Level:</strong> ${course.level}<br />
               <strong>Duration:</strong> ${course.duration || 'Flexible'}
             </p>
           </div>
           
-          <p>Learn authentic Varmakalai defensive tactics and health science from our certified Grandmasters directly online.</p>
+          <p>Learn authentic Varmakalai defensive tactics and health science from our certified Aasans directly online.</p>
           
           <div style="text-align: center; margin: 30px 0;">
             <a href="${courseUrl}" style="display: inline-block; padding: 12px 28px; background-color: #B12B2B; color: white; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; box-shadow: 0 4px 6px rgba(177, 43, 43, 0.15);">

@@ -229,7 +229,7 @@ export const Contact: React.FC = () => {
                         Want a faster response?
                       </p>
                       <p className="text-sm text-[#2B2521]">
-                        You can send this enquiry directly to our Grandmaster via WhatsApp with one click:
+                        You can send this enquiry directly to our Aasan via WhatsApp with one click:
                       </p>
                       <a
                         href={getWhatsAppMessageUrl()}

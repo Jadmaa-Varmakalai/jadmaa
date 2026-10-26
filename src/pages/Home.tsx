@@ -448,7 +448,7 @@ export const Home: React.FC = () => {
                   </li>
                   <li className="flex items-start space-x-2.5 animate-list-item group">
                     <CheckCircle2 className="w-5 h-5 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />
-                    <span className="group-hover:text-[#B12B2B] transition-colors"><EditableText settingKey="home.why.point2" defaultText="Experienced Instructors under Grandmaster A. Jeyaraj guidance." /></span>
+                    <span className="group-hover:text-[#B12B2B] transition-colors"><EditableText settingKey="home.why.point2" defaultText="Experienced Instructors under qualified Aasan guidance." /></span>
                   </li>
                   <li className="flex items-start space-x-2.5 animate-list-item group">
                     <CheckCircle2 className="w-5 h-5 text-[#B12B2B] flex-shrink-0 mt-0.5 group-hover:scale-110 transition-transform" />

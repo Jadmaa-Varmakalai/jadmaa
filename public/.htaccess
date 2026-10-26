@@ -1,0 +1,97 @@
+# ==============================================================================
+# JADMAA PRODUCTION ORIGIN SECURITY & ROUTING ENGINE (.htaccess)
+# Designed for 95+ Security Rating (Observatory / SecurityHeaders / OWASP ZAP)
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. TRANSPORT & HTTP SECURITY HEADERS
+# ------------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    # 1. HTTP Strict Transport Security (HSTS) - 1 Year + Subdomains + Preload
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+    # 2. X-Frame-Options - Block clickjacking & unauthorized framing
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # 3. X-Content-Type-Options - Prevent MIME sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # 4. Referrer-Policy - Protect sensitive URLs during navigation
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # 5. Permissions-Policy - Disable camera, mic, geolocation, tracking APIs
+    Header always set Permissions-Policy "geolocation=(), camera=(), microphone=(), usb=(), interest-cohort=(), payment=(self 'https://api.razorpay.com' 'https://mercury.phonepe.com')"
+
+    # 6. Cross-Origin Policies - Resource isolation
+    Header always set Cross-Origin-Opener-Policy "same-origin-allow-popups"
+    Header always set Cross-Origin-Resource-Policy "cross-origin"
+
+    # 7. Content Security Policy (CSP) - Production-tuned for JADMAA LMS, Fonts, Videos & Payments
+    Header always set Content-Security-Policy "default-src 'self'; \
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.razorpay.com https://mercury.phonepe.com https://www.youtube.com https://s.ytimg.com https://player.vimeo.com https://video.jadmaa.com; \
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+        font-src 'self' data: https://fonts.gstatic.com; \
+        img-src 'self' data: blob: https:; \
+        media-src 'self' blob: https:; \
+        connect-src 'self' https://api.razorpay.com https://mercury.phonepe.com https://api.brevo.com https://*.supabase.co https://video.jadmaa.com; \
+        frame-src 'self' https://api.razorpay.com https://mercury.phonepe.com https://www.youtube.com https://player.vimeo.com https://video.jadmaa.com; \
+        frame-ancestors 'self'; \
+        base-uri 'self'; \
+        object-src 'none';"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 2. DISABLE DIRECTORY BROWSING
+# ------------------------------------------------------------------------------
+Options -Indexes
+
+# ------------------------------------------------------------------------------
+# 3. DISABLE XML-RPC (Prevents Pingback DDoS & Brute-Force Amplification)
+# ------------------------------------------------------------------------------
+<Files "xmlrpc.php">
+    Order Deny,Allow
+    Deny from all
+</Files>
+
+# ------------------------------------------------------------------------------
+# 4. BLOCK ACCESS TO SENSITIVE APPLICATION, REPO & CONFIG FILES
+# ------------------------------------------------------------------------------
+<FilesMatch "^(\.env|\.git|\.htaccess|wp-config\.php|composer\.(json|lock)|package(-lock)?\.json|tsconfig\.json|\.sql|\.bak|\.old|\.log)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# Block SQLite database files, dumps, and compressed archives
+<FilesMatch "\.(db|sqlite|sqlite3|dump|tar|gz|zip)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+# ------------------------------------------------------------------------------
+# 5. BLOCK DIRECT PHP EXECUTION IN UPLOADS
+# ------------------------------------------------------------------------------
+<Directory "/wp-content/uploads">
+    <Files "*.php">
+        Order Allow,Deny
+        Deny from all
+    </Files>
+</Directory>
+
+# ------------------------------------------------------------------------------
+# 6. ROUTING: FRONTEND SPA & ASSET PRESERVATION
+# ------------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Pass through physical files and directories
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # WordPress Admin & Login fallback if present
+    RewriteRule ^wp-admin/?$ /wp-admin/index.php [L]
+
+    # Fallback to SPA index.html for all client-side routes
+    RewriteRule . /index.html [L]
+</IfModule>

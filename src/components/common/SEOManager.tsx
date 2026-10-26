@@ -40,7 +40,7 @@ export const SEOManager: React.FC = () => {
 
   if (path === '/') {
     title = 'JADMAA — Varmakalai Training & Traditional Tamil Martial Arts';
-    description = 'Join JADMAA for authentic Varmakalai training. Learn traditional Tamil martial arts, self-defence, and Siddha healing from expert Grandmasters.';
+    description = 'Join JADMAA for authentic Varmakalai training. Learn traditional Tamil martial arts, self-defence, and Siddha healing from expert Aasans.';
   } else if (path === '/courses' || path === '/courses/') {
     title = 'Varmakalai Courses & Certifications — JADMAA';
     description = 'Enroll in our comprehensive online Varmakalai courses and certifications. Expert martial arts training for beginners to advanced practitioners.';

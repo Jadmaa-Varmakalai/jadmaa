@@ -49,7 +49,7 @@ export const defaultCmsContent: Record<string, string> = {
   // Home: About Teaser
   'home.about.eyebrow': 'ABOUT JADMAA',
   'home.about.title': 'Ancient Power. Modern Training.',
-  'home.about.description': 'JADMAA (Jeyaraj Academy of Defence & Martial Arts Association) is dedicated to reviving and systematically teaching the 1000+ year old traditional science of Varmakalai. Formulated originally by Tamil Siddha masters, Varmakalai combines combat tactics with therapeutic pressure point rejuvenation.',
+  'home.about.description': 'JADMAA is dedicated to preserving and promoting the ancient Tamil martial art of Varmakalai (Varma Kalai / Varmakkalai) through structured, professional, and practical training. Formulated originally by Tamil Siddha masters, Varmakalai combines combat tactics with therapeutic pressure point rejuvenation.',
   'home.about.cta': 'Learn More',
 
   // Home: Why Choose Us
@@ -59,7 +59,7 @@ export const defaultCmsContent: Record<string, string> = {
   'home.why.cta': 'Learn More',
   'home.why.box.title': 'Why Students Choose JADMAA',
   'home.why.point1': 'Authentic Gurukulam Varma Training preserved free from commercial dilution.',
-  'home.why.point2': 'Experienced Instructors under Grandmaster A. Jeyaraj guidance.',
+  'home.why.point2': 'Experienced Instructors under qualified Aasan guidance.',
   'home.why.point3': 'Dedicated branch centers in Thanjavur, Kumbakonam, and Ariyalur.',
   'home.why.point4': 'Systematic level progression & recognized academy certifications.',
 

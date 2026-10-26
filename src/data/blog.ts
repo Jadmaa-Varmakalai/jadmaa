@@ -18,7 +18,7 @@ Unlike pure combat arts, Varmakalai was constructed as a dual-purpose science:
 Contemporary neurological mapping reveals that the 108 traditional Varma points closely correspond to major nerve plexuses, arterial intersections, and myofascial trigger points. When stimulated under controlled practice, these points release endorphins, stimulate circulation, and regulate autonomic nervous responses.
     `,
     category: "Varmakalai History",
-    author: "Grandmaster A. Jeyaraj",
+    author: "Aasan Bojagarajan",
     date: "August 10, 2026",
     readTime: "5 min read",
     image: "/images/course-basic.jpg",
@@ -38,7 +38,7 @@ When facing a physical threat, relying on upper-body strength is rarely an effec
 - **Instinctive Muscle Memory**: Simple, repeatable movements ensure rapid response under high adrenaline.
     `,
     category: "Self Defence",
-    author: "Grandmaster A. Jeyaraj",
+    author: "Aasan Bojagarajan",
     date: "July 28, 2026",
     readTime: "4 min read",
     image: "/images/course-womens.jpg",
