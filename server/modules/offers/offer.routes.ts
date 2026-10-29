@@ -25,3 +25,4 @@ adminRouter.post('/:id/duplicate', authenticate, requireAdmin, offerAdminControl
 adminRouter.delete('/:id', authenticate, requireAdmin, offerAdminController.deleteOffer);
 
 export default publicRouter;
+

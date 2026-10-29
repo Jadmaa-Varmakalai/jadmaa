@@ -612,3 +612,4 @@ export const updateOfferSettings = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, error: { message: 'Failed to update settings' } });
   }
 };
+

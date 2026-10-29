@@ -2,7 +2,6 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import { prisma } from '../../db.js';
 import { razorpayService } from '../payments/razorpay.service.js';
-import { isCourseAvailable } from '../../services/courseAvailability.service.js';
 import { sendCoursePurchaseAdminNotificationEmail } from '../../services/email/email.service.js';
 import { computeOfferStatus } from './offer.utils.js';
 
@@ -55,7 +54,6 @@ export const getActivePopupOffer = async (req: Request, res: Response) => {
       const computed = computeOfferStatus(offer);
       if (computed !== 'PUBLISHED') return false;
       if (offer.course.status !== 'PUBLISHED') return false;
-      if (!isCourseAvailable(offer.courseId)) return false;
       return true;
     });
 
@@ -151,7 +149,7 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
     }
 
     // Check course availability
-    const courseAvailable = isCourseAvailable(offer.courseId) && offer.course.status === 'PUBLISHED';
+    const courseAvailable = offer.course.status === 'PUBLISHED';
 
     const discountAmount = Math.max(0, offer.originalPrice - offer.offerPrice);
     const discountPercent = offer.originalPrice > 0
@@ -267,7 +265,7 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
     }
 
     // Check course availability
-    if (offer.course.status !== 'PUBLISHED' || !isCourseAvailable(offer.courseId)) {
+    if (offer.course.status !== 'PUBLISHED') {
       return res.status(403).json({
         success: false,
         error: { message: 'The associated course is currently unavailable for enrollment.' }
@@ -578,3 +576,4 @@ export const verifyOfferPayment = async (req: Request, res: Response) => {
     });
   }
 };
+

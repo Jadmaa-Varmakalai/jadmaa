@@ -11,6 +11,15 @@ interface OfferEditorModalProps {
   onSaved: () => void;
 }
 
+// Helper to format ISO date string for <input type="datetime-local" /> in local user timezone
+const formatForDatetimeInput = (dateStr: string | null | undefined): string => {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '';
+  const offsetMs = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offsetMs).toISOString().slice(0, 16);
+};
+
 export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   offer,
   isOpen,
@@ -85,8 +94,8 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setPopupPriority(offer.popupPriority || 0);
       setCountdownEnabled(offer.countdownEnabled);
       setBookingLimit(offer.bookingLimit ? offer.bookingLimit.toString() : '');
-      setStartAt(offer.startAt ? new Date(offer.startAt).toISOString().slice(0, 16) : '');
-      setExpiresAt(offer.expiresAt ? new Date(offer.expiresAt).toISOString().slice(0, 16) : '');
+      setStartAt(formatForDatetimeInput(offer.startAt));
+      setExpiresAt(formatForDatetimeInput(offer.expiresAt));
     } else {
       // Defaults for new
       setTitle('');
