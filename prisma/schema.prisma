@@ -34,6 +34,7 @@ model User {
   payments            Payment[]
   refreshSessions     RefreshSession[]
   orders              Order[]
+  offerBookings       OfferBooking[]
 }
 
 model Instructor {
@@ -79,6 +80,8 @@ model Course {
   enrollments        Enrollment[]
   lessonProgresses   LessonProgress[]
   payments           Payment[]
+  offers             CourseOffer[]
+  offerBookings      OfferBooking[]
 
   @@index([status])
   @@index([instructorId])
@@ -132,6 +135,7 @@ model Enrollment {
   course      Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
   payment     Payment?         @relation(fields: [paymentId], references: [id])
   user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  offerBookings OfferBooking[]
 
   @@unique([userId, courseId])
   @@index([userId])
@@ -176,10 +180,14 @@ model Payment {
   enrollments          Enrollment[]
   course               Course        @relation(fields: [courseId], references: [id])
   user                 User          @relation(fields: [userId], references: [id])
+  offerId              String?
+  offer                CourseOffer?  @relation(fields: [offerId], references: [id])
+  offerBooking         OfferBooking?
 
   @@index([userId])
   @@index([courseId])
   @@index([merchantOrderId])
+  @@index([offerId])
 }
 
 model Certificate {
@@ -496,3 +504,75 @@ model InventoryTransaction {
   @@index([transactionType])
 }
 
+
+enum OfferStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  EXPIRED
+  DISABLED
+  ARCHIVED
+}
+
+model CourseOffer {
+  id                  String         @id @default(uuid())
+  title               String
+  slug                String         @unique
+  shortDescription    String
+  description         String         @db.Text
+  bannerImageUrl      String?
+  galleryImages       String[]       @default([])
+  courseId            String
+  course              Course         @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  originalPrice       Float
+  offerPrice          Float
+  currency            String         @default("INR")
+  termsAndConditions  String?        @db.Text
+  supportEmail        String?
+  supportPhone        String?
+  status              OfferStatus    @default(DRAFT)
+  isEnabled           Boolean        @default(false)
+  showPopup           Boolean        @default(false)
+  popupPriority       Int            @default(0)
+  startAt             DateTime?
+  expiresAt           DateTime?
+  countdownEnabled    Boolean        @default(false)
+  bookingLimit        Int?
+  currentBookings     Int            @default(0)
+  bookings            OfferBooking[]
+  payments            Payment[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  @@index([slug])
+  @@index([status, isEnabled])
+  @@index([showPopup, isEnabled])
+}
+
+model OfferBooking {
+  id            String       @id @default(uuid())
+  bookingNumber String       @unique
+  offerId       String
+  offer         CourseOffer  @relation(fields: [offerId], references: [id], onDelete: Restrict)
+  courseId      String
+  course        Course       @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  userId        String
+  user          User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  paymentId     String?      @unique
+  payment       Payment?     @relation(fields: [paymentId], references: [id])
+  enrollmentId  String?
+  enrollment    Enrollment?  @relation(fields: [enrollmentId], references: [id])
+  amount        Float
+  currency      String       @default("INR")
+  status        String       @default("PENDING")
+  customerName  String?
+  customerEmail String?
+  customerPhone String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([offerId])
+  @@index([courseId])
+  @@index([userId])
+  @@index([status])
+}

@@ -9,6 +9,7 @@ import { SettingsProvider } from './context/SettingsContext';
 import { CartProvider } from './context/CartContext';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { WhatsAppButton } from './components/common/WhatsAppButton';
+import { OfferPopup } from './components/offers/OfferPopup';
 import { ScrollObserver } from './components/common/ScrollObserver';
 import { SEOManager } from './components/common/SEOManager';
 
@@ -30,6 +31,7 @@ const AppContent: React.FC = () => {
       </main>
       {!isLearnPlayer && <Footer />}
       {!isLoggedIn && <WhatsAppButton />}
+      <OfferPopup />
     </div>
   );
 };

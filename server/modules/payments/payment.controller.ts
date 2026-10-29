@@ -199,7 +199,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     // 2. Fetch local Payment record
     const payment = await prisma.payment.findUnique({
       where: { merchantOrderId: razorpay_order_id },
-      include: { course: true },
+      include: { course: true, offer: true, offerBooking: true },
     });
 
     if (!payment) {
@@ -243,7 +243,7 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
 
       // Exact amount validation: course price in DB must match payment and Razorpay amount exactly
       const expectedPaise = Math.round(payment.amount * 100);
-      const expectedCoursePaise = Math.round(payment.course.price * 100);
+      const expectedCoursePaise = payment.offer ? Math.round(payment.offer.offerPrice * 100) : Math.round(payment.course.price * 100);
 
       if (expectedPaise !== expectedCoursePaise || Number(rzpPayment.amount) !== expectedPaise) {
         console.error(`[Razorpay:verify] Amount mismatch! Rzp: ${rzpPayment.amount}, DB Payment: ${expectedPaise}, Course: ${expectedCoursePaise}`);
@@ -311,6 +311,18 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
         },
       });
 
+      if (payment.offerBooking) {
+        await tx.offerBooking.update({
+          where: { id: payment.offerBooking.id },
+          data: { status: 'SUCCESS', enrollmentId: payment.id },
+        });
+      }
+      if (payment.offerId) {
+        await tx.courseOffer.update({
+          where: { id: payment.offerId },
+          data: { currentBookings: { increment: 1 } },
+        });
+      }
       return p;
     });
 
@@ -383,7 +395,7 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
         const { activatedUserId, purchaseInfo, productOrderInfo } = await prisma.$transaction(async (tx) => {
           const payment = await tx.payment.findUnique({
             where: { merchantOrderId: orderId },
-            include: { user: true, course: true },
+            include: { user: true, course: true, offer: true, offerBooking: true },
           });
 
           if (!payment) {
@@ -492,6 +504,18 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
               },
             });
 
+            if (payment.offerBooking) {
+              await tx.offerBooking.update({
+                where: { id: payment.offerBooking.id },
+                data: { status: 'SUCCESS', enrollmentId: payment.id },
+              });
+            }
+            if (payment.offerId) {
+              await tx.courseOffer.update({
+                where: { id: payment.offerId },
+                data: { currentBookings: { increment: 1 } },
+              });
+            }
             // Activate enrollment
             await tx.enrollment.upsert({
               where: {

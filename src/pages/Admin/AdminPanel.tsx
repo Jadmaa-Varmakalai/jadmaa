@@ -6,6 +6,7 @@ import { Overview } from './Overview';
 import { Students } from './Students';
 import { Instructors } from './Instructors';
 import { Courses } from './Courses';
+import { CourseOffersManager } from './CourseOffers/CourseOffersManager';
 import { Enrollments } from './Enrollments';
 import { Payments } from './Payments';
 import { DatabaseManager } from './DatabaseManager';
@@ -24,6 +25,7 @@ type Tab =
   | 'students'
   | 'instructors'
   | 'courses'
+  | 'offers'
   | 'products'
   | 'categories'
   | 'inventory'
@@ -44,7 +46,7 @@ export const AdminPanel: React.FC = () => {
   useEffect(() => {
     if (location.hash) {
       const cleanHash = location.hash.replace('#', '').split('?')[0] as Tab;
-      if (['dashboard', 'enquiries', 'students', 'instructors', 'courses', 'products', 'categories', 'inventory', 'orders', 'enrollments', 'payments', 'blogs', 'settings', 'database'].includes(cleanHash)) {
+      if (['dashboard', 'enquiries', 'students', 'instructors', 'courses', 'offers', 'products', 'categories', 'inventory', 'orders', 'enrollments', 'payments', 'blogs', 'settings', 'database'].includes(cleanHash)) {
         setActiveTab(cleanHash);
       }
       if (location.hash.includes('create=true')) {
@@ -89,6 +91,7 @@ export const AdminPanel: React.FC = () => {
     { id: 'students', label: 'Students' },
     { id: 'instructors', label: 'Instructors' },
     { id: 'courses', label: 'Courses' },
+    { id: 'offers', label: 'Course Offers' },
     { id: 'products', label: 'Store Products' },
     { id: 'inventory', label: 'Inventory & Stock' },
     { id: 'orders', label: 'Product Orders' },
@@ -171,6 +174,7 @@ export const AdminPanel: React.FC = () => {
           {activeTab === 'students' && <Students />}
           {activeTab === 'instructors' && <Instructors />}
           {activeTab === 'courses' && <Courses />}
+          {activeTab === 'offers' && <CourseOffersManager />}
           {activeTab === 'products' && <ProductManager createTrigger={createProductTrigger} />}
           {activeTab === 'categories' && <CategoryManager />}
           {activeTab === 'inventory' && <InventoryManager />}

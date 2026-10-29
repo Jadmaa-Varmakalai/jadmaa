@@ -6,6 +6,7 @@ import { Home } from '../pages/Home';
 import { About } from '../pages/About';
 import { Courses } from '../pages/Courses';
 import { CourseDetails } from '../pages/CourseDetails';
+import { OfferLandingPage } from '../pages/Offers/OfferLandingPage';
 import { Contact } from '../pages/Contact';
 import { Blog } from '../pages/Blog';
 import { BlogPostDetail } from '../pages/BlogPostDetail';
@@ -51,6 +52,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="/about" element={<About />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/courses/:slug" element={<CourseDetails />} />
+        <Route path="/offers/:slug" element={<OfferLandingPage />} />
         
         {/* Store & E-Commerce Routes */}
         <Route path="/products" element={<Products />} />

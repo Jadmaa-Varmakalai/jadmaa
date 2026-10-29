@@ -17,6 +17,7 @@ import uploadRoutes from './modules/upload/upload.routes.js';
 import instructorRoutes from './modules/instructor/instructor.routes.js';
 import productRoutes from './modules/products/product.routes.js';
 import orderRoutes from './modules/orders/order.routes.js';
+import offerRoutes, { adminRouter as offerAdminRoutes } from './modules/offers/offer.routes.js';
 import { initCourseAvailability } from './services/courseAvailability.service.js';
 import path from 'path';
 
@@ -87,5 +88,7 @@ app.use('/api/v1/upload', uploadRoutes);
 app.use('/api/v1/instructor', instructorRoutes);
 app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
+app.use('/api/v1/offers', offerRoutes);
+app.use('/api/v1/admin/offers', offerAdminRoutes);
 
 export default app;
