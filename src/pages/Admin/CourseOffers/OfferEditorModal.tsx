@@ -3,10 +3,11 @@ import { offerApi } from '../../../lib/api/offerApi';
 import type { CourseOfferItem } from '../../../lib/api/offerApi';
 import { adminApi } from '../../../lib/api/adminApi';
 import { CampaignImageUploader } from './CampaignImageUploader';
+import { PremiumCampaignPopup } from '../../../components/offers/PremiumCampaignPopup';
 import {
-  X, Sparkles, Copy, Check, ExternalLink, AlertCircle, Clock, Tag,
-  Eye, Monitor, Smartphone, Palette, Calendar, MapPin, ChevronRight,
-  ArrowRight, ShieldCheck, CheckCircle, Globe
+  X, Sparkles, AlertCircle, Clock, Tag,
+  Eye, Monitor, Smartphone, Palette, Calendar,
+  ShieldCheck, Globe
 } from 'lucide-react';
 
 interface OfferEditorModalProps {
@@ -53,7 +54,6 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const [courses, setCourses] = useState<any[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   // Preview Modal State
@@ -1120,99 +1120,74 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
             </div>
 
             {/* Preview Stage */}
-            <div className="flex-1 p-6 overflow-y-auto flex items-center justify-center bg-black/40">
+            <div className="flex-1 p-4 md:p-6 overflow-y-auto flex items-center justify-center bg-black/40">
               {previewMode === 'desktop-popup' ? (
-                /* Desktop Popup Preview */
-                <div className={`relative w-full max-w-[660px] rounded-2xl overflow-hidden shadow-2xl flex flex-row items-stretch border ${
-                  previewTheme === 'dark' ? 'bg-[#141416] text-white border-zinc-800' : 'bg-white text-gray-900 border-gray-200'
-                }`}>
-                  <div className="w-[42%] bg-gray-900 relative min-h-[300px]">
-                    <img
-                      src={popupImageUrl || bannerImageUrl || '/images/wellness-682x1024.png'}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="w-[58%] p-6 flex flex-col justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold tracking-widest uppercase bg-red-100 text-red-700">
-                          {category === 'CUSTOM' ? customCategory.toUpperCase() : category.replace('_', ' ')}
-                        </span>
-                        {effectiveDiscountPercent > 0 && (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase text-white bg-red-700">
-                            {effectiveDiscountPercent}% OFF
-                          </span>
-                        )}
-                      </div>
-                      <h3 className="text-xl font-bold font-heading leading-tight mt-1.5">
-                        {title || 'Campaign Title'}
-                      </h3>
-                      <p className={`text-xs mt-1.5 line-clamp-2 ${previewTheme === 'dark' ? 'text-zinc-400' : 'text-gray-600'}`}>
-                        {shortDescription || 'Short promotional description of the campaign offer...'}
-                      </p>
-                      <div className="mt-3 flex items-baseline gap-2">
-                        <span className="text-2xl font-black font-heading text-red-600">
-                          ₹{effectiveOfferPrice.toLocaleString('en-IN')}
-                        </span>
-                        {originalPrice > effectiveOfferPrice && (
-                          <span className="text-sm line-through text-gray-400">
-                            ₹{originalPrice.toLocaleString('en-IN')}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="mt-4 pt-3 flex items-center gap-2">
-                      <button
-                        style={{ backgroundColor: primaryColor }}
-                        className="flex-1 py-2 rounded-xl text-white font-bold text-xs shadow"
-                      >
-                        {ctaText || 'Claim Offer Now'}
-                      </button>
-                      <button className={`px-3 py-2 rounded-xl font-semibold text-xs ${
-                        previewTheme === 'dark' ? 'bg-zinc-800 text-zinc-300' : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {secondaryCtaText || 'View Details'}
-                      </button>
-                    </div>
-                  </div>
+                /* Desktop 16:9 Popup Preview */
+                <div className="w-full flex justify-center">
+                  <PremiumCampaignPopup
+                    offer={{
+                      slug: slug || 'preview-campaign',
+                      title: title || 'Campaign Title',
+                      shortDescription: shortDescription || 'Experience authentic traditional therapy for a healthier and stronger you.',
+                      bannerImageUrl,
+                      popupImageUrl,
+                      mobileImageUrl,
+                      category,
+                      customCategory,
+                      branchLocation,
+                      targetAudience,
+                      pricingType,
+                      originalPrice,
+                      offerPrice: effectiveOfferPrice,
+                      discountAmount: effectiveDiscountAmount,
+                      discountPercent: effectiveDiscountPercent,
+                      theme: previewTheme,
+                      primaryColor,
+                      secondaryColor,
+                      ctaType,
+                      ctaText,
+                      ctaUrl,
+                      secondaryCtaText,
+                      secondaryCtaUrl,
+                      countdownEnabled,
+                      expiresAt: expiresAt || new Date(Date.now() + 14 * 86400000).toISOString(),
+                    }}
+                    isInteractivePreview={true}
+                  />
                 </div>
               ) : previewMode === 'mobile-popup' ? (
-                /* Mobile Popup Preview */
-                <div className={`relative w-[300px] rounded-2xl overflow-hidden shadow-2xl flex flex-col border ${
-                  previewTheme === 'dark' ? 'bg-[#141416] text-white border-zinc-800' : 'bg-white text-gray-900 border-gray-200'
-                }`}>
-                  <div className="h-32 bg-gray-900 relative">
-                    <img
-                      src={mobileImageUrl || popupImageUrl || bannerImageUrl || '/images/wellness-682x1024.png'}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4 space-y-2">
-                    <span className="px-2 py-0.5 rounded text-[9px] font-black tracking-widest uppercase bg-red-100 text-red-700">
-                      {category === 'CUSTOM' ? customCategory.toUpperCase() : category.replace('_', ' ')}
-                    </span>
-                    <h3 className="text-sm font-bold font-heading leading-tight">
-                      {title || 'Campaign Title'}
-                    </h3>
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-lg font-black font-heading text-red-600">
-                        ₹{effectiveOfferPrice.toLocaleString('en-IN')}
-                      </span>
-                      {originalPrice > effectiveOfferPrice && (
-                        <span className="text-xs line-through text-gray-400">
-                          ₹{originalPrice.toLocaleString('en-IN')}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      style={{ backgroundColor: primaryColor }}
-                      className="w-full py-2 rounded-xl text-white font-bold text-xs mt-2"
-                    >
-                      {ctaText || 'Claim Offer'}
-                    </button>
-                  </div>
+                /* Mobile Popup Preview (Constrained Width Container) */
+                <div className="w-full max-w-[360px] flex justify-center">
+                  <PremiumCampaignPopup
+                    offer={{
+                      slug: slug || 'preview-campaign',
+                      title: title || 'Campaign Title',
+                      shortDescription: shortDescription || 'Experience authentic traditional therapy for a healthier and stronger you.',
+                      bannerImageUrl,
+                      popupImageUrl,
+                      mobileImageUrl,
+                      category,
+                      customCategory,
+                      branchLocation,
+                      targetAudience,
+                      pricingType,
+                      originalPrice,
+                      offerPrice: effectiveOfferPrice,
+                      discountAmount: effectiveDiscountAmount,
+                      discountPercent: effectiveDiscountPercent,
+                      theme: previewTheme,
+                      primaryColor,
+                      secondaryColor,
+                      ctaType,
+                      ctaText,
+                      ctaUrl,
+                      secondaryCtaText,
+                      secondaryCtaUrl,
+                      countdownEnabled,
+                      expiresAt: expiresAt || new Date(Date.now() + 14 * 86400000).toISOString(),
+                    }}
+                    isInteractivePreview={true}
+                  />
                 </div>
               ) : (
                 /* Landing Page Hero Preview (Site Warm Theme Layout) */
