@@ -44,6 +44,7 @@ export const getAdminOffers = async (req: Request, res: Response) => {
         description: offer.description,
         bannerImageUrl: offer.bannerImageUrl || offer.course?.thumbnailUrl || null,
         popupImageUrl: offer.popupImageUrl || null,
+        mobileImageUrl: offer.mobileImageUrl || null,
         galleryImages: offer.galleryImages || [],
         category: offer.category || 'ONLINE_COURSE',
         customCategory: offer.customCategory || null,
@@ -140,6 +141,7 @@ export const createOffer = async (req: Request, res: Response) => {
       description,
       bannerImageUrl,
       popupImageUrl,
+      mobileImageUrl,
       galleryImages,
       category = 'ONLINE_COURSE',
       customCategory,
@@ -260,6 +262,7 @@ export const createOffer = async (req: Request, res: Response) => {
         description: description || '',
         bannerImageUrl: bannerImageUrl || null,
         popupImageUrl: popupImageUrl || null,
+        mobileImageUrl: mobileImageUrl || null,
         galleryImages: Array.isArray(galleryImages) ? galleryImages : [],
         category,
         customCategory: customCategory || null,
@@ -322,6 +325,7 @@ export const updateOffer = async (req: Request, res: Response) => {
       description,
       bannerImageUrl,
       popupImageUrl,
+      mobileImageUrl,
       galleryImages,
       category,
       customCategory,
@@ -360,6 +364,7 @@ export const updateOffer = async (req: Request, res: Response) => {
     if (description !== undefined) updateData.description = description;
     if (bannerImageUrl !== undefined) updateData.bannerImageUrl = bannerImageUrl || null;
     if (popupImageUrl !== undefined) updateData.popupImageUrl = popupImageUrl || null;
+    if (mobileImageUrl !== undefined) updateData.mobileImageUrl = mobileImageUrl || null;
     if (galleryImages !== undefined) updateData.galleryImages = Array.isArray(galleryImages) ? galleryImages : [];
     if (category !== undefined) updateData.category = category;
     if (customCategory !== undefined) updateData.customCategory = customCategory || null;
@@ -500,6 +505,7 @@ export const duplicateOffer = async (req: Request, res: Response) => {
         description: source.description,
         bannerImageUrl: source.bannerImageUrl,
         popupImageUrl: source.popupImageUrl,
+        mobileImageUrl: source.mobileImageUrl,
         galleryImages: source.galleryImages,
         category: source.category,
         customCategory: source.customCategory,

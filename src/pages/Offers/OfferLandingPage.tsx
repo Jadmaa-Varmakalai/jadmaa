@@ -311,8 +311,8 @@ export const OfferLandingPage: React.FC = () => {
     );
   }
 
-  const isExpired = timeLeft ? timeLeft.isExpired : !offer.isBookable;
-  const imageSource = offer.bannerImageUrl || (offer.course && offer.course.thumbnailUrl) || '/images/hero-kick-action-transparent.png';
+  const isExpired = offer.computedStatus === 'EXPIRED' || (timeLeft ? timeLeft.isExpired : !offer.isBookable);
+  const imageSource = offer.bannerImageUrl || (offer.course && offer.course.thumbnailUrl) || '/images/wellness-682x1024.png';
   const categoryTitle = getCategoryDisplay(offer.category, offer.customCategory);
   const primaryBrandColor = offer.primaryColor || '#991B1B';
 
@@ -360,10 +360,18 @@ export const OfferLandingPage: React.FC = () => {
               style={{ backgroundColor: primaryBrandColor }}
               className="px-4 py-1.5 rounded-lg text-white font-bold text-xs tracking-wide shadow-md hover:brightness-110 active:scale-95 transition disabled:opacity-50"
             >
-              {offer.ctaText || (offer.category === 'VARMA_TREATMENT' ? 'Book Treatment' : offer.category === 'ONLINE_COURSE' ? 'Enrol Now' : 'Register Now')}
+              {isExpired ? 'Campaign Concluded' : offer.ctaText || (offer.category === 'VARMA_TREATMENT' ? 'Book Treatment' : offer.category === 'ONLINE_COURSE' ? 'Enrol Now' : 'Register Now')}
             </button>
           </div>
         </header>
+
+        {/* Expired Campaign Announcement Bar */}
+        {isExpired && (
+          <div className="bg-amber-950/90 border-b border-amber-600/40 px-4 py-2.5 text-center text-amber-200 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 animate-fadeIn">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>This promotional window has concluded. Registration at this special promotional rate is now closed.</span>
+          </div>
+        )}
 
         {/* SECTION 1: SPLIT-SCREEN CAMPAIGN HERO (Reference 3 Composition) */}
         <section className="relative overflow-hidden border-b border-white/10 bg-gradient-to-b from-[#141418] via-[#0F0F12] to-[#0A0A0C]">
@@ -526,27 +534,33 @@ export const OfferLandingPage: React.FC = () => {
                   />
 
                   {/* Shaped Photograph Container inspired by Reference 3 */}
-                  <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#141418] shadow-2xl">
+                  <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#141418] shadow-2xl group">
                     <img
                       src={imageSource}
                       alt={offer.title}
-                      className="w-full h-[360px] sm:h-[440px] lg:h-[500px] object-cover object-top"
+                      className="w-full h-[380px] sm:h-[460px] lg:h-[540px] object-cover object-top transition duration-500 group-hover:scale-102"
                     />
 
-                    {/* Subtle Angled Shade & Bottom Card */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+                    {/* Editorial Diagonal and Vignette Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F12] via-transparent to-black/20 pointer-events-none" />
+                    <div
+                      className="absolute inset-0 opacity-20 pointer-events-none mix-blend-color-dodge"
+                      style={{
+                        background: `radial-gradient(circle at 70% 30%, ${primaryBrandColor}, transparent 60%)`
+                      }}
+                    />
 
-                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 flex items-center justify-between">
+                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/75 backdrop-blur-md border border-white/10 flex items-center justify-between">
                       <div>
-                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
-                          Certified Lineage
+                        <p className="text-[10px] font-extrabold text-red-400 uppercase tracking-widest">
+                          Authentic Siddha Lineage
                         </p>
                         <p className="text-sm font-bold text-white mt-0.5">
                           JADMAA Varmakalai Academy
                         </p>
                       </div>
-                      <span className="w-9 h-9 rounded-xl bg-red-600/20 text-red-400 flex items-center justify-center font-bold text-xs border border-red-500/30">
-                        1000y
+                      <span className="px-2.5 py-1 rounded-lg bg-red-600/30 text-red-300 font-extrabold text-[11px] border border-red-500/40">
+                        1000+ Years
                       </span>
                     </div>
                   </div>

@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { offerApi } from '../../../lib/api/offerApi';
 import type { CourseOfferItem } from '../../../lib/api/offerApi';
 import { adminApi } from '../../../lib/api/adminApi';
+import { CampaignImageUploader } from './CampaignImageUploader';
 import {
   X, Sparkles, Copy, Check, ExternalLink, AlertCircle, Clock, Tag,
   Eye, Monitor, Smartphone, Palette, Calendar, MapPin, ChevronRight,
-  ArrowRight, ShieldCheck, CheckCircle
+  ArrowRight, ShieldCheck, CheckCircle, Globe
 } from 'lucide-react';
 
 interface OfferEditorModalProps {
@@ -82,6 +83,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const [description, setDescription] = useState('');
   const [bannerImageUrl, setBannerImageUrl] = useState('');
   const [popupImageUrl, setPopupImageUrl] = useState('');
+  const [mobileImageUrl, setMobileImageUrl] = useState('');
 
   // Branding & CTA
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -142,6 +144,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setDescription(offer.description || '');
       setBannerImageUrl(offer.bannerImageUrl || '');
       setPopupImageUrl(offer.popupImageUrl || '');
+      setMobileImageUrl(offer.mobileImageUrl || '');
       setTheme((offer.theme as any) || 'light');
       setPrimaryColor(offer.primaryColor || '#991B1B');
       setSecondaryColor(offer.secondaryColor || '#141416');
@@ -178,8 +181,9 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setDiscountAmountVal('');
       setShortDescription('');
       setDescription('');
-      setBannerImageUrl('/images/hero-kick-action-transparent.png');
+      setBannerImageUrl('/images/wellness-682x1024.png');
       setPopupImageUrl('');
+      setMobileImageUrl('');
       setTheme('light');
       setPrimaryColor('#991B1B');
       setSecondaryColor('#141416');
@@ -297,6 +301,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       description: description.trim(),
       bannerImageUrl: bannerImageUrl.trim() || null,
       popupImageUrl: popupImageUrl.trim() || null,
+      mobileImageUrl: mobileImageUrl.trim() || null,
       theme,
       primaryColor,
       secondaryColor,
@@ -555,31 +560,70 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Hero / Campaign Banner Image URL
-                  </label>
-                  <input
-                    type="text"
-                    value={bannerImageUrl}
-                    onChange={(e) => setBannerImageUrl(e.target.value)}
-                    placeholder="/images/pose-dab-red-e1785095608624-653x1024.jpg"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-mono"
-                  />
+              {/* Device Image Upload Controls */}
+              <div className="space-y-4 pt-2 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                      Campaign Artwork & Device Uploads
+                    </span>
+                    <span className="text-[10px] bg-red-100 text-red-700 font-extrabold px-2 py-0.5 rounded-full">
+                      Device Upload
+                    </span>
+                  </div>
+                  {bannerImageUrl && !popupImageUrl && (
+                    <button
+                      type="button"
+                      onClick={() => setPopupImageUrl(bannerImageUrl)}
+                      className="text-[11px] font-semibold text-red-700 hover:text-red-800 transition cursor-pointer"
+                    >
+                      Use Landing Page Image for Popup Too
+                    </button>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Dedicated Popup Image URL (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={popupImageUrl}
-                    onChange={(e) => setPopupImageUrl(e.target.value)}
-                    placeholder="Falls back to banner image if left empty"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-mono"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* 1. Popup Campaign Image */}
+                  <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+                    <CampaignImageUploader
+                      label="1. Popup Campaign Image"
+                      sublabel="Used for website promotional modal"
+                      recommendedAspect="4:5 or 1:1"
+                      value={popupImageUrl}
+                      onChange={(url) => setPopupImageUrl(url)}
+                      onCopyFrom={bannerImageUrl ? () => setPopupImageUrl(bannerImageUrl) : undefined}
+                      copyFromLabel="Use Landing Hero"
+                      previewHeightClass="h-44"
+                    />
+                  </div>
+
+                  {/* 2. Landing Page Hero Image */}
+                  <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+                    <CampaignImageUploader
+                      label="2. Landing Page Hero Image"
+                      sublabel="Large hero photograph on /offers/:slug"
+                      recommendedAspect="16:9 or Vertical Cut"
+                      value={bannerImageUrl}
+                      onChange={(url) => setBannerImageUrl(url)}
+                      onCopyFrom={popupImageUrl ? () => setBannerImageUrl(popupImageUrl) : undefined}
+                      copyFromLabel="Use Popup Image"
+                      previewHeightClass="h-44"
+                    />
+                  </div>
+
+                  {/* 3. Optional Mobile Image */}
+                  <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
+                    <CampaignImageUploader
+                      label="3. Mobile Image (Optional)"
+                      sublabel="Optimized crop for smartphone screens"
+                      recommendedAspect="16:9 banner"
+                      value={mobileImageUrl}
+                      onChange={(url) => setMobileImageUrl(url)}
+                      onCopyFrom={popupImageUrl || bannerImageUrl ? () => setMobileImageUrl(popupImageUrl || bannerImageUrl) : undefined}
+                      copyFromLabel="Use Main Image"
+                      previewHeightClass="h-44"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -988,6 +1032,15 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                     <Smartphone className="w-3.5 h-3.5" />
                     <span>Mobile Popup</span>
                   </button>
+                  <button
+                    onClick={() => setPreviewMode('landing')}
+                    className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition ${
+                      previewMode === 'landing' ? 'bg-red-700 text-white' : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>Landing Page Hero</span>
+                  </button>
                 </div>
               </div>
 
@@ -1029,16 +1082,23 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 }`}>
                   <div className="w-[42%] bg-gray-900 relative min-h-[300px]">
                     <img
-                      src={popupImageUrl || bannerImageUrl || '/images/pose-dab-red-e1785095608624-653x1024.jpg'}
+                      src={popupImageUrl || bannerImageUrl || '/images/wellness-682x1024.png'}
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <div className="w-[58%] p-6 flex flex-col justify-between">
                     <div>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-extrabold tracking-widest uppercase bg-red-100 text-red-700">
-                        {category === 'CUSTOM' ? customCategory.toUpperCase() : category.replace('_', ' ')}
-                      </span>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="px-2 py-0.5 rounded text-[10px] font-extrabold tracking-widest uppercase bg-red-100 text-red-700">
+                          {category === 'CUSTOM' ? customCategory.toUpperCase() : category.replace('_', ' ')}
+                        </span>
+                        {effectiveDiscountPercent > 0 && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-black uppercase text-white bg-red-700">
+                            {effectiveDiscountPercent}% OFF
+                          </span>
+                        )}
+                      </div>
                       <h3 className="text-xl font-bold font-heading leading-tight mt-1.5">
                         {title || 'Campaign Title'}
                       </h3>
@@ -1071,14 +1131,14 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                     </div>
                   </div>
                 </div>
-              ) : (
+              ) : previewMode === 'mobile-popup' ? (
                 /* Mobile Popup Preview */
                 <div className={`relative w-[300px] rounded-2xl overflow-hidden shadow-2xl flex flex-col border ${
                   previewTheme === 'dark' ? 'bg-[#141416] text-white border-zinc-800' : 'bg-white text-gray-900 border-gray-200'
                 }`}>
                   <div className="h-32 bg-gray-900 relative">
                     <img
-                      src={popupImageUrl || bannerImageUrl || '/images/pose-dab-red-e1785095608624-653x1024.jpg'}
+                      src={mobileImageUrl || popupImageUrl || bannerImageUrl || '/images/wellness-682x1024.png'}
                       alt="Preview"
                       className="w-full h-full object-cover"
                     />
@@ -1106,6 +1166,57 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                     >
                       {ctaText || 'Claim Offer'}
                     </button>
+                  </div>
+                </div>
+              ) : (
+                /* Landing Page Hero Preview (Reference 3 Layout) */
+                <div className="w-full max-w-3xl rounded-2xl overflow-hidden border border-white/10 bg-[#0F0F12] text-white shadow-2xl p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    <div className="md:col-span-7 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-900/40 text-red-300 border border-red-700/50">
+                          {category === 'CUSTOM' ? customCategory.toUpperCase() : category.replace('_', ' ')}
+                        </span>
+                        {branchLocation && (
+                          <span className="text-[10px] text-gray-400 font-semibold">
+                            📍 {branchLocation}
+                          </span>
+                        )}
+                      </div>
+                      <h2 className="text-2xl font-black font-heading leading-tight">
+                        {title || 'Campaign Title'}
+                      </h2>
+                      <p className="text-xs text-gray-300 leading-relaxed line-clamp-3">
+                        {description || shortDescription || 'Campaign description overview...'}
+                      </p>
+                      <div className="flex items-baseline gap-3 pt-1">
+                        <span className="text-3xl font-black font-heading text-red-400">
+                          ₹{effectiveOfferPrice.toLocaleString('en-IN')}
+                        </span>
+                        {originalPrice > effectiveOfferPrice && (
+                          <span className="text-base text-gray-500 line-through">
+                            ₹{originalPrice.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                      <div className="pt-2 flex items-center gap-2">
+                        <button
+                          style={{ backgroundColor: primaryColor }}
+                          className="px-5 py-2.5 rounded-xl text-white font-bold text-xs shadow"
+                        >
+                          {ctaText || 'Book Session Now'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="md:col-span-5 relative">
+                      <div className="rounded-2xl overflow-hidden border border-white/15 bg-black/50 shadow-xl h-56">
+                        <img
+                          src={bannerImageUrl || popupImageUrl || '/images/wellness-682x1024.png'}
+                          alt="Hero Preview"
+                          className="w-full h-full object-cover object-top"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

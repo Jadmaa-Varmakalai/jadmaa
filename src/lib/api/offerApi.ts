@@ -8,6 +8,7 @@ export interface CourseOfferItem {
   description?: string;
   bannerImageUrl?: string;
   popupImageUrl?: string;
+  mobileImageUrl?: string;
   galleryImages?: string[];
   category: string;
   customCategory?: string;
@@ -90,6 +91,7 @@ export interface PublicOfferDetails {
   description: string;
   bannerImageUrl?: string;
   popupImageUrl?: string;
+  mobileImageUrl?: string;
   galleryImages: string[];
   category: string;
   customCategory?: string;

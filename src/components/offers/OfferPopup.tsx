@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { offerApi } from '../../lib/api/offerApi';
-import { X, Clock, ArrowRight, Tag, PhoneCall, ExternalLink } from 'lucide-react';
+import { X, ArrowRight, Clock } from 'lucide-react';
 
 interface PopupOfferData {
   id: string;
@@ -10,6 +10,7 @@ interface PopupOfferData {
   shortDescription?: string;
   bannerImageUrl?: string;
   popupImageUrl?: string;
+  mobileImageUrl?: string;
   category?: string;
   customCategory?: string;
   branchLocation?: string;
@@ -56,7 +57,7 @@ const getCategoryLabel = (category?: string, customCategory?: string) => {
       return 'ACADEMY PROGRAMME';
     case 'ONLINE_COURSE':
     default:
-      return 'LIMITED TIME OFFER';
+      return 'LIMITED CAMPAIGN';
   }
 };
 
@@ -112,7 +113,7 @@ export const OfferPopup: React.FC = () => {
 
           setOffer(offerData);
 
-          const delaySeconds = typeof offerData.popupDelaySeconds === 'number' ? offerData.popupDelaySeconds : 3;
+          const delaySeconds = typeof offerData.popupDelaySeconds === 'number' ? offerData.popupDelaySeconds : 2;
           const delayMs = Math.max(delaySeconds, 1) * 1000;
 
           delayTimer = setTimeout(() => {
@@ -122,7 +123,7 @@ export const OfferPopup: React.FC = () => {
           }, delayMs);
         }
       } catch (err) {
-        // Non-blocking
+        console.warn('[OfferPopup] Could not fetch popup offer:', err);
       }
     };
 
@@ -133,20 +134,21 @@ export const OfferPopup: React.FC = () => {
     };
   }, [location.pathname]);
 
-  // Live countdown timer
+  // Real-time Countdown calculation
   useEffect(() => {
     if (!offer || !offer.countdownEnabled || !offer.expiresAt) {
       setTimeLeft(null);
       return;
     }
 
-    const updateTimer = () => {
+    const calculateTimeLeft = () => {
       const now = new Date().getTime();
-      const expiry = new Date(offer.expiresAt!).getTime();
-      const diff = expiry - now;
+      const target = new Date(offer.expiresAt!).getTime();
+      const diff = target - now;
 
       if (diff <= 0) {
-        setVisible(false);
+        setTimeLeft(null);
+        setVisible(false); // Automatically hide when expired
         return;
       }
 
@@ -158,35 +160,23 @@ export const OfferPopup: React.FC = () => {
       setTimeLeft({ days, hours, minutes, seconds });
     };
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+
     return () => clearInterval(interval);
   }, [offer]);
 
-  // Close with session dismissal
-  const handleClose = (e?: React.MouseEvent) => {
-    if (e) e.stopPropagation();
-    setVisible(false);
+  const handleClose = () => {
     if (offer) {
       sessionStorage.setItem(`jadmaa_popup_dismissed_${offer.id}`, 'true');
     }
+    setVisible(false);
   };
 
-  // Close on Escape key
-  useEffect(() => {
-    if (!visible) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') handleClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [visible]);
-
-  // CTA navigation
   const handlePrimaryCta = () => {
     if (!offer) return;
     handleClose();
-    if (offer.ctaUrl && offer.ctaType === 'CUSTOM_URL') {
+    if (offer.ctaType === 'CUSTOM_URL' && offer.ctaUrl) {
       if (offer.ctaUrl.startsWith('http')) {
         window.open(offer.ctaUrl, '_blank');
       } else {
@@ -216,7 +206,8 @@ export const OfferPopup: React.FC = () => {
   }
 
   const isDark = offer.theme === 'dark';
-  const displayImage = offer.popupImageUrl || offer.bannerImageUrl || '/images/pose-dab-red-e1785095608624-653x1024.jpg';
+  const desktopImage = offer.popupImageUrl || offer.bannerImageUrl || '/images/wellness-682x1024.png';
+  const mobileImage = offer.mobileImageUrl || offer.popupImageUrl || offer.bannerImageUrl || '/images/wellness-682x1024.png';
   const categoryLabel = getCategoryLabel(offer.category, offer.customCategory);
   const primaryBrandColor = offer.primaryColor || '#991B1B';
 
@@ -225,58 +216,50 @@ export const OfferPopup: React.FC = () => {
       role="dialog"
       aria-modal="true"
       aria-label={offer.title}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/55 backdrop-blur-[2px] animate-fadeIn transition-opacity duration-300"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fadeIn transition-opacity duration-300"
       onClick={() => handleClose()}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className={`relative w-full max-w-[620px] md:max-w-[700px] rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 transform scale-100 ${
+        className={`relative w-full max-w-[680px] rounded-2xl overflow-hidden shadow-2xl transition-all duration-300 transform scale-100 ${
           isDark
-            ? 'bg-[#141416] text-white border border-zinc-800'
+            ? 'bg-[#141416] text-white border border-zinc-800/90'
             : 'bg-white text-gray-900 border border-gray-100'
         }`}
       >
-        {/* Elegant Close 'X' Button */}
+        {/* Top-Right Close Button */}
         <button
           onClick={handleClose}
           aria-label="Close promotional offer"
-          className={`absolute top-3.5 right-3.5 z-20 w-8 h-8 rounded-full flex items-center justify-center transition ${
+          className={`absolute top-3 right-3 z-30 w-7 h-7 rounded-full flex items-center justify-center transition cursor-pointer ${
             isDark
-              ? 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-400 hover:text-white'
+              ? 'bg-zinc-800/90 hover:bg-zinc-700 text-zinc-400 hover:text-white'
               : 'bg-gray-100/90 hover:bg-gray-200 text-gray-500 hover:text-gray-900'
           }`}
         >
-          <X className="w-4 h-4" />
+          <X className="w-3.5 h-3.5" />
         </button>
 
-        {/* Modal Composition: Desktop Horizontal Split, Mobile Vertical Stack */}
-        <div className="flex flex-col md:flex-row items-stretch">
-          
-          {/* LEFT: Product / Service / Campaign Image */}
-          <div className="relative w-full md:w-[42%] min-h-[160px] md:min-h-[340px] bg-gray-950 overflow-hidden shrink-0">
+        {/* ======================================================== */}
+        {/* DESKTOP COMPOSITION (Horizontal balanced editorial card) */}
+        {/* ======================================================== */}
+        <div className="hidden md:flex flex-row items-stretch min-h-[340px]">
+          {/* Left: 42% Image Area */}
+          <div className="w-[42%] relative overflow-hidden bg-gray-950 shrink-0">
             <img
-              src={displayImage}
+              src={desktopImage}
               alt={offer.title}
               className="w-full h-full object-cover object-center"
             />
-            {/* Subtle Gradient Shade for Image Depth */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-black/30" />
-
-            {/* Category / Discount Tag Overlay on Mobile */}
-            {offer.discountPercent > 0 && (
-              <div className="absolute top-3 left-3 md:hidden">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider text-white bg-red-600 shadow-md">
-                  {offer.discountPercent}% OFF
-                </span>
-              </div>
-            )}
+            {/* Subtle depth shade */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/20 pointer-events-none" />
           </div>
 
-          {/* RIGHT: Offer Details & CTAs */}
-          <div className="w-full md:w-[58%] p-5 sm:p-6 md:p-7 flex flex-col justify-between">
+          {/* Right: 58% Content Area */}
+          <div className="w-[58%] p-6 flex flex-col justify-between">
             <div>
-              {/* Campaign Label Badge */}
-              <div className="flex items-center gap-2 mb-2">
+              {/* Category & Discount Tag */}
+              <div className="flex items-center gap-2 mb-2 pr-6">
                 <span
                   className="px-2 py-0.5 rounded text-[10px] font-extrabold tracking-widest uppercase"
                   style={{
@@ -288,25 +271,21 @@ export const OfferPopup: React.FC = () => {
                 </span>
 
                 {offer.discountPercent > 0 && (
-                  <span className="hidden md:inline-block px-2 py-0.5 rounded text-[10px] font-black tracking-wide text-white bg-red-600">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase text-white bg-red-700">
                     {offer.discountPercent}% OFF
                   </span>
                 )}
               </div>
 
-              {/* Offer Headline */}
-              <h3
-                className={`text-lg sm:text-xl md:text-2xl font-bold font-heading leading-tight tracking-tight ${
-                  isDark ? 'text-white' : 'text-gray-900'
-                }`}
-              >
+              {/* Headline */}
+              <h3 className="text-xl font-bold font-heading leading-tight tracking-tight pr-6">
                 {offer.title}
               </h3>
 
-              {/* Supporting Short Description */}
+              {/* Short Description */}
               {offer.shortDescription && (
                 <p
-                  className={`mt-1.5 text-xs sm:text-sm line-clamp-2 leading-relaxed ${
+                  className={`mt-1.5 text-xs line-clamp-2 leading-relaxed ${
                     isDark ? 'text-zinc-400' : 'text-gray-600'
                   }`}
                 >
@@ -315,15 +294,15 @@ export const OfferPopup: React.FC = () => {
               )}
 
               {/* Price & Savings Display */}
-              <div className="mt-3.5 flex items-baseline gap-2.5 flex-wrap">
+              <div className="mt-3 flex items-baseline gap-2.5 flex-wrap">
                 {offer.pricingType === 'ENQUIRY_ONLY' ? (
-                  <span className="text-base sm:text-lg font-bold text-red-600">
-                    Registrations Open
+                  <span className="text-base font-bold text-red-600">
+                    Consultation & Registration Open
                   </span>
                 ) : (
                   <>
                     <span
-                      className="text-2xl sm:text-3xl font-extrabold font-heading tracking-tight"
+                      className="text-2xl font-black font-heading tracking-tight"
                       style={{ color: primaryBrandColor }}
                     >
                       ₹{offer.offerPrice.toLocaleString('en-IN')}
@@ -331,64 +310,64 @@ export const OfferPopup: React.FC = () => {
 
                     {offer.originalPrice > offer.offerPrice && (
                       <span
-                        className={`text-sm sm:text-base line-through font-medium ${
+                        className={`text-sm line-through font-medium ${
                           isDark ? 'text-zinc-500' : 'text-gray-400'
                         }`}
                       >
                         ₹{offer.originalPrice.toLocaleString('en-IN')}
                       </span>
                     )}
+
+                    {offer.discountAmount > 0 && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-green-50 text-green-700 dark:bg-green-950/60 dark:text-green-400 border border-green-200 dark:border-green-800/40">
+                        Save ₹{offer.discountAmount.toLocaleString('en-IN')}
+                      </span>
+                    )}
                   </>
                 )}
               </div>
 
-              {/* Countdown Timer (Compact 4-Box Units) */}
+              {/* Countdown Timer */}
               {timeLeft && (
-                <div className="mt-3.5 pt-3 border-t border-dashed border-gray-200 dark:border-zinc-800">
-                  <div className="flex items-center gap-1.5 mb-1.5 text-[11px] font-semibold text-gray-500 dark:text-zinc-400">
-                    <Clock className="w-3.5 h-3.5 text-red-600" />
+                <div className="mt-3 pt-2.5 border-t border-gray-100 dark:border-zinc-800">
+                  <div className="flex items-center gap-1.5 mb-1 text-[10px] font-semibold text-gray-500 dark:text-zinc-400">
+                    <Clock className="w-3 h-3 text-red-600" />
                     <span>Offer ends in:</span>
                   </div>
 
                   <div className="flex items-center gap-1.5">
-                    <div className="flex-1 py-1 px-1.5 rounded-lg bg-gray-50 dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700 text-center">
-                      <div className="text-sm font-bold font-mono text-gray-900 dark:text-white leading-none">
+                    <div className="px-2 py-1 rounded-md bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 text-center min-w-[42px]">
+                      <div className="text-xs font-bold font-mono text-gray-900 dark:text-white leading-none">
                         {String(timeLeft.days).padStart(2, '0')}
                       </div>
-                      <div className="text-[9px] uppercase tracking-wider text-gray-500 dark:text-zinc-400 mt-0.5">
+                      <div className="text-[8px] uppercase tracking-wider text-gray-400 dark:text-zinc-400 mt-0.5">
                         Days
                       </div>
                     </div>
-
-                    <span className="text-gray-400 dark:text-zinc-600 font-bold">:</span>
-
-                    <div className="flex-1 py-1 px-1.5 rounded-lg bg-gray-50 dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700 text-center">
-                      <div className="text-sm font-bold font-mono text-gray-900 dark:text-white leading-none">
+                    <span className="text-gray-400 text-xs font-bold">:</span>
+                    <div className="px-2 py-1 rounded-md bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 text-center min-w-[42px]">
+                      <div className="text-xs font-bold font-mono text-gray-900 dark:text-white leading-none">
                         {String(timeLeft.hours).padStart(2, '0')}
                       </div>
-                      <div className="text-[9px] uppercase tracking-wider text-gray-500 dark:text-zinc-400 mt-0.5">
+                      <div className="text-[8px] uppercase tracking-wider text-gray-400 dark:text-zinc-400 mt-0.5">
                         Hours
                       </div>
                     </div>
-
-                    <span className="text-gray-400 dark:text-zinc-600 font-bold">:</span>
-
-                    <div className="flex-1 py-1 px-1.5 rounded-lg bg-gray-50 dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700 text-center">
-                      <div className="text-sm font-bold font-mono text-gray-900 dark:text-white leading-none">
+                    <span className="text-gray-400 text-xs font-bold">:</span>
+                    <div className="px-2 py-1 rounded-md bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 text-center min-w-[42px]">
+                      <div className="text-xs font-bold font-mono text-gray-900 dark:text-white leading-none">
                         {String(timeLeft.minutes).padStart(2, '0')}
                       </div>
-                      <div className="text-[9px] uppercase tracking-wider text-gray-500 dark:text-zinc-400 mt-0.5">
+                      <div className="text-[8px] uppercase tracking-wider text-gray-400 dark:text-zinc-400 mt-0.5">
                         Mins
                       </div>
                     </div>
-
-                    <span className="text-gray-400 dark:text-zinc-600 font-bold">:</span>
-
-                    <div className="flex-1 py-1 px-1.5 rounded-lg bg-gray-50 dark:bg-zinc-800/80 border border-gray-200/80 dark:border-zinc-700 text-center">
-                      <div className="text-sm font-bold font-mono text-red-600 dark:text-red-400 leading-none">
+                    <span className="text-gray-400 text-xs font-bold">:</span>
+                    <div className="px-2 py-1 rounded-md bg-gray-50 dark:bg-zinc-800/80 border border-gray-200 dark:border-zinc-700 text-center min-w-[42px]">
+                      <div className="text-xs font-bold font-mono text-red-600 dark:text-red-400 leading-none">
                         {String(timeLeft.seconds).padStart(2, '0')}
                       </div>
-                      <div className="text-[9px] uppercase tracking-wider text-gray-500 dark:text-zinc-400 mt-0.5">
+                      <div className="text-[8px] uppercase tracking-wider text-gray-400 dark:text-zinc-400 mt-0.5">
                         Secs
                       </div>
                     </div>
@@ -397,30 +376,139 @@ export const OfferPopup: React.FC = () => {
               )}
             </div>
 
-            {/* Primary & Secondary Action CTAs */}
-            <div className="mt-4 pt-3 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+            {/* CTA Buttons */}
+            <div className="mt-4 pt-3 flex items-center gap-2">
               <button
                 onClick={handlePrimaryCta}
                 style={{ backgroundColor: primaryBrandColor }}
-                className="flex-1 px-4 py-2.5 rounded-xl text-white font-bold text-xs sm:text-sm tracking-wide shadow-md hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-1 px-4 py-2.5 rounded-xl text-white font-bold text-xs tracking-wide shadow-md hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>{offer.ctaText || 'Claim Offer Now'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
 
               <button
                 onClick={handleSecondaryCta}
-                className={`px-3.5 py-2.5 rounded-xl font-semibold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                className={`px-3 py-2.5 rounded-xl font-semibold text-xs transition cursor-pointer ${
                   isDark
-                    ? 'bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300'
+                    ? 'bg-zinc-800 hover:bg-zinc-700 text-zinc-300'
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                 }`}
               >
-                <span>{offer.secondaryCtaText || 'View Details'}</span>
+                {offer.secondaryCtaText || 'View Details'}
               </button>
             </div>
           </div>
         </div>
+
+        {/* ======================================================== */}
+        {/* MOBILE COMPOSITION (Compact vertical responsive card)   */}
+        {/* ======================================================== */}
+        <div className="flex md:hidden flex-col">
+          {/* Top: Compact Mobile Image */}
+          <div className="w-full h-36 relative overflow-hidden bg-gray-950 shrink-0">
+            <img
+              src={mobileImage}
+              alt={offer.title}
+              className="w-full h-full object-cover object-center"
+            />
+            {/* Category tag overlay */}
+            <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+              <span
+                className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white bg-black/70 backdrop-blur-xs"
+              >
+                {categoryLabel}
+              </span>
+              {offer.discountPercent > 0 && (
+                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider text-white bg-red-700">
+                  {offer.discountPercent}% OFF
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom: Mobile Content & CTA */}
+          <div className="p-4 space-y-3">
+            <div>
+              <h3 className="text-base font-bold font-heading leading-tight tracking-tight">
+                {offer.title}
+              </h3>
+              {offer.shortDescription && (
+                <p
+                  className={`mt-1 text-[11px] line-clamp-2 leading-relaxed ${
+                    isDark ? 'text-zinc-400' : 'text-gray-600'
+                  }`}
+                >
+                  {offer.shortDescription}
+                </p>
+              )}
+            </div>
+
+            {/* Price Row */}
+            <div className="flex items-baseline gap-2">
+              {offer.pricingType === 'ENQUIRY_ONLY' ? (
+                <span className="text-sm font-bold text-red-600">
+                  Registration Open
+                </span>
+              ) : (
+                <>
+                  <span
+                    className="text-xl font-black font-heading"
+                    style={{ color: primaryBrandColor }}
+                  >
+                    ₹{offer.offerPrice.toLocaleString('en-IN')}
+                  </span>
+                  {offer.originalPrice > offer.offerPrice && (
+                    <span
+                      className={`text-xs line-through ${
+                        isDark ? 'text-zinc-500' : 'text-gray-400'
+                      }`}
+                    >
+                      ₹{offer.originalPrice.toLocaleString('en-IN')}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+
+            {/* Mobile Countdown Timer */}
+            {timeLeft && (
+              <div className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-gray-50 dark:bg-zinc-800/60 border border-gray-100 dark:border-zinc-800 text-[11px]">
+                <div className="flex items-center gap-1 text-gray-500 dark:text-zinc-400 font-semibold text-[10px]">
+                  <Clock className="w-3 h-3 text-red-600" />
+                  <span>Ends in:</span>
+                </div>
+                <div className="font-mono font-bold text-red-600 dark:text-red-400">
+                  {timeLeft.days}d : {String(timeLeft.hours).padStart(2, '0')}h : {String(timeLeft.minutes).padStart(2, '0')}m : {String(timeLeft.seconds).padStart(2, '0')}s
+                </div>
+              </div>
+            )}
+
+            {/* Mobile CTAs */}
+            <div className="pt-1 flex items-center gap-2">
+              <button
+                onClick={handlePrimaryCta}
+                style={{ backgroundColor: primaryBrandColor }}
+                className="flex-1 py-2.5 rounded-xl text-white font-bold text-xs shadow-md active:scale-[0.99] transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <span>{offer.ctaText || 'Claim Offer'}</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+
+              <button
+                onClick={handleSecondaryCta}
+                className={`px-3 py-2.5 rounded-xl font-semibold text-xs transition cursor-pointer ${
+                  isDark
+                    ? 'bg-zinc-800 text-zinc-300'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                Details
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -75,6 +75,7 @@ export const getActivePopupOffer = async (req: Request, res: Response) => {
         shortDescription: validOffer.shortDescription,
         bannerImageUrl: validOffer.bannerImageUrl || validOffer.course?.thumbnailUrl || '/images/hero-kick-action-transparent.png',
         popupImageUrl: validOffer.popupImageUrl || validOffer.bannerImageUrl || validOffer.course?.thumbnailUrl || '/images/hero-kick-action-transparent.png',
+        mobileImageUrl: validOffer.mobileImageUrl || validOffer.popupImageUrl || validOffer.bannerImageUrl || validOffer.course?.thumbnailUrl || null,
         category: validOffer.category || 'ONLINE_COURSE',
         customCategory: validOffer.customCategory,
         branchLocation: validOffer.branchLocation,
@@ -119,8 +120,13 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: { message: 'Offer slug is required' } });
     }
 
-    const offer = await prisma.courseOffer.findUnique({
-      where: { slug },
+    const offer = await prisma.courseOffer.findFirst({
+      where: {
+        slug: {
+          equals: slug.trim(),
+          mode: 'insensitive'
+        }
+      },
       include: {
         course: {
           include: {
@@ -183,6 +189,7 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
         description: offer.description,
         bannerImageUrl: offer.bannerImageUrl || offer.course?.thumbnailUrl || '/images/hero-kick-action-transparent.png',
         popupImageUrl: offerData.popupImageUrl || offer.bannerImageUrl || offer.course?.thumbnailUrl || null,
+        mobileImageUrl: offerData.mobileImageUrl || offerData.popupImageUrl || offer.bannerImageUrl || null,
         galleryImages: offer.galleryImages || [],
         category: offerData.category || 'ONLINE_COURSE',
         customCategory: offerData.customCategory,
@@ -337,8 +344,13 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
     }
 
     // Retrieve authoritative offer and course
-    const offer = await prisma.courseOffer.findUnique({
-      where: { slug },
+    const offer = await prisma.courseOffer.findFirst({
+      where: {
+        slug: {
+          equals: slug.trim(),
+          mode: 'insensitive'
+        }
+      },
       include: {
         course: {
           select: {

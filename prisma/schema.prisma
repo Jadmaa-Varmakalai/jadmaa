@@ -522,6 +522,7 @@ model CourseOffer {
   description         String         @db.Text
   bannerImageUrl      String?
   popupImageUrl       String?
+  mobileImageUrl      String?
   galleryImages       String[]       @default([])
   category            String         @default("ONLINE_COURSE")
   customCategory      String?
