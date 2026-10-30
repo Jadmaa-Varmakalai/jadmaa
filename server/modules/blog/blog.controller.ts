@@ -65,29 +65,42 @@ export const getBlogs = async (req: Request, res: Response) => {
   }
 };
 
+export const cleanSlug = (s: string) => {
+  return decodeURIComponent(s || '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
 export const getBlogBySlug = async (req: Request, res: Response) => {
-  const rawParam = req.params.slug as string;
+  const rawParam = (req.params.slug as string || '').trim();
   const decoded = decodeURIComponent(rawParam).trim();
-  const normalized = decoded.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  const unicodeSlug = cleanSlug(rawParam);
 
   try {
     res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=300, stale-while-revalidate=600');
     let blog: any = null;
 
+    const conditions: any[] = [];
+    if (rawParam) {
+      conditions.push({ slug: rawParam }, { id: rawParam });
+    }
+    if (decoded && decoded !== rawParam) {
+      conditions.push({ slug: decoded }, { id: decoded });
+    }
+    if (unicodeSlug && unicodeSlug !== rawParam && unicodeSlug !== decoded) {
+      conditions.push({ slug: unicodeSlug });
+    }
+
     let dbQueried = false;
     try {
-      blog = await prisma.blogPost.findFirst({
-        where: {
-          OR: [
-            { slug: rawParam },
-            { slug: decoded },
-            { slug: normalized },
-            { id: rawParam },
-            { id: decoded }
-          ]
-        },
-        include: { author: { select: { name: true, avatarUrl: true } } }
-      });
+      if (conditions.length > 0) {
+        blog = await prisma.blogPost.findFirst({
+          where: { OR: conditions },
+          include: { author: { select: { name: true, avatarUrl: true } } }
+        });
+      }
       dbQueried = true;
     } catch (dbErr) {
       console.warn('Database error in getBlogBySlug:', dbErr);
@@ -98,7 +111,7 @@ export const getBlogBySlug = async (req: Request, res: Response) => {
         const matched = defaultBlogs.find((b: any) => 
           b.slug === rawParam ||
           b.slug === decoded ||
-          b.slug === normalized ||
+          (unicodeSlug && b.slug === unicodeSlug) ||
           b.id === rawParam ||
           b.id === decoded ||
           (b.title && b.title.toLowerCase().trim() === decoded.toLowerCase().trim())
@@ -116,7 +129,7 @@ export const getBlogBySlug = async (req: Request, res: Response) => {
     const matched = defaultBlogs.find((b: any) => 
       b.slug === rawParam ||
       b.slug === decoded ||
-      b.slug === normalized ||
+      (unicodeSlug && b.slug === unicodeSlug) ||
       b.id === rawParam
     );
     if (matched) {
@@ -131,7 +144,8 @@ export const createBlog = async (req: Request, res: Response) => {
     const userId = (req as any).user?.userId || (req as any).user?.id;
     const { title, slug, content, excerpt, thumbnailUrl, published, topic } = req.body;
     
-    const cleanSlug = (slug || title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || `post-${Date.now()}`).trim();
+    const trimmedTitle = (title || 'Untitled Post').trim().slice(0, 50);
+    const cleanSlugVal = (slug ? cleanSlug(slug) : cleanSlug(trimmedTitle)) || `post-${Date.now()}`;
 
     let finalContent = content || '';
     if (topic && topic.trim()) {
@@ -141,8 +155,8 @@ export const createBlog = async (req: Request, res: Response) => {
 
     const blog = await prisma.blogPost.create({
       data: {
-        title: title || 'Untitled Post',
-        slug: cleanSlug,
+        title: trimmedTitle,
+        slug: cleanSlugVal,
         content: finalContent,
         excerpt: excerpt || null,
         thumbnailUrl: thumbnailUrl || null,
@@ -167,16 +181,14 @@ export const updateBlog = async (req: Request, res: Response) => {
     const normalized = decoded.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
     const { title, slug, content, excerpt, thumbnailUrl, published, topic } = req.body;
     
+    const unicodeSlug = cleanSlug(idOrSlug);
+    const conditions: any[] = [];
+    if (idOrSlug) conditions.push({ id: idOrSlug }, { slug: idOrSlug });
+    if (decoded && decoded !== idOrSlug) conditions.push({ id: decoded }, { slug: decoded });
+    if (unicodeSlug && unicodeSlug !== idOrSlug && unicodeSlug !== decoded) conditions.push({ slug: unicodeSlug });
+
     let existing = await prisma.blogPost.findFirst({
-      where: {
-        OR: [
-          { id: idOrSlug },
-          { id: decoded },
-          { slug: idOrSlug },
-          { slug: decoded },
-          { slug: normalized }
-        ]
-      }
+      where: { OR: conditions }
     });
 
     let finalContent = content !== undefined ? content : (existing?.content || '');

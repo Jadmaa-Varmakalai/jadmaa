@@ -41,7 +41,8 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
     }
   })();
 
-  const displayTopic = blog.topic || blog.title;
+  const displayTitle = (blog.title || "").slice(0, 50);
+  const displayTopic = (blog.topic || displayTitle).slice(0, 50);
 
   return (
     <article className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group relative">
@@ -56,7 +57,7 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
           <img
             src={blog.thumbnailUrl || fallbackThumbnail}
             alt={blog.title}
-            className="w-full h-full object-cover object-left transition-transform duration-500 group-hover:scale-105"
+            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
             onError={(e) => {
               const img = e.target as HTMLImageElement;
@@ -71,7 +72,7 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
         <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3.5 py-3.5 sm:px-4 sm:py-4 text-center overflow-hidden border-l border-[#E8DDD0]">
           {/* 1. Blog topic/title at the top */}
           <div className="w-full flex items-start justify-center pt-0.5">
-            <p className="text-[#2B2521] text-[12px] sm:text-[13px] font-bold leading-[1.35] line-clamp-2 sm:line-clamp-3 text-center">
+            <p className="text-[#2B2521] text-[12px] sm:text-[13px] font-bold leading-[1.35] line-clamp-3 text-center">
               {displayTopic}
             </p>
           </div>
@@ -99,9 +100,9 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
       {/* ── Lower content section ────────────────────────────────────── */}
       <div className="p-5 flex flex-col flex-grow text-left">
         {/* Red blog title */}
-        <h3 className="text-[17px] sm:text-[18px] font-bold text-[#B12B2B] leading-[1.35] mb-2 hover:text-[#8F2020] transition-colors line-clamp-2">
+        <h3 className="text-[17px] sm:text-[18px] font-bold text-[#B12B2B] leading-[1.35] mb-2 hover:text-[#8F2020] transition-colors line-clamp-3">
           <Link to={`/blog/${blog.slug}`}>
-            {blog.title}
+            {displayTitle}
           </Link>
         </h3>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { BlogCard } from '../components/common/BlogCard';
-import { blogApi } from "../lib/api/blogApi";
+import { blogApi, cleanSlug } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
 import ReactMarkdown from 'react-markdown';
 
@@ -16,13 +16,27 @@ export const BlogPostDetail: React.FC = () => {
   const [blog, setBlog] = useState<BlogPost | null>(() => {
     if (!slug) return null;
     const cached = blogApi.getCachedBlogs();
-    return cached.find(b => b.slug === slug || b.id === slug) || null;
+    const clean = cleanSlug(slug);
+    const decoded = decodeURIComponent(slug).trim();
+    return cached.find(b => 
+      b.slug === slug || 
+      b.slug === decoded || 
+      b.id === slug || 
+      (clean && clean.length > 0 && cleanSlug(b.slug) === clean)
+    ) || null;
   });
   const [allBlogs, setAllBlogs] = useState<BlogPost[]>(() => blogApi.getCachedBlogs());
   const [loading, setLoading] = useState<boolean>(() => {
     if (!slug) return true;
     const cached = blogApi.getCachedBlogs();
-    return !cached.some(b => b.slug === slug || b.id === slug);
+    const clean = cleanSlug(slug);
+    const decoded = decodeURIComponent(slug).trim();
+    return !cached.some(b => 
+      b.slug === slug || 
+      b.slug === decoded || 
+      b.id === slug || 
+      (clean && clean.length > 0 && cleanSlug(b.slug) === clean)
+    );
   });
   const [error, setError] = useState('');
 

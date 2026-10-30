@@ -68,33 +68,67 @@ export const BlogManager: React.FC = () => {
         </h3>
         <form onSubmit={handleSave} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Title</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-jadmaa-charcoal">
+                Title (Max 50 characters, up to 3 lines) <span className="text-jadmaa-red">*</span>
+              </label>
+              <span className={`text-xs font-semibold ${
+                (currentBlog.title?.length || 0) > 50 ? 'text-red-600' : 'text-gray-500'
+              }`}>
+                {currentBlog.title?.length || 0} / 50 characters
+              </span>
+            </div>
             <input 
               type="text" 
               required
+              maxLength={50}
+              placeholder="Enter blog title (max 50 chars)"
               value={currentBlog.title || ''}
-              onChange={(e) => setCurrentBlog({...currentBlog, title: e.target.value, slug: currentBlog.slug || e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')})}
+              onChange={(e) => {
+                const val = e.target.value.slice(0, 50);
+                setCurrentBlog({
+                  ...currentBlog, 
+                  title: val, 
+                  slug: currentBlog.slug || cleanSlug(val)
+                });
+              }}
               className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
             />
+            <p className="text-[11px] text-gray-500 mt-1">
+              Title is limited to 50 characters and will wrap across up to 3 lines on the blog cards.
+            </p>
           </div>
           <div>
             <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Topic / Category (Appears on Card)</label>
             <input 
               type="text" 
+              maxLength={50}
               placeholder="e.g. Beginner Guide, Women's Self-Defence, Varma Therapy"
               value={currentBlog.topic || ''}
-              onChange={(e) => setCurrentBlog({...currentBlog, topic: e.target.value})}
+              onChange={(e) => setCurrentBlog({...currentBlog, topic: e.target.value.slice(0, 50)})}
               className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Slug (URL)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-jadmaa-charcoal">
+                Slug (URL) <span className="text-jadmaa-red">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setCurrentBlog({ ...currentBlog, slug: cleanSlug(currentBlog.title || '') })}
+                className="text-xs text-jadmaa-red hover:underline font-semibold"
+              >
+                Auto-generate from title
+              </button>
+            </div>
             <input 
               type="text" 
               required
+              placeholder="e.g. varma-therapy-guide"
               value={currentBlog.slug || ''}
-              onChange={(e) => setCurrentBlog({...currentBlog, slug: e.target.value})}
-              className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
+              onChange={(e) => setCurrentBlog({...currentBlog, slug: cleanSlug(e.target.value)})}
+              className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none font-mono text-gray-800"
             />
           </div>
           <div>
@@ -107,11 +141,12 @@ export const BlogManager: React.FC = () => {
             />
           </div>
           <ImageUpload 
-            label="Thumbnail Image"
+            label="Thumbnail Image (Fixed 1:1 Square Proportion)"
             value={currentBlog.thumbnailUrl || ''}
             onChange={(url) => setCurrentBlog({...currentBlog, thumbnailUrl: url})}
-            aspectRatio="video"
-            helperText="Upload an image from your device or paste an image URL"
+            aspectRatio="square"
+            requiredRatio={{ width: 1, height: 1, label: '1:1 Square (e.g. 800×800 px)' }}
+            helperText="Fixed 1:1 square ratio (e.g., 800×800px) required so thumbnails are never cropped in blog cards."
           />
           <div>
             <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Content (Markdown)</label>

@@ -25,12 +25,14 @@ const blogSlugCache = new Map<string, BlogPost>();
 
 const defaultBlogs: BlogPost[] = defaultBlogsData as unknown as BlogPost[];
 
-const normalizeSlug = (s: string) =>
+export const cleanSlug = (s: string) =>
   decodeURIComponent(s || '')
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')
     .replace(/^-+|-+$/g, '');
+
+const normalizeSlug = cleanSlug;
 
 export const blogApi = {
   getCachedBlogs: (): BlogPost[] => {
@@ -66,57 +68,69 @@ export const blogApi = {
   },
 
   getBlogBySlug: async (slug: string): Promise<BlogPost> => {
-    const rawSlug = slug;
-    const norm = normalizeSlug(slug);
+    const rawSlug = (slug || '').trim();
+    const decodedSlug = decodeURIComponent(rawSlug).trim();
+    const clean = cleanSlug(rawSlug);
 
-    if (blogSlugCache.has(rawSlug)) {
+    if (rawSlug && blogSlugCache.has(rawSlug)) {
       return blogSlugCache.get(rawSlug)!;
     }
-    if (blogSlugCache.has(norm)) {
-      return blogSlugCache.get(norm)!;
+    if (decodedSlug && blogSlugCache.has(decodedSlug)) {
+      return blogSlugCache.get(decodedSlug)!;
+    }
+    if (clean && clean.length > 0 && blogSlugCache.has(clean)) {
+      return blogSlugCache.get(clean)!;
     }
 
     const cachedList = blogApi.getCachedBlogs();
-    const existing = cachedList.find(
-      b => b.slug === rawSlug ||
-           b.id === rawSlug ||
-           normalizeSlug(b.slug) === norm ||
-           normalizeSlug(b.id) === norm ||
-           normalizeSlug(b.title) === norm
-    );
+    const existing = cachedList.find(b => {
+      if (rawSlug && (b.id === rawSlug || b.slug === rawSlug)) return true;
+      if (decodedSlug && (b.id === decodedSlug || b.slug === decodedSlug)) return true;
+      const bClean = cleanSlug(b.slug);
+      if (clean && bClean && bClean === clean) return true;
+      const bTitleClean = cleanSlug(b.title);
+      if (clean && bTitleClean && bTitleClean === clean) return true;
+      return false;
+    });
 
     if (existing && existing.content) {
-      blogSlugCache.set(rawSlug, existing);
-      blogSlugCache.set(norm, existing);
-      fetchApi(`/blogs/${encodeURIComponent(slug)}`).then(res => {
+      if (rawSlug) blogSlugCache.set(rawSlug, existing);
+      if (decodedSlug) blogSlugCache.set(decodedSlug, existing);
+      if (clean) blogSlugCache.set(clean, existing);
+      fetchApi(`/blogs/${encodeURIComponent(clean || rawSlug)}`).then(res => {
         if (res?.data) {
-          blogSlugCache.set(rawSlug, res.data);
-          blogSlugCache.set(norm, res.data);
+          if (rawSlug) blogSlugCache.set(rawSlug, res.data);
+          if (decodedSlug) blogSlugCache.set(decodedSlug, res.data);
+          if (clean) blogSlugCache.set(clean, res.data);
         }
       }).catch(() => {});
       return existing;
     }
 
     try {
-      const res = await fetchApi(`/blogs/${encodeURIComponent(slug)}`);
+      const res = await fetchApi(`/blogs/${encodeURIComponent(clean || rawSlug)}`);
       if (res?.data) {
-        blogSlugCache.set(rawSlug, res.data);
-        blogSlugCache.set(norm, res.data);
+        if (rawSlug) blogSlugCache.set(rawSlug, res.data);
+        if (decodedSlug) blogSlugCache.set(decodedSlug, res.data);
+        if (clean) blogSlugCache.set(clean, res.data);
         return res.data;
       }
     } catch (_) {}
 
-    const defaultMatch = defaultBlogs.find(
-      b => b.slug === rawSlug ||
-           b.id === rawSlug ||
-           normalizeSlug(b.slug) === norm ||
-           normalizeSlug(b.id) === norm ||
-           normalizeSlug(b.title) === norm
-    );
+    const defaultMatch = defaultBlogs.find(b => {
+      if (rawSlug && (b.id === rawSlug || b.slug === rawSlug)) return true;
+      if (decodedSlug && (b.id === decodedSlug || b.slug === decodedSlug)) return true;
+      const bClean = cleanSlug(b.slug);
+      if (clean && bClean && bClean === clean) return true;
+      const bTitleClean = cleanSlug(b.title);
+      if (clean && bTitleClean && bTitleClean === clean) return true;
+      return false;
+    });
 
     if (defaultMatch) {
-      blogSlugCache.set(rawSlug, defaultMatch);
-      blogSlugCache.set(norm, defaultMatch);
+      if (rawSlug) blogSlugCache.set(rawSlug, defaultMatch);
+      if (decodedSlug) blogSlugCache.set(decodedSlug, defaultMatch);
+      if (clean) blogSlugCache.set(clean, defaultMatch);
       return defaultMatch;
     }
 

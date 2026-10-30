@@ -1,6 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, Link as LinkIcon, X, Loader2 } from 'lucide-react';
+import { UploadCloud, Link as LinkIcon, X, Loader2, AlertTriangle } from 'lucide-react';
 import { uploadApi } from '../../lib/api/uploadApi';
+
+export interface RequiredRatio {
+  width: number;
+  height: number;
+  label: string;
+}
 
 interface ImageUploadProps {
   label?: string;
@@ -10,6 +16,7 @@ interface ImageUploadProps {
   helperText?: string;
   className?: string;
   aspectRatio?: 'video' | 'square' | 'auto';
+  requiredRatio?: RequiredRatio;
 }
 
 /**
@@ -74,11 +81,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   helperText,
   className = '',
   aspectRatio = 'auto',
+  requiredRatio,
 }) => {
   const [activeTab, setActiveTab] = useState<'device' | 'url'>('device');
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ratioWarning, setRatioWarning] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileProcess = async (file: File) => {
@@ -90,6 +99,27 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setIsProcessing(true);
 
     try {
+      // Check dimensions if requiredRatio is set
+      if (requiredRatio) {
+        await new Promise<void>((resolve) => {
+          const testImg = new Image();
+          testImg.onload = () => {
+            const w = testImg.width;
+            const h = testImg.height;
+            const target = requiredRatio.width / requiredRatio.height;
+            const actual = w / h;
+            if (Math.abs(actual - target) > 0.08) {
+              setRatioWarning(`Uploaded image is ${w}×${h} (${actual.toFixed(2)}:1). Blog thumbnails require a fixed ${requiredRatio.label} ratio to avoid being cropped. Please upload an image with ${requiredRatio.label} proportion for best appearance.`);
+            } else {
+              setRatioWarning(null);
+            }
+            resolve();
+          };
+          testImg.onerror = () => resolve();
+          testImg.src = URL.createObjectURL(file);
+        });
+      }
+
       const compressedDataUrl = await compressImage(file);
       // Attempt backend upload to store file in public/uploads/
       const finalUrl = await uploadApi.uploadImage(compressedDataUrl, file.name);
@@ -227,7 +257,25 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           <input
             type="url"
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+              const url = e.target.value;
+              onChange(url);
+              if (requiredRatio && url) {
+                const img = new Image();
+                img.onload = () => {
+                  const w = img.width;
+                  const h = img.height;
+                  const target = requiredRatio.width / requiredRatio.height;
+                  const actual = w / h;
+                  if (Math.abs(actual - target) > 0.08) {
+                    setRatioWarning(`Image from URL is ${w}×${h} (${actual.toFixed(2)}:1). Blog thumbnails require a fixed ${requiredRatio.label} ratio to avoid being cropped. Please upload in ${requiredRatio.label} proportion.`);
+                  } else {
+                    setRatioWarning(null);
+                  }
+                };
+                img.src = url;
+              }
+            }}
             placeholder={placeholder}
             className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-jadmaa-red focus:ring-1 focus:ring-jadmaa-red bg-white"
           />
@@ -237,6 +285,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {/* Error Message */}
       {error && (
         <p className="text-xs text-red-600 font-medium">{error}</p>
+      )}
+
+      {/* Ratio Warning Alert */}
+      {ratioWarning && (
+        <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs flex items-start space-x-2">
+          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-left">
+            <span className="font-bold">Image Aspect Ratio Alert:</span>
+            <p>{ratioWarning}</p>
+          </div>
+        </div>
       )}
 
       {/* Live Image Preview (if value exists) */}
