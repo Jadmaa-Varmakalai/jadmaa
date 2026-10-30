@@ -20,7 +20,16 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
+    app.use(express.static(distPath, {
+      maxAge: '1d',
+      setHeaders: (res, filePath) => {
+        if (filePath.includes('assets') || filePath.includes('optimized') || filePath.includes('blog')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (/\.(webp|avif|png|jpe?g|svg|woff2?)$/i.test(filePath)) {
+          res.setHeader('Cache-Control', 'public, max-age=2592000, stale-while-revalidate=86400');
+        }
+      }
+    }));
     app.get('*all', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });

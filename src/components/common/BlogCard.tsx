@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { BlogPost } from '../../lib/api/blogApi';
 import { format } from 'date-fns';
+import { ResponsiveImage } from './ResponsiveImage';
 
 interface BlogCardProps {
   blog: BlogPost;
@@ -54,17 +55,14 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
       >
         {/* LEFT — Thumbnail Artwork (Cream Background) */}
         <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
-          <img
+          <ResponsiveImage
             src={blog.thumbnailUrl || fallbackThumbnail}
             alt={blog.title}
+            width={300}
+            height={200}
+            aspectRatio="3/2"
+            sizes="(max-width: 640px) 50vw, 300px"
             className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => {
-              const img = e.target as HTMLImageElement;
-              if (img.src !== fallbackThumbnail) {
-                img.src = fallbackThumbnail;
-              }
-            }}
           />
         </div>
 
@@ -79,11 +77,13 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
 
           {/* 2 & 3. Smaller fixed JADMAA logo (reduced 20-25%) + branding below */}
           <div className="flex flex-col items-center justify-center my-auto pt-1 pb-0.5">
-            <img
+            <ResponsiveImage
               src={logoSrc}
               alt="JADMAA Varmakalai"
+              width={76}
+              height={76}
+              aspectRatio="1/1"
               className="h-[68px] sm:h-[76px] w-auto max-w-[85%] object-contain transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
             />
             <div className="mt-1.5 text-center leading-none">
               <span className="text-[#2B2521] text-[9.5px] sm:text-[10px] font-extrabold tracking-[0.14em] uppercase">

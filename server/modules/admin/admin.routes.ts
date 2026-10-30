@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, requireAdmin, requireSuperAdmin } from '../../middleware/auth.middleware.js';
+import { publicEnquiryLimiter } from '../../middleware/rateLimiter.js';
 import * as adminController from './admin.controller.js';
 
 const router = Router();
@@ -57,7 +58,7 @@ router.get('/certificates/:id', authenticate, requireAdmin, adminController.getC
 router.post('/certificates/:id/revoke', authenticate, requireAdmin, adminController.revokeCertificate);
 
 // Enquiries
-router.post('/enquiries/public', adminController.submitPublicEnquiry);
+router.post('/enquiries/public', publicEnquiryLimiter, adminController.submitPublicEnquiry);
 router.get('/enquiries', authenticate, requireAdmin, adminController.getEnquiries);
 router.get('/enquiries/:id', authenticate, requireAdmin, adminController.getEnquiryById);
 router.patch('/enquiries/:id/status', authenticate, requireAdmin, adminController.updateEnquiryStatus);

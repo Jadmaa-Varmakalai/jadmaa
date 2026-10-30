@@ -110,6 +110,27 @@ export const getCourseProgress = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Course not found' } });
     }
 
+    // VULN-10 Defense: Verify active enrollment unless privileged administrator or course instructor
+    const isPrivileged =
+      user?.role === 'ADMIN' ||
+      user?.role === 'SUPER_ADMIN' ||
+      Boolean(user?.isAdmin) ||
+      (user?.role === 'INSTRUCTOR' &&
+        (course.instructorId === user?.instructorProfile?.id || course.instructorId === user?.id));
+
+    if (!isPrivileged) {
+      const enrollment = await prisma.enrollment.findUnique({
+        where: { userId_courseId: { userId: user.id, courseId: course.id } }
+      });
+
+      if (!enrollment || (enrollment.status !== 'ACTIVE' && enrollment.status !== 'COMPLETED')) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'Forbidden: You are not actively enrolled in this course.' }
+        });
+      }
+    }
+
     const progress = await prisma.lessonProgress.findMany({
       where: {
         userId: user.id,

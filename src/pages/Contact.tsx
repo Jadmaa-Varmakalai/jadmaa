@@ -57,7 +57,7 @@ export const Contact: React.FC = () => {
     setErrorMessage('');
 
     if (!formData.name.trim() || !formData.mobile.trim()) {
-      alert('Please fill in your name and mobile number.');
+      setErrorMessage('Please fill in your name and mobile number.');
       return;
     }
 
@@ -254,6 +254,11 @@ export const Contact: React.FC = () => {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="space-y-4">
+                    {errorMessage && (
+                      <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
+                        {errorMessage}
+                      </div>
+                    )}
                     <div>
                       <label className="block text-xs font-semibold text-[#5C5148] mb-1">Full Name *</label>
                       <input 

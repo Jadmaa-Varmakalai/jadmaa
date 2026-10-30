@@ -38,9 +38,12 @@ export const Footer: React.FC = () => {
         {/* Mobile: Logo & Social Header (Full width centered above columns) */}
         <div className="w-full flex flex-col items-center text-center mb-8 md:hidden">
           <Link to="/" className="inline-block mb-3">
-            <img
+            <ResponsiveImage
               src="/images/logo-1.png"
               alt="JADMAA Varmakalai Academy logo"
+              width={120}
+              height={120}
+              aspectRatio="1/1"
               className="w-[120px] h-auto object-contain mx-auto"
             />
           </Link>
@@ -111,9 +114,12 @@ export const Footer: React.FC = () => {
           {/* Desktop Only Column 1: Logo & Socials */}
           <div className="hidden md:flex md:flex-col md:items-center md:text-center">
             <Link to="/" className="inline-block mb-2.5">
-              <img
+              <ResponsiveImage
                 src="/images/logo-1.png"
                 alt="JADMAA Varmakalai Academy logo"
+                width={125}
+                height={125}
+                aspectRatio="1/1"
                 className="w-[125px] h-auto object-contain mx-auto"
               />
             </Link>

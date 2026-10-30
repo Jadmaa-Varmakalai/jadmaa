@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Clock, Star, Users, ArrowRight, Video, MapPin } from 'lucide-react';
 import type { Course } from '../../types';
+import { ResponsiveImage } from '../common/ResponsiveImage';
 
 export const isOnlineCourse = (course: Course): boolean => {
   if (!course) return false;
@@ -79,12 +80,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
 
       {/* Thumbnail with overlay & badges */}
       <div className="relative w-full overflow-hidden bg-gray-100" style={{ aspectRatio: '16/9' }}>
-        <img
+        <ResponsiveImage
           src={thumbnailSrc}
           alt={cleanTitle}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
-          }}
+          width={480}
+          height={270}
+          aspectRatio="16/9"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
         {/* Soft bottom gradient for depth */}

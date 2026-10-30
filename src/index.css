@@ -60,6 +60,14 @@
   input, textarea, select, button {
     font-family: 'Poppins', sans-serif;
   }
+  /* Performance image rendering rules */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  picture {
+    display: contents;
+  }
   input, textarea, select {
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
   }

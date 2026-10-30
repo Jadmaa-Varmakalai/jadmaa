@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { CheckCircle2 } from 'lucide-react';
 import { EditableText } from '../components/common/EditableText';
+import { ResponsiveImage } from '../components/common/ResponsiveImage';
 
 const whyChooseItems = [
   'Authentic Traditional Varmakalai Training',
@@ -57,12 +58,13 @@ export const About: React.FC = () => {
               {/* Left Image */}
               <div className="lg:col-span-4 flex justify-center">
                 <div className="w-full max-w-[360px] overflow-hidden rounded-[14px]">
-                  <img 
+                  <ResponsiveImage 
                     src="/images/pose-dab-red-e1785095608624-653x1024.jpg" 
                     alt="Varmakalai practitioner demonstrating a traditional stance" 
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
-                    }}
+                    width={360}
+                    height={564}
+                    aspectRatio="653/1024"
+                    sizes="(max-width: 640px) 100vw, 360px"
                     className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>
@@ -109,12 +111,13 @@ export const About: React.FC = () => {
               {/* Founder Image & caption */}
               <div className="lg:col-span-5 space-y-2.5">
                 <div className="w-full overflow-hidden rounded-[14px]">
-                  <img 
+                  <ResponsiveImage 
                     src="/images/founder.webp" 
                     alt="Bojagarajan with his master Aasan R. Rajendran of Madurai - JADMAA Varmakalai lineage" 
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
-                    }}
+                    width={480}
+                    height={360}
+                    aspectRatio="4/3"
+                    sizes="(max-width: 640px) 100vw, 480px"
                     className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>

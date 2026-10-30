@@ -3,6 +3,10 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { validateSecurityConfiguration } from './config/security.js';
+
+// Validate cryptographic secrets upon application initialization
+validateSecurityConfiguration();
 
 import authRoutes from './modules/auth/auth.routes.js';
 import courseRoutes from './modules/courses/course.routes.js';
@@ -73,7 +77,25 @@ app.get('/api/v1/settings', async (req, res) => {
   }
 });
 
-app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads')));
+app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads'), {
+  maxAge: '30d',
+  setHeaders: (res, filePath) => {
+    if (/\.(webp|avif|png|jpe?g|svg)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000, stale-while-revalidate=86400');
+    }
+  }
+}));
+
+app.use('/images', express.static(path.join(process.cwd(), 'public', 'images'), {
+  maxAge: '30d',
+  setHeaders: (res, filePath) => {
+    if (filePath.includes('optimized') || filePath.includes('blog')) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    } else if (/\.(webp|avif|png|jpe?g|svg)$/i.test(filePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=2592000, stale-while-revalidate=86400');
+    }
+  }
+}));
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/courses', courseRoutes);

@@ -209,15 +209,10 @@ export const PremiumCampaignPopup: React.FC<PremiumCampaignPopupProps> = ({
 
   const primaryBrandColor = offer.primaryColor || '#991B1B';
   const displayImage = offer.popupImageUrl || offer.bannerImageUrl || '/images/wellness-682x1024.png';
-  const isDark = offer.theme === 'dark';
 
   return (
     <div
-      className={`relative w-full overflow-hidden shadow-2xl transition-all duration-300 rounded-2xl md:rounded-3xl border ${
-        isDark
-          ? 'bg-[#141416] text-white border-zinc-800'
-          : 'bg-[#FAF6F0] text-[#1E1B18] border-[#E8DDD0]'
-      }`}
+      className="relative w-full overflow-hidden shadow-2xl transition-all duration-300 rounded-2xl md:rounded-3xl border bg-[#FAF6F0] text-[#1E1B18] border-[#E8DDD0]"
       style={{
         // Keep 16:9 aspect ratio on desktop screens
         maxWidth: '1060px',
@@ -229,7 +224,7 @@ export const PremiumCampaignPopup: React.FC<PremiumCampaignPopupProps> = ({
           onClick={onClose}
           type="button"
           aria-label="Close promotional offer"
-          className="absolute top-3.5 right-3.5 md:top-4 md:right-4 z-40 w-8 h-8 rounded-full flex items-center justify-center transition-all bg-black/5 hover:bg-black/15 text-stone-600 hover:text-stone-900 cursor-pointer"
+          className="absolute top-3.5 right-3.5 md:top-4 md:right-4 z-40 w-8 h-8 rounded-full flex items-center justify-center transition-all bg-white/90 hover:bg-white border border-[#E8DDD0] text-stone-600 hover:text-stone-900 cursor-pointer shadow-xs"
         >
           <X className="w-4 h-4" />
         </button>
@@ -238,50 +233,18 @@ export const PremiumCampaignPopup: React.FC<PremiumCampaignPopupProps> = ({
       {/* Main 16:9 Split Structure: Left 48% (Artwork), Right 52% (Content) */}
       <div className="flex flex-col md:flex-row items-stretch w-full md:aspect-[16/9]">
         {/* ======================================================== */}
-        {/* LEFT PANEL: 48% CAMPAIGN ARTWORK & BENEFIT PILLS        */}
+        {/* LEFT PANEL: 48% CAMPAIGN ARTWORK                         */}
         {/* ======================================================== */}
-        <div className="relative w-full md:w-[48%] min-h-[220px] md:min-h-full overflow-hidden bg-stone-950 flex flex-col justify-between shrink-0">
+        <div className="relative w-full md:w-[48%] min-h-[260px] md:min-h-full overflow-hidden bg-[#F4EDE2] border-b md:border-b-0 md:border-r border-[#E8DDD0] flex items-center justify-center shrink-0">
           {/* Main Visual Image */}
           <img
             src={displayImage}
             alt={offer.title || 'Campaign Artwork'}
-            className="absolute inset-0 w-full h-full object-cover object-center scale-[1.01]"
+            className="absolute inset-0 w-full h-full object-cover object-center"
           />
 
-          {/* Artistic Vignette and Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-950/95 via-stone-950/40 to-black/30 pointer-events-none" />
-          <div className="hidden md:block absolute inset-y-0 right-0 w-16 bg-gradient-to-r from-transparent to-stone-950/40 pointer-events-none" />
-
-          {/* Top-Left Calligraphy Tagline */}
-          <div className="relative z-10 p-5 md:p-7 pt-5">
-            <p className="font-serif italic font-bold text-white text-xl md:text-2xl lg:text-[26px] leading-[1.1] tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
-              {scriptTagline.line1}
-              <br />
-              <span className="text-amber-200/90 font-light">{scriptTagline.line2}</span>
-            </p>
-          </div>
-
-          {/* Bottom Dark Brush Area with 3 Benefit Pills */}
-          <div className="relative z-10 p-3 md:p-4 bg-gradient-to-t from-stone-950 via-stone-950/90 to-transparent pt-6">
-            <div className="grid grid-cols-3 gap-2 border-t border-amber-900/30 pt-3">
-              {benefits.map((benefit, index) => {
-                const Icon = benefit.icon;
-                return (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center text-center px-1"
-                  >
-                    <div className="w-7 h-7 rounded-full bg-amber-500/15 border border-amber-400/30 flex items-center justify-center mb-1 text-amber-300">
-                      <Icon className="w-3.5 h-3.5" />
-                    </div>
-                    <span className="text-[10px] md:text-[11px] font-semibold text-stone-200 leading-tight">
-                      {benefit.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Gentle Warm Base Tint */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/15 via-transparent to-transparent pointer-events-none" />
         </div>
 
         {/* ======================================================== */}
@@ -318,8 +281,8 @@ export const PremiumCampaignPopup: React.FC<PremiumCampaignPopupProps> = ({
                 </span>
               )}
 
-              {/* Branch / Location indicator */}
-              {offer.branchLocation && offer.branchLocation !== 'All Branches' && (
+              {/* Branch / Location indicator (Physical in-person campaigns only) */}
+              {offer.category !== 'ONLINE_COURSE' && offer.branchLocation && offer.branchLocation !== 'All Branches' && (
                 <span className="text-[10px] font-semibold text-stone-500 uppercase tracking-wide">
                   • {offer.branchLocation}
                 </span>
@@ -446,3 +409,4 @@ export const PremiumCampaignPopup: React.FC<PremiumCampaignPopupProps> = ({
     </div>
   );
 };
+

@@ -17,6 +17,7 @@ import {
 import { mainNavItems } from '../../data/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
+import { ResponsiveImage } from '../common/ResponsiveImage';
 import { useCart } from '../../context/CartContext';
 
 export const Navbar: React.FC = () => {
@@ -235,9 +236,13 @@ export const Navbar: React.FC = () => {
           
           {/* Logo & Brand Name */}
           <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group min-w-0 pr-2">
-            <img 
+            <ResponsiveImage 
               src="/images/logo-1.png" 
               alt="JADMAA Varmakalai Logo" 
+              priority={true}
+              width={48}
+              height={48}
+              aspectRatio="1/1"
               className="h-[42px] sm:h-12 w-auto object-contain shrink-0"
             />
             <span className="font-heading font-semibold text-[13px] sm:text-[18px] text-[#2B2521] tracking-[0.5px] leading-[1.3125rem] truncate">
@@ -254,6 +259,7 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={item.id}
                   to={item.href}
+              onClick={() => setIsOpen(false)}
                   className={`font-body text-[15px] font-medium tracking-normal px-3.5 py-2 transition-colors duration-150 relative ${
                     isActive 
                       ? 'text-[#B12B2B] after:absolute after:bottom-1 after:left-3.5 after:right-3.5 after:h-[2px] after:bg-[#B12B2B]' 
@@ -412,6 +418,7 @@ export const Navbar: React.FC = () => {
             <Link
               key={item.id}
               to={item.href}
+              onClick={() => setIsOpen(false)}
               className="block px-3 py-2 text-sm font-semibold text-[#5C5148] hover:text-[#B12B2B]"
             >
               {item.label}

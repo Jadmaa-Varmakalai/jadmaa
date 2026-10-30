@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authenticate, requireAdmin } from '../../middleware/auth.middleware.js';
+import { publicEnquiryLimiter } from '../../middleware/rateLimiter.js';
 import * as offerController from './offer.controller.js';
 import * as offerAdminController from './offer.admin.controller.js';
 
@@ -10,7 +11,7 @@ publicRouter.get('/active-popup', offerController.getActivePopupOffer);
 publicRouter.get('/:slug', offerController.getOfferBySlug);
 publicRouter.post('/:slug/book', authenticate, offerController.initiateOfferBooking);
 publicRouter.post('/:slug/verify', authenticate, offerController.verifyOfferPayment);
-publicRouter.post('/:slug/enquire', offerController.submitOfferEnquiry);
+publicRouter.post('/:slug/enquire', publicEnquiryLimiter, offerController.submitOfferEnquiry);
 
 // Admin sub-router
 export const adminRouter = Router();

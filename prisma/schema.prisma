@@ -543,6 +543,11 @@ model CourseOffer {
   ctaUrl              String?
   secondaryCtaText    String?
   secondaryCtaUrl     String?
+  eyebrow             String?
+  headline            String?
+  imagePosition       String?        @default("center")
+  imageTagline        String?
+  benefits            String[]       @default([])
   termsAndConditions  String?        @db.Text
   supportEmail        String?
   supportPhone        String?

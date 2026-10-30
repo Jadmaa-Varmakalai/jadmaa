@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { productApi } from '../../lib/api/productApi';
 import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -157,9 +158,13 @@ export const ProductDetails: React.FC = () => {
               <div className="space-y-4">
                 <div className="relative aspect-square w-full bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center">
                   {currentImage ? (
-                    <img
+                    <ResponsiveImage
                       src={currentImage}
                       alt={product.name}
+                      priority={true}
+                      width={600}
+                      height={600}
+                      aspectRatio="1/1"
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -181,7 +186,7 @@ export const ProductDetails: React.FC = () => {
                           selectedImageIndex === idx ? 'border-jadmaa-red shadow-xs' : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <img src={img} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
+                        <ResponsiveImage src={img} alt={`thumb-${idx}`} width={80} height={80} aspectRatio="1/1" className="w-full h-full object-cover" />
                       </button>
                     ))}
                   </div>
@@ -348,9 +353,12 @@ export const ProductDetails: React.FC = () => {
                   >
                     <div className="w-full h-44 bg-gray-50 rounded-xl overflow-hidden mb-3">
                       {rp.images && rp.images[0] ? (
-                        <img
+                        <ResponsiveImage
                           src={rp.images[0]}
                           alt={rp.name}
+                          width={240}
+                          height={240}
+                          aspectRatio="1/1"
                           className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                         />
                       ) : (

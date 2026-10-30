@@ -135,7 +135,7 @@ export const MyCourses: React.FC = () => {
                 return (
                   <div key={course.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group">
                     <div className="aspect-video bg-gray-100 overflow-hidden relative">
-                      <img src={course.thumbnailUrl} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <ResponsiveImage src={course.thumbnailUrl || '/images/course-basic.jpg'} alt={course.title} width={360} height={202} aspectRatio="16/9" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                       {isCompleted && (
                         <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" />

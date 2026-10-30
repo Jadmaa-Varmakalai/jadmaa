@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { EditableText } from '../components/common/EditableText';
+import { ResponsiveImage } from '../components/common/ResponsiveImage';
 
 const careerSteps = [
   {
@@ -86,9 +87,12 @@ export const Careers: React.FC = () => {
 
               <div className="lg:col-span-5 flex justify-center" data-aos="fade-up" data-aos-delay="100">
                 <div className="w-full max-w-[480px] overflow-hidden rounded-[14px]">
-                  <img 
-                    src="https://jadmaa.com/wp-content/uploads/2026/08/file_000000008884820b9a3c789a8c0be531.png"
+                  <ResponsiveImage 
+                    src="/images/file_000000008884820b9a3c789a8c0be531-1024x683.png"
                     alt="Varmakalai martial arts training session at JADMAA"
+                    width={480}
+                    height={320}
+                    sizes="(max-width: 640px) 100vw, 480px"
                     className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </div>

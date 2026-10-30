@@ -401,7 +401,7 @@ export const CourseOffersManager: React.FC = () => {
                               Course: <strong className="text-gray-800">{offer.courseTitle}</strong>
                             </span>
                           )}
-                          {offer.branchLocation && (
+                          {offer.category !== 'ONLINE_COURSE' && offer.branchLocation && (
                             <span className="text-[11px] font-semibold text-gray-500 flex items-center gap-0.5">
                               <MapPin className="w-3 h-3 text-red-600" />
                               {offer.branchLocation}

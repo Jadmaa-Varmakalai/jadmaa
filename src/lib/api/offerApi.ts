@@ -23,6 +23,11 @@ export interface CourseOfferItem {
   ctaUrl?: string;
   secondaryCtaText?: string;
   secondaryCtaUrl?: string;
+  eyebrow?: string;
+  headline?: string;
+  imagePosition?: string;
+  imageTagline?: string;
+  benefits?: string[];
   courseId?: string | null;
   courseTitle?: string | null;
   originalPrice: number;
@@ -111,6 +116,11 @@ export interface PublicOfferDetails {
   ctaUrl?: string;
   secondaryCtaText?: string;
   secondaryCtaUrl?: string;
+  eyebrow?: string;
+  headline?: string;
+  imagePosition?: string;
+  imageTagline?: string;
+  benefits?: string[];
   termsAndConditions?: string;
   supportEmail: string;
   supportPhone: string;

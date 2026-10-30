@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { Link } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
@@ -52,7 +53,7 @@ export const ForgotPassword: React.FC = () => {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <Link to="/" className="flex justify-center mb-6">
-            <img src="/images/logo-1.png" alt="JADMAA" className="h-16 w-auto" />
+            <ResponsiveImage src="/images/logo-1.png" alt="JADMAA Logo" width={64} height={64} priority={true} aspectRatio="1/1" className="h-14 sm:h-16 w-auto mx-auto object-contain" />
           </Link>
           <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900 font-heading">
             Forgot your password?

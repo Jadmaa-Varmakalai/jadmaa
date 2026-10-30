@@ -125,9 +125,12 @@ export const StudentDashboard: React.FC = () => {
                 {continueLearning ? (
                   <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm flex flex-col sm:flex-row">
                     <div className="w-full sm:w-1/3 h-40 sm:h-auto bg-gray-100 flex-shrink-0">
-                      <img 
-                        src={continueLearning.course.thumbnail} 
+                      <ResponsiveImage 
+                        src={continueLearning.course.thumbnail || '/images/course-basic.jpg'} 
                         alt={continueLearning.course.title} 
+                        width={300}
+                        height={169}
+                        aspectRatio="16/9"
                         className="w-full h-full object-cover"
                       />
                     </div>
@@ -185,7 +188,7 @@ export const StudentDashboard: React.FC = () => {
                     {recentCourses.map((c: any) => (
                       <div key={c.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex items-center gap-4 hover:border-gray-300 transition group">
                         <div className="w-20 h-16 rounded overflow-hidden flex-shrink-0 bg-gray-100 hidden sm:block">
-                          <img src={c.thumbnail} alt={c.title} className="w-full h-full object-cover" />
+                          <ResponsiveImage src={c.thumbnail || '/images/course-basic.jpg'} alt={c.title} width={80} height={64} aspectRatio="5/4" className="w-full h-full object-cover" />
                         </div>
                         <div className="flex-grow min-w-0">
                           <h4 className="font-bold text-gray-900 text-sm truncate">{c.title}</h4>

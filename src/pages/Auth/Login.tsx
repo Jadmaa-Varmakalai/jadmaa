@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Award, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Award, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../lib/api/authApi';
 
@@ -12,6 +13,11 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const returnTo = (location.state as any)?.returnTo || searchParams.get('redirect');
   const [applyAsInstructor, setApplyAsInstructor] = useState(false);
   const [instructorWarning, setInstructorWarning] = useState<string | null>(null);
   const [checkingInstructor, setCheckingInstructor] = useState(false);
@@ -37,12 +43,13 @@ export const Login: React.FC = () => {
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
     if (!email) {
-      alert("Please enter your email address.");
+      setErrorMessage("Please enter your email address.");
       return;
     }
 
-    // If "Apply as an Instructor" is checked
     if (applyAsInstructor) {
       try {
         setCheckingInstructor(true);
@@ -58,19 +65,21 @@ export const Login: React.FC = () => {
         setCheckingInstructor(false);
       }
 
-      // If not yet an instructor, navigate to instructor registration with email prefilled
       navigate(`/register?instructor=true&email=${encodeURIComponent(email.trim())}`);
       return;
     }
 
     if (!password) {
-      alert("Please enter your password.");
+      setErrorMessage("Please enter your password.");
       return;
     }
     
     try {
+      setLoading(true);
       const user = await login(email, password);
-      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+      if (returnTo && typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('/login') && !returnTo.startsWith('/register')) {
+        navigate(returnTo);
+      } else if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
         navigate('/admin');
       } else if (user.role === 'INSTRUCTOR') {
         navigate('/instructor');
@@ -78,7 +87,9 @@ export const Login: React.FC = () => {
         navigate('/student');
       }
     } catch (error: any) {
-      alert(error?.message || "Login failed. Please check your credentials.");
+      setErrorMessage(error?.message || "Login failed. Please check your credentials.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -92,11 +103,7 @@ export const Login: React.FC = () => {
         <div className="max-w-md w-full bg-white p-8 rounded-2xl border border-[#E8DDD0] shadow-md space-y-6 text-left">
           
           <div className="text-center space-y-2">
-            <img 
-              src="/images/logo-1.png" 
-              alt="JADMAA Logo" 
-              className="h-14 w-auto mx-auto object-contain"
-            />
+            <ResponsiveImage src="/images/logo-1.png" alt="JADMAA Logo" width={64} height={64} priority={true} aspectRatio="1/1" className="h-14 sm:h-16 w-auto mx-auto object-contain" />
             <h1 className="font-heading font-extrabold text-2xl text-[#2B2521]">
               Login to JADMAA
             </h1>
@@ -104,6 +111,16 @@ export const Login: React.FC = () => {
               Enter your credentials to access your portal.
             </p>
           </div>
+
+          {errorMessage && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start space-x-2.5 animate-fadeIn">
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-bold">Login Notice</p>
+                <p className="text-[11px] leading-relaxed">{errorMessage}</p>
+              </div>
+            </div>
+          )}
 
           {instructorWarning && (
             <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-start space-x-2.5 animate-fadeIn">
@@ -218,9 +235,15 @@ export const Login: React.FC = () => {
 
             <button
               type="submit"
-              className="w-full py-3 px-4 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-sm rounded-lg shadow transition-all flex items-center justify-center space-x-2"
+              disabled={loading || checkingInstructor}
+              className="w-full py-3 px-4 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-sm rounded-lg shadow transition-all flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed"
             >
-              {applyAsInstructor ? (
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Logging in...</span>
+                </>
+              ) : applyAsInstructor ? (
                 <>
                   <Award className="w-4 h-4" />
                   <span>Register as Instructor</span>

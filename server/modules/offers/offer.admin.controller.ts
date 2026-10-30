@@ -59,6 +59,11 @@ export const getAdminOffers = async (req: Request, res: Response) => {
         ctaUrl: offer.ctaUrl || null,
         secondaryCtaText: offer.secondaryCtaText || null,
         secondaryCtaUrl: offer.secondaryCtaUrl || null,
+        eyebrow: offer.eyebrow || null,
+        headline: offer.headline || null,
+        imagePosition: offer.imagePosition || 'center',
+        imageTagline: offer.imageTagline || null,
+        benefits: offer.benefits || [],
         courseId: offer.courseId,
         courseTitle: offer.course?.title || null,
         originalPrice: offer.originalPrice,
@@ -160,6 +165,11 @@ export const createOffer = async (req: Request, res: Response) => {
       ctaUrl,
       secondaryCtaText,
       secondaryCtaUrl,
+      eyebrow,
+      headline,
+      imagePosition = 'center',
+      imageTagline,
+      benefits = [],
       termsAndConditions,
       supportEmail,
       supportPhone,
@@ -267,7 +277,7 @@ export const createOffer = async (req: Request, res: Response) => {
         category,
         customCategory: customCategory || null,
         targetAudience: targetAudience || null,
-        branchLocation: branchLocation || null,
+        branchLocation: category === 'ONLINE_COURSE' ? null : (branchLocation || null),
         courseId: resolvedCourseId || undefined,
         pricingType,
         discountPercent: rawDiscountPercent ? parseFloat(rawDiscountPercent) : null,
@@ -282,6 +292,11 @@ export const createOffer = async (req: Request, res: Response) => {
         ctaUrl: ctaUrl || null,
         secondaryCtaText: secondaryCtaText || null,
         secondaryCtaUrl: secondaryCtaUrl || null,
+        eyebrow: eyebrow || null,
+        headline: headline || null,
+        imagePosition: imagePosition || 'center',
+        imageTagline: imageTagline || null,
+        benefits: Array.isArray(benefits) ? benefits : [],
         termsAndConditions: termsAndConditions || null,
         supportEmail: supportEmail || 'info@jadmaa.com',
         supportPhone: supportPhone || '+91 93452 20020',
@@ -344,6 +359,11 @@ export const updateOffer = async (req: Request, res: Response) => {
       ctaUrl,
       secondaryCtaText,
       secondaryCtaUrl,
+      eyebrow,
+      headline,
+      imagePosition = 'center',
+      imageTagline,
+      benefits = [],
       termsAndConditions,
       supportEmail,
       supportPhone,
@@ -369,7 +389,12 @@ export const updateOffer = async (req: Request, res: Response) => {
     if (category !== undefined) updateData.category = category;
     if (customCategory !== undefined) updateData.customCategory = customCategory || null;
     if (targetAudience !== undefined) updateData.targetAudience = targetAudience || null;
-    if (branchLocation !== undefined) updateData.branchLocation = branchLocation || null;
+    const effectiveCategory = category !== undefined ? category : (existing as any).category;
+    if (effectiveCategory === 'ONLINE_COURSE') {
+      updateData.branchLocation = null;
+    } else if (branchLocation !== undefined) {
+      updateData.branchLocation = branchLocation || null;
+    }
     if (courseId !== undefined) updateData.courseId = courseId || null;
     if (pricingType !== undefined) updateData.pricingType = pricingType;
     if (discountPercent !== undefined) updateData.discountPercent = discountPercent !== null ? parseFloat(discountPercent) : null;
@@ -381,6 +406,11 @@ export const updateOffer = async (req: Request, res: Response) => {
     if (ctaUrl !== undefined) updateData.ctaUrl = ctaUrl || null;
     if (secondaryCtaText !== undefined) updateData.secondaryCtaText = secondaryCtaText || null;
     if (secondaryCtaUrl !== undefined) updateData.secondaryCtaUrl = secondaryCtaUrl || null;
+    if (eyebrow !== undefined) updateData.eyebrow = eyebrow || null;
+    if (headline !== undefined) updateData.headline = headline || null;
+    if (imagePosition !== undefined) updateData.imagePosition = imagePosition || 'center';
+    if (imageTagline !== undefined) updateData.imageTagline = imageTagline || null;
+    if (benefits !== undefined) updateData.benefits = Array.isArray(benefits) ? benefits : [];
     if (termsAndConditions !== undefined) updateData.termsAndConditions = termsAndConditions || null;
     if (supportEmail !== undefined) updateData.supportEmail = supportEmail || null;
     if (supportPhone !== undefined) updateData.supportPhone = supportPhone || null;

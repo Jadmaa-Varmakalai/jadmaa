@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { productApi } from '../../lib/api/productApi';
 import type { Product, ProductCategory } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -272,9 +273,13 @@ export const Products: React.FC = () => {
                       className="relative block w-full h-56 bg-gray-50 overflow-hidden"
                     >
                       {product.images && product.images[0] ? (
-                        <img
+                        <ResponsiveImage
                           src={product.images[0]}
                           alt={product.name}
+                          width={360}
+                          height={224}
+                          aspectRatio="16/10"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (

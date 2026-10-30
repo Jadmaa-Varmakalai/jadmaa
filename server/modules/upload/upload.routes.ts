@@ -1,9 +1,10 @@
 import { Router } from 'express';
 import { uploadImage } from './upload.controller.js';
+import { authenticate } from '../../middleware/auth.middleware.js';
 
 const router = Router();
 
-// Allow image uploads (used across admin, courses, blog, user profiles)
-router.post('/', uploadImage);
+// Protected image uploads (requires authenticated session)
+router.post('/', authenticate, uploadImage);
 
 export default router;

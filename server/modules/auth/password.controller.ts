@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { prisma } from '../../db.js';
 import { z } from 'zod';
 import { sendPasswordResetEmail, sendPasswordChangedEmail } from '../../services/email/email.service.js';
+import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email(),
@@ -150,6 +151,8 @@ export const resetPassword = async (req: Request, res: Response) => {
       })
     ]);
 
+    invalidateUserCache(userId);
+
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (user) {
       await sendPasswordChangedEmail(user.email, user.name);
@@ -208,6 +211,8 @@ export const changePassword = async (req: Request, res: Response) => {
         data: { revokedAt: new Date() }
       })
     ]);
+
+    invalidateUserCache(user.id);
 
     await sendPasswordChangedEmail(user.email, user.name);
 

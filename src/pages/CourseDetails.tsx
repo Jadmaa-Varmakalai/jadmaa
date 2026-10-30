@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { CurriculumAccordion } from '../components/courses/CurriculumAccordion';
 import { CourseCard, isOnlineCourse, getValidCourseThumbnail } from '../components/courses/CourseCard';
+import { ResponsiveImage } from '../components/common/ResponsiveImage';
 import { 
   Clock, Award, Play, ChevronRight, Share2, 
   BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star,
@@ -20,6 +21,7 @@ type PaymentStep = 'IDLE' | 'CREATING' | 'CHECKOUT_OPEN' | 'VERIFYING' | 'SUCCES
 export const CourseDetails: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isLoggedIn } = useAuth();
   
   const [course, setCourse] = useState<Course | null>(() => {
@@ -89,7 +91,7 @@ export const CourseDetails: React.FC = () => {
 
   const handleEnrollClick = async () => {
     if (!isLoggedIn) {
-      navigate('/login');
+      navigate('/login', { state: { returnTo: location.pathname } });
       return;
     }
     
@@ -387,13 +389,15 @@ export const CourseDetails: React.FC = () => {
               
               {/* Course Featured Banner / Video Frame */}
               <div className="relative rounded-2xl overflow-hidden aspect-[16/9] bg-black shadow-lg border border-[#E5E2DC] group">
-                <img 
+                <ResponsiveImage 
                   src={getValidCourseThumbnail(course)} 
                   alt={displayTitle}
+                  priority={true}
+                  width={800}
+                  height={450}
+                  aspectRatio="16/9"
+                  sizes="(max-width: 1024px) 100vw, 800px"
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
-                  }}
                 />
                 <div className="absolute inset-0 bg-black/35 flex items-center justify-center backdrop-blur-[1px]">
                   <button 
@@ -601,9 +605,12 @@ export const CourseDetails: React.FC = () => {
                 </h2>
                 
                 <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-5">
-                  <img 
+                  <ResponsiveImage 
                     src={course.instructor.avatar || '/images/logo-1.png'} 
                     alt={instructorName}
+                    width={80}
+                    height={80}
+                    aspectRatio="1/1"
                     className="w-20 h-20 rounded-full border-2 border-jadmaa-red object-cover bg-white shadow-sm"
                   />
                   <div>
@@ -707,7 +714,7 @@ export const CourseDetails: React.FC = () => {
                     {course.isAvailable !== false && course.status !== 'HOLD' && !isLoggedIn && (
                       <div className="text-center text-xs text-[#5C5148] mt-3 leading-relaxed">
                         New student?{' '}
-                        <Link to="/register" className="text-[#B12B2B] font-semibold hover:underline">
+                        <Link to={`/register?redirect=${encodeURIComponent(location.pathname)}`} className="text-[#B12B2B] font-semibold hover:underline">
                           Create your free account
                         </Link>{' '}
                         — it only takes a minute.

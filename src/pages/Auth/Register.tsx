@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { User, Mail, Phone, Lock, UserPlus, ArrowRight, Award, AlertCircle, Briefcase, GraduationCap, FileText } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -7,6 +8,8 @@ import { useAuth } from '../../context/AuthContext';
 export const Register: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
+  const redirectUrl = searchParams.get('redirect') || (location.state as any)?.returnTo;
   const { register } = useAuth();
 
   const isInstructorUrl = searchParams.get('instructor') === 'true' || searchParams.get('role') === 'instructor';
@@ -47,11 +50,11 @@ export const Register: React.FC = () => {
     setIsAlreadyInstructor(false);
 
     if (!formData.name || !formData.email || !formData.phone || !formData.password) {
-      alert("Please fill in all required fields.");
+      setErrorMessage("Please fill in all required fields.");
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match. Please re-enter.");
+      setErrorMessage("Passwords do not match. Please re-enter.");
       return;
     }
 
@@ -70,7 +73,11 @@ export const Register: React.FC = () => {
       if (applyAsInstructor) {
         alert("Registration successful!\n\nYour application to become an Instructor has been submitted to the Admin. Until approved, you can access your account as a student.");
       }
-      navigate('/student');
+      if (redirectUrl && typeof redirectUrl === 'string' && redirectUrl.startsWith('/') && !redirectUrl.startsWith('/login') && !redirectUrl.startsWith('/register')) {
+        navigate(redirectUrl);
+      } else {
+        navigate('/student');
+      }
     } catch (error: any) {
       if (error?.data?.isAlreadyInstructor || error?.message?.includes('already registered as an Instructor')) {
         setIsAlreadyInstructor(true);
@@ -94,11 +101,7 @@ export const Register: React.FC = () => {
         <div className="max-w-lg w-full bg-white p-8 rounded-2xl border border-[#E8DDD0] shadow-md space-y-6 text-left">
           
           <div className="text-center space-y-2">
-            <img 
-              src="/images/logo-1.png" 
-              alt="JADMAA Logo" 
-              className="h-14 w-auto mx-auto object-contain"
-            />
+            <ResponsiveImage src="/images/logo-1.png" alt="JADMAA Logo" width={64} height={64} priority={true} aspectRatio="1/1" className="h-14 sm:h-16 w-auto mx-auto object-contain" />
             <h1 className="font-heading font-extrabold text-2xl text-[#2B2521]">
               {applyAsInstructor ? 'Instructor Application & Registration' : 'Register Account'}
             </h1>

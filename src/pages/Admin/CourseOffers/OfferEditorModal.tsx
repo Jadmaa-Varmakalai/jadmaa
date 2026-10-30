@@ -4,6 +4,7 @@ import type { CourseOfferItem } from '../../../lib/api/offerApi';
 import { adminApi } from '../../../lib/api/adminApi';
 import { CampaignImageUploader } from './CampaignImageUploader';
 import { PremiumCampaignPopup } from '../../../components/offers/PremiumCampaignPopup';
+import { PremiumCampaignLandingPage } from '../../../components/campaigns';
 import {
   X, Sparkles, AlertCircle, Clock, Tag,
   Eye, Monitor, Smartphone, Palette, Calendar,
@@ -85,6 +86,15 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const [popupImageUrl, setPopupImageUrl] = useState('');
   const [mobileImageUrl, setMobileImageUrl] = useState('');
 
+  // Editorial Campaign Design Fields
+  const [headline, setHeadline] = useState('');
+  const [eyebrow, setEyebrow] = useState('');
+  const [imagePosition, setImagePosition] = useState('center');
+  const [imageTagline, setImageTagline] = useState('');
+  const [benefit1, setBenefit1] = useState('');
+  const [benefit2, setBenefit2] = useState('');
+  const [benefit3, setBenefit3] = useState('');
+
   // Branding & CTA
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [primaryColor, setPrimaryColor] = useState('#991B1B');
@@ -145,6 +155,14 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setBannerImageUrl(offer.bannerImageUrl || '');
       setPopupImageUrl(offer.popupImageUrl || '');
       setMobileImageUrl(offer.mobileImageUrl || '');
+      setHeadline(offer.headline || '');
+      setEyebrow(offer.eyebrow || '');
+      setImagePosition(offer.imagePosition || 'center');
+      setImageTagline(offer.imageTagline || '');
+      const bList = Array.isArray(offer.benefits) ? offer.benefits : [];
+      setBenefit1(bList[0] || '');
+      setBenefit2(bList[1] || '');
+      setBenefit3(bList[2] || '');
       setTheme((offer.theme as any) || 'light');
       setPrimaryColor(offer.primaryColor || '#991B1B');
       setSecondaryColor(offer.secondaryColor || '#141416');
@@ -181,9 +199,16 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setDiscountAmountVal('');
       setShortDescription('');
       setDescription('');
-      setBannerImageUrl('/images/wellness-682x1024.png');
+      setBannerImageUrl('');
       setPopupImageUrl('');
       setMobileImageUrl('');
+      setHeadline('');
+      setEyebrow('');
+      setImagePosition('center');
+      setImageTagline('');
+      setBenefit1('');
+      setBenefit2('');
+      setBenefit3('');
       setTheme('light');
       setPrimaryColor('#991B1B');
       setSecondaryColor('#141416');
@@ -243,6 +268,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       case 'ONLINE_COURSE':
         setCtaType('ENROLL_COURSE');
         setCtaText('Enrol in Online Course');
+        setBranchLocation('');
         break;
       case 'VARMA_TREATMENT':
         setCtaType('BOOK_TREATMENT');
@@ -299,6 +325,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const effectiveDiscountPercent = originalPrice > 0 && originalPrice > effectiveOfferPrice
     ? Math.round(((originalPrice - effectiveOfferPrice) / originalPrice) * 100)
     : 0;
+  const effectiveDiscountAmount = Math.max(0, originalPrice - effectiveOfferPrice);
 
   // Form Submit Handler
   const handleSubmit = async (e: React.FormEvent, targetStatus?: 'DRAFT' | 'PUBLISHED') => {
@@ -336,7 +363,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       category,
       customCategory: category === 'CUSTOM' ? customCategory.trim() : null,
       targetAudience: targetAudience.trim() || null,
-      branchLocation: branchLocation.trim() || null,
+      branchLocation: category === 'ONLINE_COURSE' ? null : (branchLocation.trim() || null),
       courseId: category === 'ONLINE_COURSE' && courseId ? courseId : null,
       pricingType,
       originalPrice,
@@ -355,6 +382,11 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       ctaUrl: ctaUrl.trim() || null,
       secondaryCtaText: secondaryCtaText.trim() || null,
       secondaryCtaUrl: secondaryCtaUrl.trim() || null,
+      headline: headline.trim() || null,
+      eyebrow: eyebrow.trim() || null,
+      imagePosition: imagePosition || 'center',
+      imageTagline: imageTagline.trim() || null,
+      benefits: [benefit1, benefit2, benefit3].map(b => b.trim()).filter(Boolean),
       termsAndConditions: termsAndConditions.trim() || null,
       supportEmail: supportEmail.trim() || 'info@jadmaa.com',
       supportPhone: supportPhone.trim() || '+91 93452 20020',
@@ -518,22 +550,37 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Applicable Branch / Location
-                  </label>
-                  <select
-                    value={branchLocation}
-                    onChange={(e) => setBranchLocation(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600"
-                  >
-                    <option value="All Branches">All Branches (Thanjavur, Kumbakonam & Ariyalur)</option>
-                    <option value="Thanjavur">Thanjavur Headquarters</option>
-                    <option value="Kumbakonam">Kumbakonam Branch</option>
-                    <option value="Ariyalur">Ariyalur Branch</option>
-                    <option value="Online">Online / Remote Session</option>
-                  </select>
-                </div>
+                {/* Physical Branch Location only applies to in-person campaigns (Treatments, Offline batches, Camps, etc.) */}
+                {category !== 'ONLINE_COURSE' ? (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Applicable Branch / Location
+                    </label>
+                    <select
+                      value={branchLocation}
+                      onChange={(e) => setBranchLocation(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600"
+                    >
+                      <option value="All Branches">All Branches (Thanjavur, Kumbakonam & Ariyalur)</option>
+                      <option value="Thanjavur">Thanjavur Headquarters</option>
+                      <option value="Kumbakonam">Kumbakonam Branch</option>
+                      <option value="Ariyalur">Ariyalur Branch</option>
+                    </select>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Target Audience / Eligibility (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={targetAudience}
+                      onChange={(e) => setTargetAudience(e.target.value)}
+                      placeholder="e.g. Beginners, All skill levels, Age 12+"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -611,21 +658,12 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                      Campaign Artwork & Device Uploads
+                      Campaign Artwork &amp; Independent Device Uploads
                     </span>
                     <span className="text-[10px] bg-red-100 text-red-700 font-extrabold px-2 py-0.5 rounded-full">
-                      Device Upload
+                      16:9 Landscape Verified
                     </span>
                   </div>
-                  {bannerImageUrl && !popupImageUrl && (
-                    <button
-                      type="button"
-                      onClick={() => setPopupImageUrl(bannerImageUrl)}
-                      className="text-[11px] font-semibold text-red-700 hover:text-red-800 transition cursor-pointer"
-                    >
-                      Use Landing Page Image for Popup Too
-                    </button>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -633,13 +671,11 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
                     <CampaignImageUploader
                       label="1. Popup Campaign Image"
-                      sublabel="Used for website promotional modal"
+                      sublabel="Used only for promotional popup"
                       recommendedAspect="4:5 or 1:1"
+                      expectedAspect="4:5"
                       value={popupImageUrl}
                       onChange={(url) => setPopupImageUrl(url)}
-                      onCopyFrom={bannerImageUrl ? () => setPopupImageUrl(bannerImageUrl) : undefined}
-                      copyFromLabel="Use Landing Hero"
-                      previewHeightClass="h-44"
                     />
                   </div>
 
@@ -647,27 +683,127 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
                     <CampaignImageUploader
                       label="2. Landing Page Hero Image"
-                      sublabel="Large hero photograph on /offers/:slug"
-                      recommendedAspect="16:9 or Vertical Cut"
+                      sublabel="Full-height 16:9 landscape hero on /offers/:slug"
+                      recommendedAspect="16:9 Landscape"
+                      expectedAspect="16:9"
                       value={bannerImageUrl}
                       onChange={(url) => setBannerImageUrl(url)}
-                      onCopyFrom={popupImageUrl ? () => setBannerImageUrl(popupImageUrl) : undefined}
-                      copyFromLabel="Use Popup Image"
-                      previewHeightClass="h-44"
                     />
                   </div>
 
                   {/* 3. Optional Mobile Image */}
                   <div className="p-3.5 rounded-xl bg-white border border-gray-200 shadow-2xs">
                     <CampaignImageUploader
-                      label="3. Mobile Image (Optional)"
-                      sublabel="Optimized crop for smartphone screens"
-                      recommendedAspect="16:9 banner"
+                      label="3. Mobile Hero Image (Optional)"
+                      sublabel="16:9 mobile artwork (leave empty to reuse desktop hero)"
+                      recommendedAspect="16:9 Mobile"
+                      expectedAspect="16:9"
                       value={mobileImageUrl}
                       onChange={(url) => setMobileImageUrl(url)}
-                      onCopyFrom={popupImageUrl || bannerImageUrl ? () => setMobileImageUrl(popupImageUrl || bannerImageUrl) : undefined}
-                      copyFromLabel="Use Main Image"
-                      previewHeightClass="h-44"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2b. Master Editorial Landing Page Typography & Presentation */}
+              <div className="pt-4 border-t border-gray-200 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-600" />
+                  <span className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                    Master Landing Page Editorial &amp; Positioning
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Campaign Eyebrow (Uppercase Label)
+                    </label>
+                    <input
+                      type="text"
+                      value={eyebrow}
+                      onChange={(e) => setEyebrow(e.target.value)}
+                      placeholder="e.g. ANCIENT SCIENCE FOR"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-medium"
+                    />
+                    <p className="text-[11px] text-gray-400 mt-1">Letter-spaced line displayed right above the primary heading.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Hero Photograph Focal Position
+                    </label>
+                    <select
+                      value={imagePosition}
+                      onChange={(e) => setImagePosition(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-medium"
+                    >
+                      <option value="center">Center (Default)</option>
+                      <option value="center top">Center Top (Portrait/Face)</option>
+                      <option value="center 25%">Center 25% (High Action)</option>
+                      <option value="center 35%">Center 35%</option>
+                      <option value="center bottom">Center Bottom</option>
+                      <option value="left center">Left Center</option>
+                      <option value="right center">Right Center</option>
+                    </select>
+                    <p className="text-[11px] text-gray-400 mt-1">Controls CSS object-position for wide screens.</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Editorial Campaign Headline (Serif Master Heading)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={headline}
+                    onChange={(e) => setHeadline(e.target.value)}
+                    placeholder="e.g. A Healthier&#10;Stronger You"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-serif focus:outline-none focus:border-red-600 resize-none"
+                  />
+                  <p className="text-[11px] text-gray-400 mt-1">
+                    Press Enter to control line breaks. Leave empty to automatically use the Campaign Title.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Image Tagline (Top-Right Italic Overlay on Photograph)
+                  </label>
+                  <input
+                    type="text"
+                    value={imageTagline}
+                    onChange={(e) => setImageTagline(e.target.value)}
+                    placeholder="e.g. Empowering your wellness naturally"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm italic focus:outline-none focus:border-red-600"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                    Key Programme Highlights / Benefits (Up to 3)
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={benefit1}
+                      onChange={(e) => setBenefit1(e.target.value)}
+                      placeholder="Benefit 1 (e.g. Relieve Chronic Pain)"
+                      className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs focus:outline-none focus:border-red-600"
+                    />
+                    <input
+                      type="text"
+                      value={benefit2}
+                      onChange={(e) => setBenefit2(e.target.value)}
+                      placeholder="Benefit 2 (e.g. Nerve Pathway Stimulation)"
+                      className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs focus:outline-none focus:border-red-600"
+                    />
+                    <input
+                      type="text"
+                      value={benefit3}
+                      onChange={(e) => setBenefit3(e.target.value)}
+                      placeholder="Benefit 3 (e.g. Certified Varma Masters)"
+                      className="px-3 py-2 rounded-lg border border-gray-200 bg-white text-xs focus:outline-none focus:border-red-600"
                     />
                   </div>
                 </div>
@@ -787,8 +923,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                     onChange={(e) => setTheme(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600"
                   >
-                    <option value="light">Clean Light Surface</option>
-                    <option value="dark">Charcoal Dark Surface</option>
+                    <option value="light">Warm Ivory Surface (Standard)</option>
                   </select>
                 </div>
 
@@ -1190,55 +1325,37 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   />
                 </div>
               ) : (
-                /* Landing Page Hero Preview (Site Warm Theme Layout) */
-                <div className="w-full max-w-3xl rounded-2xl overflow-hidden border border-[#E8DDD0] bg-[#FAF6F0] text-[#2B2521] shadow-2xl p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-                    <div className="md:col-span-7 space-y-3">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-100 text-[#B12B2B] border border-red-200">
-                          {category === 'CUSTOM' ? customCategory.toUpperCase() : category.replace('_', ' ')}
-                        </span>
-                        {branchLocation && (
-                          <span className="text-[10px] text-[#5C5148] font-semibold bg-white border border-[#E8DDD0] px-2 py-0.5 rounded-full">
-                            📍 {branchLocation}
-                          </span>
-                        )}
-                      </div>
-                      <h2 className="text-2xl font-black font-heading leading-tight text-[#2B2521]">
-                        {title || 'Campaign Title'}
-                      </h2>
-                      <p className="text-xs text-[#5C5148] leading-relaxed line-clamp-3">
-                        {description || shortDescription || 'Campaign description overview...'}
-                      </p>
-                      <div className="flex items-baseline gap-3 pt-1">
-                        <span className="text-3xl font-black font-heading text-[#B12B2B]">
-                          ₹{effectiveOfferPrice.toLocaleString('en-IN')}
-                        </span>
-                        {originalPrice > effectiveOfferPrice && (
-                          <span className="text-base text-[#8C7E72] line-through">
-                            ₹{originalPrice.toLocaleString('en-IN')}
-                          </span>
-                        )}
-                      </div>
-                      <div className="pt-2 flex items-center gap-2">
-                        <button
-                          style={{ backgroundColor: primaryColor }}
-                          className="px-5 py-2.5 rounded-xl text-white font-bold text-xs shadow-md"
-                        >
-                          {ctaText || 'Book Session Now'}
-                        </button>
-                      </div>
-                    </div>
-                    <div className="md:col-span-5 relative">
-                      <div className="rounded-2xl overflow-hidden border-4 border-white bg-white shadow-xl h-56">
-                        <img
-                          src={bannerImageUrl || popupImageUrl || '/images/wellness-682x1024.png'}
-                          alt="Hero Preview"
-                          className="w-full h-full object-cover object-top"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                /* Master Premium Campaign Landing Page Live Preview */
+                <div className="w-full max-w-[1300px] max-h-[82vh] overflow-y-auto rounded-2xl overflow-hidden border border-[#D9C4A8] shadow-2xl bg-[#F8F4EB]">
+                  <PremiumCampaignLandingPage
+                    campaign={{
+                      id: offer?.id || 'preview',
+                      title: title || 'Campaign Title',
+                      slug: slug || 'preview-campaign',
+                      category: category === 'CUSTOM' ? (customCategory || 'SPECIAL CAMPAIGN') : category.replace(/_/g, ' '),
+                      eyebrow: eyebrow || 'ANCIENT SCIENCE FOR',
+                      headline: headline || title || 'A Healthier\nStronger You',
+                      description: description || shortDescription || 'Experience authentic Varma treatment by experienced practitioners.',
+                      brandLogo: '/logo.png',
+                      heroImage: bannerImageUrl || '/images/wellness-682x1024.png',
+                      mobileHeroImage: mobileImageUrl || bannerImageUrl || '/images/wellness-682x1024.png',
+                      imagePosition: imagePosition || 'center',
+                      imageTagline: imageTagline || 'Empowering your wellness naturally',
+                      discountType: effectiveDiscountPercent > 0 ? 'percentage' : 'none',
+                      discountValue: effectiveDiscountPercent > 0 ? effectiveDiscountPercent : undefined,
+                      originalPrice: originalPrice > 0 ? originalPrice : undefined,
+                      promotionalPrice: effectiveOfferPrice > 0 ? effectiveOfferPrice : undefined,
+                      showCountdown: countdownEnabled,
+                      expiresAt: expiresAt || new Date(Date.now() + 14 * 86400000).toISOString(),
+                      benefits: [benefit1, benefit2, benefit3].map(b => b.trim()).filter(Boolean),
+                      primaryCtaText: ctaText || 'Book Your Session',
+                      primaryCtaAction: ctaType || 'BOOK_TREATMENT',
+                      secondaryCtaText: secondaryCtaText || 'View Details',
+                      termsAndConditions: termsAndConditions || undefined
+                    }}
+                    onPrimaryAction={() => {}}
+                    onSecondaryAction={() => {}}
+                  />
                 </div>
               )}
             </div>

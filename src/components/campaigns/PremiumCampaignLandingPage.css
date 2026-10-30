@@ -1,0 +1,782 @@
+/* ==========================================================================
+   JADMAA MASTER PREMIUM CAMPAIGN LANDING PAGE TEMPLATE
+   Design System Tokens:
+   - Warm Ivory: #F8F4EB
+   - Deep Red: #A91414
+   - Dark Red: #7E1515
+   - Near Black: #17120E
+   - Earthy Brown: #6B3C2B
+   - Antique Gold: #C49A58
+   - Sand Badge: #EAD8BD
+   ========================================================================== */
+
+:root {
+  --campaign-ivory: #f8f4eb;
+  --campaign-ivory-dark: #eee8d8;
+  --campaign-red: #a91414;
+  --campaign-red-dark: #7e1515;
+  --campaign-black: #17120e;
+  --campaign-brown: #6b3c2b;
+  --campaign-gold: #c49a58;
+  --campaign-sand: #ead8bd;
+  --campaign-sand-text: #281a10;
+  --campaign-text-muted: #5c5148;
+  --campaign-border: #d9c4a8;
+}
+
+.campaign-page {
+  min-height: 100vh;
+  background-color: var(--campaign-ivory);
+  color: var(--campaign-black);
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* --------------------------------------------------------------------------
+   HERO SECTION (TWO-COLUMN 50% / 50% FULL-WIDTH SPLIT SCREEN)
+   -------------------------------------------------------------------------- */
+.campaign-hero {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  min-height: 85vh;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--campaign-ivory);
+}
+
+/* --------------------------------------------------------------------------
+   LEFT CONTENT PANEL
+   -------------------------------------------------------------------------- */
+.campaign-content,
+.campaign-left {
+  min-width: 0;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(32px, 5vw, 88px);
+  background-color: var(--campaign-ivory);
+  box-sizing: border-box;
+}
+
+/* Brand Header */
+.campaign-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.campaign-brand-logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  display: block;
+}
+
+.campaign-brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.campaign-brand-text strong {
+  font-size: 18px;
+  font-weight: 850;
+  letter-spacing: 0.5px;
+  color: var(--campaign-black);
+  line-height: 1.15;
+}
+
+.campaign-brand-text span {
+  font-size: 9.5px;
+  letter-spacing: 2.5px;
+  font-weight: 700;
+  color: var(--campaign-brown);
+  text-transform: uppercase;
+}
+
+/* Badges */
+.campaign-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.campaign-category,
+.campaign-discount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-radius: 2px;
+}
+
+.campaign-category {
+  background-color: var(--campaign-sand);
+  color: var(--campaign-sand-text);
+  border: 1px solid rgba(107, 60, 43, 0.15);
+}
+
+.campaign-discount {
+  background-color: var(--campaign-red);
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(169, 20, 20, 0.22);
+}
+
+/* Eyebrow */
+.campaign-eyebrow {
+  margin: 0 0 10px;
+  font-size: clamp(12px, 1vw, 14px);
+  font-weight: 750;
+  letter-spacing: 6.5px;
+  color: var(--campaign-brown);
+  text-transform: uppercase;
+}
+
+/* Editorial Headline */
+.campaign-heading {
+  max-width: 740px;
+  margin: 0 0 18px;
+  font-family: 'Georgia', 'Times New Roman', Garamond, serif;
+  font-size: clamp(44px, 5.2vw, 86px);
+  line-height: 0.98;
+  font-weight: 750;
+  letter-spacing: -2.5px;
+  color: #17100c;
+  white-space: pre-line;
+}
+
+/* Dynamic Description */
+.campaign-description {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(15px, 1.25vw, 19px);
+  line-height: 1.6;
+  color: #46403a;
+  font-weight: 400;
+}
+
+/* Pricing Hierarchy */
+.campaign-prices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.campaign-prices strong {
+  font-size: clamp(34px, 3.8vw, 56px);
+  font-weight: 850;
+  color: var(--campaign-red);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.campaign-prices del {
+  font-size: clamp(18px, 1.8vw, 26px);
+  color: #8c827a;
+  font-weight: 500;
+  text-decoration: line-through;
+}
+
+.campaign-prices .campaign-price-badge {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  background-color: #f7ebe6;
+  color: var(--campaign-red);
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+/* Countdown Timer */
+.campaign-countdown {
+  margin-top: 22px;
+  padding: 16px 20px;
+  background-color: #f9e8e4;
+  border: 1px solid #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 4px 18px rgba(126, 21, 21, 0.06);
+  max-width: 580px;
+}
+
+.countdown-label {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  font-weight: 750;
+  letter-spacing: 2px;
+  color: #7d332b;
+  text-transform: uppercase;
+}
+
+.countdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+}
+
+.countdown-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 8px;
+  border-right: 1px solid #e6c6bd;
+}
+
+.countdown-item:last-child {
+  border-right: 0;
+}
+
+.countdown-item strong {
+  font-size: clamp(24px, 2.4vw, 36px);
+  font-weight: 800;
+  color: var(--campaign-red);
+  line-height: 1;
+}
+
+.countdown-item span {
+  font-size: 11px;
+  font-weight: 600;
+  color: #7d332b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+
+/* CTA Actions */
+.campaign-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 26px;
+  max-width: 580px;
+}
+
+.campaign-primary-button,
+.campaign-secondary-button {
+  min-height: 58px;
+  padding: 0 28px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 180ms ease;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.campaign-primary-button {
+  flex: 1.2;
+  min-width: 220px;
+  border: 0;
+  background-color: var(--campaign-red);
+  color: #ffffff;
+  box-shadow: 0 6px 20px rgba(169, 20, 20, 0.28);
+}
+
+.campaign-primary-button:hover {
+  background-color: var(--campaign-red-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(169, 20, 20, 0.36);
+}
+
+.campaign-primary-button svg {
+  transition: transform 180ms ease;
+}
+
+.campaign-primary-button:hover svg {
+  transform: translateX(4px);
+}
+
+.campaign-secondary-button {
+  flex: 1;
+  min-width: 170px;
+  border: 1.5px solid var(--campaign-black);
+  background-color: transparent;
+  color: var(--campaign-black);
+}
+
+.campaign-secondary-button:hover {
+  background-color: rgba(234, 216, 189, 0.45);
+  transform: translateY(-2px);
+}
+
+/* Campaign Benefits */
+.campaign-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 28px;
+  max-width: 620px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(217, 196, 168, 0.6);
+}
+
+.campaign-benefit-item {
+  flex: 1;
+  min-width: 130px;
+  padding-right: 14px;
+  border-right: 1px solid var(--campaign-border);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.4;
+  color: #3b281b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.campaign-benefit-item:last-child {
+  border-right: 0;
+}
+
+.campaign-benefit-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--campaign-red);
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   RIGHT IMAGE PANEL
+   -------------------------------------------------------------------------- */
+.campaign-right {
+  position: relative;
+  min-height: 92vh;
+  overflow: hidden;
+  background-color: #28170e;
+}
+
+.campaign-right picture,
+.campaign-hero-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.campaign-hero-image {
+  position: absolute;
+  inset: 0;
+  object-fit: cover;
+  transition: transform 400ms ease;
+}
+
+/* Cinematic Vignette Overlay */
+.campaign-image-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 75% 35%, rgba(0, 0, 0, 0) 30%, rgba(23, 18, 14, 0.35) 80%, rgba(23, 18, 14, 0.65) 100%),
+              linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0%, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.35) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Tagline Overlay (Top-Right Editorial Serif) */
+.campaign-image-tagline {
+  position: absolute;
+  top: 8%;
+  right: 7%;
+  max-width: 280px;
+  color: #ffffff;
+  font-family: 'Georgia', Garamond, serif;
+  font-size: clamp(22px, 2.4vw, 38px);
+  font-style: italic;
+  line-height: 1.15;
+  text-align: right;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.65);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   REFINED ORGANIC BRUSH STROKE DIVIDER
+   -------------------------------------------------------------------------- */
+.campaign-brush-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 54px;
+  height: 100%;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.campaign-brush-divider svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* --------------------------------------------------------------------------
+   TERMS & CONDITIONS FOOTER
+   -------------------------------------------------------------------------- */
+.campaign-terms {
+  background-color: #f2ebe0;
+  border-top: 1px solid var(--campaign-border);
+  padding: 28px clamp(20px, 4vw, 60px);
+  text-align: center;
+  font-size: 12.5px;
+  color: #655a50;
+  line-height: 1.7;
+}
+
+.campaign-terms-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.campaign-terms-inner strong {
+  color: #2b231d;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* --------------------------------------------------------------------------
+   ENQUIRY / REGISTRATION MODAL
+   -------------------------------------------------------------------------- */
+.campaign-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(23, 18, 14, 0.78);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999;
+  animation: campaignFadeIn 220ms ease;
+}
+
+.campaign-modal-content {
+  background-color: var(--campaign-ivory);
+  border: 1px solid var(--campaign-border);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 520px;
+  padding: clamp(24px, 4vw, 36px);
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  animation: campaignSlideUp 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+.campaign-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: transparent;
+  border: 0;
+  color: #5c5148;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.campaign-modal-close:hover {
+  background-color: rgba(107, 60, 43, 0.12);
+  color: var(--campaign-black);
+}
+
+.campaign-modal-header {
+  margin-bottom: 22px;
+}
+
+.campaign-modal-category {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  color: var(--campaign-red);
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.campaign-modal-title {
+  font-family: 'Georgia', serif;
+  font-size: clamp(22px, 3vw, 28px);
+  color: var(--campaign-black);
+  margin: 0 0 6px;
+  font-weight: 750;
+  line-height: 1.15;
+}
+
+.campaign-modal-subtitle {
+  font-size: 13.5px;
+  color: #5c5148;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.campaign-form-group {
+  margin-bottom: 16px;
+}
+
+.campaign-form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #3d3027;
+  margin-bottom: 6px;
+}
+
+.campaign-form-input,
+.campaign-form-select,
+.campaign-form-textarea {
+  width: 100%;
+  padding: 12px 14px;
+  background-color: #ffffff;
+  border: 1.5px solid #d9c4a8;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--campaign-black);
+  font-family: inherit;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  box-sizing: border-box;
+}
+
+.campaign-form-input:focus,
+.campaign-form-select:focus,
+.campaign-form-textarea:focus {
+  outline: none;
+  border-color: var(--campaign-red);
+  box-shadow: 0 0 0 3px rgba(169, 20, 20, 0.15);
+}
+
+.campaign-modal-submit {
+  width: 100%;
+  min-height: 52px;
+  background-color: var(--campaign-red);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: background-color 150ms ease, transform 150ms ease;
+  margin-top: 8px;
+}
+
+.campaign-modal-submit:hover:not(:disabled) {
+  background-color: var(--campaign-red-dark);
+  transform: translateY(-1px);
+}
+
+.campaign-modal-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.campaign-modal-success {
+  text-align: center;
+  padding: 20px 8px;
+}
+
+.campaign-modal-success-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #e5f5e8;
+  color: #1e7e34;
+  margin-bottom: 16px;
+}
+
+@keyframes campaignFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes campaignSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE LAYOUTS
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .campaign-hero {
+    grid-template-columns: 52% 48%;
+  }
+
+  .campaign-heading {
+    font-size: clamp(40px, 4.8vw, 68px);
+  }
+}
+
+@media (max-width: 900px) {
+  .campaign-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .campaign-left {
+    padding: 46px 6vw;
+    order: 2;
+  }
+
+  .campaign-right {
+    min-height: 480px;
+    height: 55vw;
+    order: 1;
+  }
+
+  .campaign-brush-divider {
+    top: auto;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 42px;
+    transform: rotate(180deg);
+  }
+
+  .campaign-image-tagline {
+    top: auto;
+    bottom: 24%;
+    right: 6%;
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 640px) {
+  .campaign-left {
+    padding: 32px 22px;
+  }
+
+  .campaign-brand {
+    margin-bottom: 22px;
+  }
+
+  .campaign-brand-logo {
+    width: 40px;
+    height: 40px;
+  }
+
+  .campaign-brand-text strong {
+    font-size: 16px;
+  }
+
+  .campaign-labels {
+    margin-bottom: 18px;
+    gap: 8px;
+  }
+
+  .campaign-category,
+  .campaign-discount {
+    padding: 6px 12px;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+  }
+
+  .campaign-eyebrow {
+    letter-spacing: 4.5px;
+    font-size: 12px;
+  }
+
+  .campaign-heading {
+    font-size: clamp(38px, 11vw, 54px);
+    letter-spacing: -1.5px;
+    margin-bottom: 14px;
+  }
+
+  .campaign-description {
+    font-size: 15px;
+  }
+
+  .campaign-prices {
+    margin-top: 18px;
+    gap: 14px;
+  }
+
+  .campaign-prices strong {
+    font-size: 36px;
+  }
+
+  .campaign-countdown {
+    margin-top: 18px;
+    padding: 12px 14px;
+  }
+
+  .countdown-item strong {
+    font-size: 24px;
+  }
+
+  .countdown-item span {
+    font-size: 10px;
+  }
+
+  .campaign-buttons {
+    flex-direction: column;
+    margin-top: 20px;
+    gap: 10px;
+  }
+
+  .campaign-primary-button,
+  .campaign-secondary-button {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .campaign-benefits {
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid var(--campaign-border);
+    padding-top: 16px;
+  }
+
+  .campaign-benefit-item {
+    border-right: 0;
+    padding-right: 0;
+  }
+
+  .campaign-right {
+    min-height: 360px;
+    height: 75vw;
+  }
+}
+

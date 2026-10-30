@@ -54,10 +54,14 @@ export const Courses: React.FC = () => {
     const matchesLevel = selectedLevel === 'All' || course.level === selectedLevel;
 
     // Search query
-    const matchesSearch = 
-      (course.title || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
-      (course.description || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (course.category || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const query = searchQuery.trim().toLowerCase();
+    const instructorName = typeof course.instructor === 'object' && course.instructor ? ((course.instructor as any).name || (course.instructor as any).displayName || '') : '';
+    const matchesSearch = !query ||
+      (course.title || '').toLowerCase().includes(query) || 
+      (course.description || '').toLowerCase().includes(query) ||
+      (course.category || '').toLowerCase().includes(query) ||
+      (course.subtitle || '').toLowerCase().includes(query) ||
+      instructorName.toLowerCase().includes(query);
 
     return matchesCategory && matchesLevel && matchesSearch;
   });

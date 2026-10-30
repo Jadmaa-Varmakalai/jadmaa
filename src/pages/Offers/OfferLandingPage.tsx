@@ -6,34 +6,13 @@ import type { PublicOfferDetails } from '../../lib/api/offerApi';
 import { loadRazorpayScript } from '../../lib/razorpay';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Clock, CheckCircle, ShieldCheck, Award, BookOpen,
-  ArrowRight, Phone, Mail, AlertTriangle, Users, Play, ChevronDown,
-  ChevronUp, Lock, Check, Share2, Copy, Flame, MapPin, Calendar,
-  MessageCircle, Send, X, Sparkles
+  PremiumCampaignLandingPage,
+  adaptOfferToCampaignData,
+} from '../../components/campaigns';
+import {
+  AlertTriangle, Check, Copy, X, Send,
+  BookOpen, ChevronDown, ChevronUp, Play
 } from 'lucide-react';
-
-const getCategoryDisplay = (category?: string, customCategory?: string) => {
-  if (customCategory) return customCategory.toUpperCase();
-  switch (category) {
-    case 'VARMA_TREATMENT':
-      return 'VARMA THERAPY & TREATMENT';
-    case 'OFFLINE_CLASS':
-      return 'OFFLINE MARTIAL ARTS CLASSES';
-    case 'SPECIAL_CAMP':
-      return 'INTENSIVE RESIDENTIAL CAMP';
-    case 'WORKSHOP':
-      return 'MASTER WORKSHOP';
-    case 'SEMINAR':
-      return 'ACADEMY SEMINAR';
-    case 'SPECIAL_EVENT':
-      return 'SPECIAL EVENT';
-    case 'ACADEMY_PROGRAMME':
-      return 'ACADEMY PROGRAMME';
-    case 'ONLINE_COURSE':
-    default:
-      return 'ONLINE MARTIAL ARTS COURSE';
-  }
-};
 
 export const OfferLandingPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -43,7 +22,7 @@ export const OfferLandingPage: React.FC = () => {
   const [offer, setOffer] = useState<PublicOfferDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [paymentStep, setPaymentStep] = useState<'IDLE' | 'PROCESSING' | 'VERIFYING' | 'SUCCESS' | 'FAILED'>('IDLE');
+  const [, setPaymentStep] = useState<'IDLE' | 'PROCESSING' | 'VERIFYING' | 'SUCCESS' | 'FAILED'>('IDLE');
   const [copied, setCopied] = useState(false);
   const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
 
@@ -58,15 +37,6 @@ export const OfferLandingPage: React.FC = () => {
   const [enquirySuccessData, setEnquirySuccessData] = useState<{ bookingNumber: string; customerName: string } | null>(null);
   const [enquiryError, setEnquiryError] = useState<string | null>(null);
 
-  // Live countdown state
-  const [timeLeft, setTimeLeft] = useState<{
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-    isExpired: boolean;
-  } | null>(null);
-
   // Fetch offer details
   useEffect(() => {
     if (!slug) return;
@@ -77,7 +47,9 @@ export const OfferLandingPage: React.FC = () => {
         const res = await offerApi.getOfferBySlug(slug);
         if (res.success && res.data) {
           setOffer(res.data);
-          if (res.data.branchLocation) {
+          if (res.data.category === 'ONLINE_COURSE') {
+            setEnquiryBranch('Online');
+          } else if (res.data.branchLocation) {
             setEnquiryBranch(res.data.branchLocation);
           }
         } else {
@@ -92,36 +64,6 @@ export const OfferLandingPage: React.FC = () => {
     fetchOffer();
   }, [slug]);
 
-  // Real-time countdown timer
-  useEffect(() => {
-    if (!offer || !offer.countdownEnabled || !offer.expiresAt) {
-      setTimeLeft(null);
-      return;
-    }
-
-    const calculateTime = () => {
-      const now = new Date().getTime();
-      const expiry = new Date(offer.expiresAt!).getTime();
-      const diff = expiry - now;
-
-      if (diff <= 0) {
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isExpired: true });
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      setTimeLeft({ days, hours, minutes, seconds, isExpired: false });
-    };
-
-    calculateTime();
-    const timer = setInterval(calculateTime, 1000);
-    return () => clearInterval(timer);
-  }, [offer]);
-
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -130,7 +72,7 @@ export const OfferLandingPage: React.FC = () => {
 
   // Online Course Razorpay Payment Flow
   const handleCourseBooking = async () => {
-    if (!offer || !offer.isBookable || (timeLeft && timeLeft.isExpired)) {
+    if (!offer || !offer.isBookable) {
       alert('This offer has ended or is unavailable for bookings.');
       return;
     }
@@ -175,7 +117,7 @@ export const OfferLandingPage: React.FC = () => {
           contact: (prefill?.contact || '').replace(/[^0-9+]/g, '')
         },
         theme: {
-          color: offer.primaryColor || '#B12B2B',
+          color: offer.primaryColor || '#A91414',
           backdrop_color: 'rgba(0, 0, 0, 0.7)'
         },
         modal: {
@@ -244,6 +186,22 @@ export const OfferLandingPage: React.FC = () => {
     }
   };
 
+  // Secondary Action Handler
+  const handleSecondaryAction = () => {
+    if (!offer) return;
+    if (offer.secondaryCtaUrl) {
+      if (offer.secondaryCtaUrl.startsWith('http')) {
+        window.open(offer.secondaryCtaUrl, '_blank');
+      } else {
+        navigate(offer.secondaryCtaUrl);
+      }
+    } else if (offer.course) {
+      navigate(`/courses/${offer.course.id}`);
+    } else {
+      setIsEnquiryModalOpen(true);
+    }
+  };
+
   // Submit Enquiry / Registration Form
   const handleEnquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -258,13 +216,17 @@ export const OfferLandingPage: React.FC = () => {
         branchLocation: enquiryBranch,
         notes: enquiryNotes
       });
+
       if (res.success && res.data) {
-        setEnquirySuccessData(res.data);
+        setEnquirySuccessData({
+          bookingNumber: res.data.bookingNumber,
+          customerName: res.data.customerName || enquiryName
+        });
       } else {
-        setEnquiryError(res.error?.message || 'Failed to submit registration.');
+        setEnquiryError(res.error?.message || 'Failed to submit registration. Please try again.');
       }
     } catch (err: any) {
-      setEnquiryError(err.message || 'Failed to submit registration.');
+      setEnquiryError(err.message || 'An error occurred while submitting your enquiry.');
     } finally {
       setEnquirySubmitting(false);
     }
@@ -272,10 +234,12 @@ export const OfferLandingPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] bg-[#FAF6F0] flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
-          <div className="w-10 h-10 border-3 border-[#B12B2B] border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-semibold text-[#5C5148]">Loading campaign details...</p>
+      <div className="min-h-screen bg-[#F8F4EB] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-3 border-[#A91414] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-bold uppercase tracking-wider text-[#6B3C2B]">
+            Loading JADMAA Campaign...
+          </span>
         </div>
       </div>
     );
@@ -283,12 +247,12 @@ export const OfferLandingPage: React.FC = () => {
 
   if (error || !offer) {
     return (
-      <div className="min-h-[70vh] bg-[#FAF6F0] flex items-center justify-center p-4 text-center">
-        <div className="max-w-md w-full bg-white p-8 rounded-2xl border border-[#E8DDD0] space-y-5 shadow-sm">
-          <div className="w-14 h-14 rounded-2xl bg-red-50 text-[#B12B2B] flex items-center justify-center mx-auto border border-red-200">
+      <div className="min-h-[75vh] bg-[#F8F4EB] flex items-center justify-center p-4 text-center">
+        <div className="max-w-md w-full bg-white p-8 rounded-2xl border border-[#D9C4A8] space-y-5 shadow-sm">
+          <div className="w-14 h-14 rounded-2xl bg-red-50 text-[#A91414] flex items-center justify-center mx-auto border border-red-200">
             <AlertTriangle className="w-7 h-7" />
           </div>
-          <h2 className="text-2xl font-bold font-heading text-[#2B2521]">
+          <h2 className="text-2xl font-bold font-serif text-[#17120E]">
             Campaign Unavailable
           </h2>
           <p className="text-sm text-[#5C5148] leading-relaxed">
@@ -297,10 +261,10 @@ export const OfferLandingPage: React.FC = () => {
           <div className="pt-2">
             <Link
               to="/courses"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#B12B2B] hover:bg-[#8F1E1E] text-white font-bold text-xs shadow-md transition cursor-pointer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#A91414] hover:bg-[#7E1515] text-white font-bold text-xs shadow-md transition cursor-pointer"
             >
               <BookOpen className="w-4 h-4" />
-              <span>Browse All Courses</span>
+              <span>Browse All Courses &amp; Programs</span>
             </Link>
           </div>
         </div>
@@ -308,568 +272,290 @@ export const OfferLandingPage: React.FC = () => {
     );
   }
 
-  const isExpired = offer.computedStatus === 'EXPIRED' || (timeLeft ? timeLeft.isExpired : !offer.isBookable);
-  const imageSource = offer.bannerImageUrl || (offer.course && offer.course.thumbnailUrl) || '/images/wellness-682x1024.png';
-  const categoryTitle = getCategoryDisplay(offer.category, offer.customCategory);
-  const primaryBrandColor = offer.primaryColor || '#B12B2B';
+  const isExpired = offer.computedStatus === 'EXPIRED';
+  const campaignData = adaptOfferToCampaignData(offer);
 
   return (
     <>
       <SEO
         title={`${offer.title} | JADMAA Varmakalai Campaign`}
         description={offer.shortDescription || offer.description}
-        image={imageSource}
+        image={campaignData.heroImage}
         url={`/offers/${offer.slug}`}
       />
 
-      <div className="min-h-screen bg-[#FAF6F0] text-[#2B2521] flex flex-col font-body">
-        
-        {/* Breadcrumb & Share Sub-bar */}
-        <div className="bg-[#FAF6F0] border-b border-[#E8DDD0]/80">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between text-xs">
-            <nav className="flex items-center gap-2 text-[#5C5148] truncate pr-4">
-              <Link to="/" className="hover:text-[#B12B2B] transition">Home</Link>
+      <div className="min-h-screen bg-[#F8F4EB] text-[#17120E] flex flex-col">
+        {/* Navigation / Share Top-Bar */}
+        <div className="bg-[#F8F4EB] border-b border-[#EAD8BD]">
+          <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex items-center justify-between text-xs">
+            <nav className="flex items-center gap-2 text-[#6B3C2B] truncate pr-4">
+              <Link to="/" className="hover:text-[#A91414] transition font-semibold">Home</Link>
               <span>/</span>
-              <Link to="/courses" className="hover:text-[#B12B2B] transition">Courses & Programs</Link>
+              <Link to="/courses" className="hover:text-[#A91414] transition">Campaigns</Link>
               <span>/</span>
-              <span className="font-semibold text-[#2B2521] truncate">{offer.title}</span>
+              <span className="font-bold text-[#17120E] truncate">{offer.title}</span>
             </nav>
 
             <button
               onClick={handleCopyLink}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#E8DDD0] hover:bg-gray-50 text-[#2B2521] text-xs font-semibold shadow-2xs transition shrink-0 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-white border border-[#D9C4A8] hover:bg-gray-50 text-[#17120E] text-xs font-bold transition shrink-0 cursor-pointer"
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copied ? 'Link Copied!' : 'Share'}</span>
+              {copied ? <Check className="w-3.5 h-3.5 text-green-700" /> : <Copy className="w-3.5 h-3.5" />}
+              <span>{copied ? 'Link Copied!' : 'Share Campaign'}</span>
             </button>
           </div>
         </div>
 
         {/* Expired Campaign Announcement Bar */}
         {isExpired && (
-          <div className="bg-amber-50 border-b border-amber-200 px-4 py-2.5 text-center text-amber-900 text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 animate-fadeIn">
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+          <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-center text-amber-900 text-xs font-bold flex items-center justify-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
             <span>This promotional campaign has concluded. Special promotional registrations are now closed.</span>
           </div>
         )}
 
-        {/* SECTION 1: CAMPAIGN HERO (Site-Integrated Editorial Warm Theme) */}
-        <section className="relative overflow-hidden border-b border-[#E8DDD0] bg-gradient-to-b from-[#F5EFE6] via-[#FAF6F0] to-[#FAF6F0]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              
-              {/* LEFT SECTION: Details, Pricing, Countdown & CTAs */}
-              <div className="lg:col-span-7 space-y-6">
-                
-                {/* Category Pill + Savings + Branch */}
-                <div className="flex flex-wrap items-center gap-2.5">
-                  <span className="px-3 py-1 rounded-full text-xs font-extrabold tracking-widest uppercase bg-red-100 text-[#B12B2B] border border-red-200/80">
-                    {categoryTitle}
-                  </span>
+        {/* MASTER REUSABLE PREMIUM CAMPAIGN LANDING PAGE */}
+        <PremiumCampaignLandingPage
+          campaign={campaignData}
+          onPrimaryAction={handlePrimaryAction}
+          onSecondaryAction={handleSecondaryAction}
+        />
 
-                  {offer.discountPercent > 0 && (
-                    <span className="px-2.5 py-1 rounded-full text-xs font-black tracking-wider uppercase bg-amber-100 text-amber-900 border border-amber-300">
-                      {offer.discountPercent}% LIMITED DISCOUNT
-                    </span>
-                  )}
-
-                  {offer.branchLocation && (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white border border-[#E8DDD0] text-[#5C5148]">
-                      <MapPin className="w-3 h-3 text-[#B12B2B]" />
-                      {offer.branchLocation}
-                    </span>
-                  )}
-                </div>
-
-                {/* Main Headline */}
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-heading leading-[1.15] tracking-tight text-[#2B2521]">
-                  {offer.title}
-                </h1>
-
-                {/* Supporting Description */}
-                <p className="text-base sm:text-lg text-[#5C5148] leading-relaxed max-w-2xl font-normal">
-                  {offer.shortDescription || offer.description}
+        {/* ONLINE COURSE CURRICULUM PREVIEW (Optional Accordion if tied to a course) */}
+        {offer.category === 'ONLINE_COURSE' && offer.course && offer.course.modules && offer.course.modules.length > 0 && (
+          <section className="bg-[#FAF6F0] border-t border-[#E8DDD0] py-14 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="text-center mb-10">
+                <span className="text-xs font-bold tracking-widest uppercase text-[#B12B2B]">
+                  Included Curriculum
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black font-serif text-[#17120E] mt-1">
+                  What You Will Learn in This Course
+                </h2>
+                <p className="text-sm text-[#5C5148] mt-2">
+                  Complete syllabus included with lifetime access upon enrolment.
                 </p>
-
-                {/* Offer Pricing / Value Badge */}
-                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#E8DDD0] shadow-sm max-w-xl">
-                  {offer.pricingType === 'ENQUIRY_ONLY' ? (
-                    <div>
-                      <span className="text-2xl sm:text-3xl font-black font-heading text-[#B12B2B]">
-                        Consultation & Registration Open
-                      </span>
-                      <p className="text-xs text-[#5C5148] mt-1">
-                        Complimentary consultation and point diagnosis with certified Aasan
-                      </p>
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-[11px] font-bold tracking-wider text-[#8C7E72] uppercase">
-                        Promotional Campaign Price
-                      </p>
-                      <div className="flex items-baseline gap-3 mt-1.5 flex-wrap">
-                        <span
-                          className="text-3xl sm:text-4xl font-black font-heading tracking-tight"
-                          style={{ color: primaryBrandColor }}
-                        >
-                          ₹{offer.offerPrice.toLocaleString('en-IN')}
-                        </span>
-                        {offer.originalPrice > offer.offerPrice && (
-                          <span className="text-lg text-[#8C7E72] line-through font-medium">
-                            ₹{offer.originalPrice.toLocaleString('en-IN')}
-                          </span>
-                        )}
-                        {offer.discountAmount > 0 && (
-                          <span className="text-xs font-extrabold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded">
-                            Save ₹{offer.discountAmount.toLocaleString('en-IN')} ({offer.discountPercent}% OFF)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Real-time Countdown Timer */}
-                {timeLeft && !timeLeft.isExpired && (
-                  <div className="space-y-2 max-w-xl">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-[#8C7E72] uppercase tracking-wider">
-                      <Clock className="w-4 h-4 text-[#B12B2B]" />
-                      <span>Promotional Window Closing Soon</span>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-2.5 max-w-md">
-                      <div className="p-3 rounded-xl bg-white border border-[#E8DDD0] text-center shadow-2xs">
-                        <span className="block text-2xl sm:text-3xl font-black font-mono text-[#2B2521]">
-                          {String(timeLeft.days).padStart(2, '0')}
-                        </span>
-                        <span className="text-[10px] text-[#8C7E72] font-bold uppercase tracking-wider">Days</span>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-white border border-[#E8DDD0] text-center shadow-2xs">
-                        <span className="block text-2xl sm:text-3xl font-black font-mono text-[#2B2521]">
-                          {String(timeLeft.hours).padStart(2, '0')}
-                        </span>
-                        <span className="text-[10px] text-[#8C7E72] font-bold uppercase tracking-wider">Hours</span>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-white border border-[#E8DDD0] text-center shadow-2xs">
-                        <span className="block text-2xl sm:text-3xl font-black font-mono text-[#2B2521]">
-                          {String(timeLeft.minutes).padStart(2, '0')}
-                        </span>
-                        <span className="text-[10px] text-[#8C7E72] font-bold uppercase tracking-wider">Mins</span>
-                      </div>
-
-                      <div className="p-3 rounded-xl bg-white border border-[#E8DDD0] text-center shadow-2xs">
-                        <span className="block text-2xl sm:text-3xl font-black font-mono text-[#B12B2B]">
-                          {String(timeLeft.seconds).padStart(2, '0')}
-                        </span>
-                        <span className="text-[10px] text-[#8C7E72] font-bold uppercase tracking-wider">Secs</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
-                  <button
-                    onClick={handlePrimaryAction}
-                    disabled={isExpired || paymentStep === 'PROCESSING'}
-                    style={{ backgroundColor: primaryBrandColor }}
-                    className="flex-1 px-8 py-4 rounded-xl text-white font-bold text-sm tracking-wide shadow-md hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    <span>
-                      {paymentStep === 'PROCESSING'
-                        ? 'Opening Checkout...'
-                        : isExpired
-                        ? 'Campaign Concluded'
-                        : offer.ctaText || (offer.category === 'VARMA_TREATMENT' ? 'Book Treatment Session' : offer.category === 'ONLINE_COURSE' ? 'Claim Offer & Enrol' : 'Register for Campaign')}
-                    </span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-
-                  <a
-                    href={`https://wa.me/919345220020?text=${encodeURIComponent(`Hello JADMAA, I am inquiring about the ${offer.title} promotional offer.`)}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-5 py-4 rounded-xl bg-white hover:bg-gray-50 border border-[#E8DDD0] font-bold text-xs sm:text-sm text-[#2B2521] shadow-2xs flex items-center justify-center gap-2 transition"
-                  >
-                    <MessageCircle className="w-4 h-4 text-emerald-600" />
-                    <span>WhatsApp Specialist</span>
-                  </a>
-                </div>
-
               </div>
 
-              {/* RIGHT SECTION: High-Res Campaign Photograph */}
-              <div className="lg:col-span-5 relative mt-6 lg:mt-0">
-                <div className="relative mx-auto max-w-md lg:max-w-none">
-                  
-                  {/* Subtle Brand Accent Shadow */}
-                  <div
-                    className="absolute -inset-2 rounded-3xl opacity-20 blur-xl pointer-events-none"
-                    style={{ backgroundColor: primaryBrandColor }}
-                  />
-
-                  {/* Clean Framed Photograph Container */}
-                  <div className="relative rounded-3xl overflow-hidden border-4 border-white bg-white shadow-xl group">
-                    <img
-                      src={imageSource}
-                      alt={offer.title}
-                      className="w-full h-[380px] sm:h-[460px] lg:h-[520px] object-cover object-top transition duration-500 group-hover:scale-101"
-                    />
-
-                    {/* Bottom Status Card */}
-                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-white/95 backdrop-blur-md border border-[#E8DDD0] shadow-sm flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] font-extrabold text-[#B12B2B] uppercase tracking-widest">
-                          Authentic Siddha Lineage
-                        </p>
-                        <p className="text-sm font-bold text-[#2B2521] mt-0.5">
-                          JADMAA Varmakalai Academy
-                        </p>
-                      </div>
-                      <span className="px-2.5 py-1 rounded-lg bg-red-50 text-[#B12B2B] font-extrabold text-[11px] border border-red-200">
-                        1000+ Years
-                      </span>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 2: PROGRAMME / SERVICE DETAILS & ACCORDION */}
-        <section className="bg-[#FAF6F0] py-14 sm:py-20 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-5xl mx-auto space-y-12">
-            
-            {/* Description & Overview */}
-            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E8DDD0] shadow-xs space-y-4">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-[#B12B2B]">
-                Detailed Overview
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black font-heading text-[#2B2521] tracking-tight">
-                About this {categoryTitle.toLowerCase()}
-              </h2>
-              <div className="text-base text-[#5C5148] leading-relaxed whitespace-pre-line font-normal">
-                {offer.description || offer.shortDescription}
-              </div>
-            </div>
-
-            {/* Course Curriculum Accordion (when course modules exist) */}
-            {offer.course && offer.course.modules && offer.course.modules.length > 0 && (
-              <div className="bg-white p-6 sm:p-8 rounded-2xl border border-[#E8DDD0] shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold font-heading text-[#2B2521]">
-                    Course Curriculum & Lessons ({offer.course.totalLessons} Lessons)
-                  </h3>
-                  <span className="text-xs font-semibold text-[#8C7E72]">
-                    {offer.course.duration || 'Self-paced'}
-                  </span>
-                </div>
-
-                <div className="space-y-3 pt-2">
-                  {offer.course.modules.map((module, idx) => (
+              <div className="space-y-3">
+                {offer.course.modules.map((mod: any, idx: number) => {
+                  const isOpen = openModuleIndex === idx;
+                  return (
                     <div
-                      key={module.id}
-                      className="rounded-xl border border-[#E8DDD0] bg-[#FDFBF7] overflow-hidden"
+                      key={mod.id || idx}
+                      className="rounded-xl border border-[#E8DDD0] bg-white overflow-hidden shadow-2xs"
                     >
                       <button
-                        onClick={() => setOpenModuleIndex(openModuleIndex === idx ? null : idx)}
-                        className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 hover:bg-[#F5EFE6] transition cursor-pointer"
+                        type="button"
+                        onClick={() => setOpenModuleIndex(isOpen ? null : idx)}
+                        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-gray-50/70 transition cursor-pointer"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="w-7 h-7 rounded-lg bg-red-100 text-[#B12B2B] font-bold text-xs flex items-center justify-center shrink-0">
+                          <span className="w-7 h-7 rounded-lg bg-red-50 text-[#A91414] font-bold text-xs flex items-center justify-center shrink-0">
                             {idx + 1}
                           </span>
                           <div>
-                            <h4 className="text-sm font-bold text-[#2B2521]">{module.title}</h4>
-                            <span className="text-xs text-[#8C7E72] font-medium">{module.lessonCount} Lessons</span>
+                            <span className="font-bold text-sm text-[#17120E] block">{mod.title}</span>
+                            {mod.lessons && (
+                              <span className="text-xs text-[#7D332B]">
+                                {mod.lessons.length} {mod.lessons.length === 1 ? 'lesson' : 'lessons'}
+                              </span>
+                            )}
                           </div>
                         </div>
-                        {openModuleIndex === idx ? <ChevronUp className="w-4 h-4 text-[#8C7E72]" /> : <ChevronDown className="w-4 h-4 text-[#8C7E72]" />}
+                        {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
                       </button>
 
-                      {openModuleIndex === idx && (
-                        <div className="px-5 pb-4 pt-1 border-t border-[#E8DDD0]/80 divide-y divide-[#E8DDD0]/60 text-xs text-[#5C5148]">
-                          {module.lessons.map((lesson) => (
-                            <div key={lesson.id} className="py-2.5 flex items-center justify-between gap-2">
-                              <span className="flex items-center gap-2">
-                                <Play className="w-3.5 h-3.5 text-[#B12B2B]" />
-                                <span className="font-medium text-[#2B2521]">{lesson.title}</span>
-                              </span>
-                              <span className="font-mono text-[#8C7E72]">{lesson.duration}</span>
+                      {isOpen && mod.lessons && mod.lessons.length > 0 && (
+                        <div className="px-5 pb-4 pt-1 border-t border-gray-100 space-y-2">
+                          {mod.lessons.map((lesson: any, lIdx: number) => (
+                            <div key={lesson.id || lIdx} className="flex items-center justify-between text-xs py-1.5 text-gray-700">
+                              <div className="flex items-center gap-2">
+                                <Play className="w-3.5 h-3.5 text-[#A91414]" />
+                                <span>{lesson.title}</span>
+                              </div>
+                              {lesson.duration && <span className="text-gray-400 text-[11px] font-mono">{lesson.duration}</span>}
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
 
-            {/* Offline Branch Location Info (Thanjavur, Kumbakonam & Ariyalur) */}
-            {offer.category !== 'ONLINE_COURSE' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-[#B12B2B]">
-                    Academy Locations
-                  </span>
-                  <h3 className="text-xl font-bold font-heading text-[#2B2521]">
-                    Available Training & Treatment Centers
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {/* Branch 1: Thanjavur */}
-                  <div className="p-6 rounded-2xl bg-white border border-[#E8DDD0] shadow-2xs space-y-3 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      <div className="w-10 h-10 rounded-xl bg-red-100 text-[#B12B2B] flex items-center justify-center">
-                        <MapPin className="w-5 h-5" />
-                      </div>
-                      <h4 className="text-base font-bold text-[#2B2521]">Headquarters: Thanjavur</h4>
-                      <p className="text-xs text-[#5C5148] leading-relaxed">
-                        Opp. Sastra University Campus, Tirumalaisamudram, Thanjavur, Tamil Nadu 613401.
-                      </p>
-                    </div>
-                    <p className="text-xs font-bold text-[#B12B2B] pt-2 border-t border-[#E8DDD0]/60">
-                      Phone: +91 93452 20020
-                    </p>
-                  </div>
-
-                  {/* Branch 2: Kumbakonam */}
-                  <div className="p-6 rounded-2xl bg-white border border-[#E8DDD0] shadow-2xs space-y-3 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      <div className="w-10 h-10 rounded-xl bg-red-100 text-[#B12B2B] flex items-center justify-center">
-                        <MapPin className="w-5 h-5" />
-                      </div>
-                      <h4 className="text-base font-bold text-[#2B2521]">Branch: Kumbakonam</h4>
-                      <p className="text-xs text-[#5C5148] leading-relaxed">
-                        Swamimalai Rd, Melacavery, Kumbakonam, Tamil Nadu 612001.
-                      </p>
-                    </div>
-                    <p className="text-xs font-bold text-[#B12B2B] pt-2 border-t border-[#E8DDD0]/60">
-                      Phone: +91 93452 20020
-                    </p>
-                  </div>
-
-                  {/* Branch 3: Ariyalur */}
-                  <div className="p-6 rounded-2xl bg-white border border-[#E8DDD0] shadow-2xs space-y-3 flex flex-col justify-between">
-                    <div className="space-y-2">
-                      <div className="w-10 h-10 rounded-xl bg-red-100 text-[#B12B2B] flex items-center justify-center">
-                        <MapPin className="w-5 h-5" />
-                      </div>
-                      <h4 className="text-base font-bold text-[#2B2521]">Branch: Ariyalur</h4>
-                      <p className="text-xs text-[#5C5148] leading-relaxed">
-                        Mr. Perfect Gym, Ariyalur, Tamil Nadu.
-                      </p>
-                    </div>
-                    <p className="text-xs font-bold text-[#B12B2B] pt-2 border-t border-[#E8DDD0]/60">
-                      Phone: +91 93452 20020
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Terms and Conditions */}
-            {offer.termsAndConditions && (
-              <div className="p-6 rounded-2xl bg-white border border-[#E8DDD0] shadow-2xs space-y-2">
-                <h4 className="text-xs font-bold text-[#2B2521] uppercase tracking-wider">
-                  Campaign Terms & Enrollment Conditions
-                </h4>
-                <div className="text-xs text-[#5C5148] leading-relaxed whitespace-pre-line font-mono">
-                  {offer.termsAndConditions}
-                </div>
-              </div>
-            )}
-
-            {/* Support Details */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E8DDD0] shadow-2xs flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h4 className="text-sm font-bold text-[#2B2521]">Need assistance with this offer?</h4>
-                <p className="text-xs text-[#5C5148] mt-0.5">
-                  Reach out directly to our academy admissions and treatment coordinators.
-                </p>
-              </div>
-              <div className="flex items-center gap-4 text-xs font-semibold">
-                <a
-                  href={`tel:${offer.supportPhone}`}
-                  className="inline-flex items-center gap-1.5 text-[#B12B2B] hover:underline"
-                >
-                  <Phone className="w-3.5 h-3.5" />
-                  <span>{offer.supportPhone}</span>
-                </a>
-                <span className="text-[#E8DDD0]">|</span>
-                <a
-                  href={`mailto:${offer.supportEmail}`}
-                  className="inline-flex items-center gap-1.5 text-[#5C5148] hover:text-[#2B2521]"
-                >
-                  <Mail className="w-3.5 h-3.5" />
-                  <span>{offer.supportEmail}</span>
-                </a>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-      </div>
-
-      {/* REGISTRATION / ENQUIRY MODAL (Clean Site Warm UI) */}
-      {isEnquiryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="relative w-full max-w-lg bg-white text-[#2B2521] rounded-2xl border border-[#E8DDD0] shadow-2xl p-6 sm:p-7 overflow-hidden">
-            
-            <button
-              onClick={() => {
-                setIsEnquiryModalOpen(false);
-                setEnquirySuccessData(null);
-                setEnquiryError(null);
-              }}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-[#8C7E72] hover:text-[#2B2521] hover:bg-gray-100 transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {enquirySuccessData ? (
-              <div className="text-center py-6 space-y-4">
-                <div className="w-14 h-14 rounded-full bg-green-50 text-emerald-700 flex items-center justify-center mx-auto border border-green-200">
-                  <CheckCircle className="w-8 h-8" />
-                </div>
-                <h3 className="text-2xl font-bold font-heading text-[#2B2521]">
-                  Registration Confirmed!
-                </h3>
-                <p className="text-sm text-[#5C5148] leading-relaxed max-w-sm mx-auto">
-                  Thank you, <strong>{enquirySuccessData.customerName}</strong>. Your registration for <strong>{offer.title}</strong> has been received.
-                </p>
-                <div className="p-3 rounded-xl bg-[#FAF6F0] border border-[#E8DDD0] inline-block font-mono text-xs text-[#2B2521] font-bold">
-                  Ref No: {enquirySuccessData.bookingNumber}
-                </div>
-                <p className="text-xs text-[#8C7E72]">
-                  Our academy team will contact you via phone / WhatsApp shortly to coordinate your schedule.
-                </p>
+              <div className="text-center mt-8">
                 <button
-                  onClick={() => {
-                    setIsEnquiryModalOpen(false);
-                    setEnquirySuccessData(null);
-                  }}
-                  className="mt-3 px-6 py-2.5 rounded-xl bg-[#B12B2B] hover:bg-[#8F1E1E] text-white font-bold text-xs shadow transition cursor-pointer"
+                  type="button"
+                  onClick={handlePrimaryAction}
+                  className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#A91414] text-white font-bold rounded-lg hover:bg-[#7E1515] transition shadow-md cursor-pointer"
                 >
-                  Close Window
+                  <span>{campaignData.primaryCtaText}</span>
+                  <span>→</span>
                 </button>
               </div>
-            ) : (
-              <form onSubmit={handleEnquirySubmit} className="space-y-4">
-                <div>
-                  <span className="text-[10px] font-bold tracking-widest uppercase text-[#B12B2B]">
-                    Direct Registration & Booking
-                  </span>
-                  <h3 className="text-xl font-bold font-heading text-[#2B2521] mt-0.5">
-                    {offer.title}
-                  </h3>
-                  <p className="text-xs text-[#5C5148] mt-1">
-                    Fill in your contact details below to reserve your slot at the promotional rate.
-                  </p>
-                </div>
+            </div>
+          </section>
+        )}
 
-                {enquiryError && (
-                  <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
-                    <span>{enquiryError}</span>
+        {/* REGISTRATION / ENQUIRY MODAL (For Treatments, Offline Classes, Camps, Events) */}
+        {isEnquiryModalOpen && (
+          <div className="campaign-modal-overlay">
+            <div className="campaign-modal-content">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEnquiryModalOpen(false);
+                  setEnquirySuccessData(null);
+                  setEnquiryError(null);
+                }}
+                className="campaign-modal-close"
+                aria-label="Close dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {enquirySuccessData ? (
+                <div className="campaign-modal-success">
+                  <div className="campaign-modal-success-badge">
+                    <Check className="w-8 h-8" />
                   </div>
-                )}
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#2B2521] mb-1">
-                    Full Name <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={enquiryName}
-                    onChange={(e) => setEnquiryName(e.target.value)}
-                    placeholder="Your full name"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DDD0] text-[#2B2521] text-sm focus:outline-none focus:border-[#B12B2B]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#2B2521] mb-1">
-                    Phone / WhatsApp Number <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={enquiryPhone}
-                    onChange={(e) => setEnquiryPhone(e.target.value)}
-                    placeholder="+91 93452 20020"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DDD0] text-[#2B2521] text-sm focus:outline-none focus:border-[#B12B2B]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#2B2521] mb-1">
-                    Email Address (Optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={enquiryEmail}
-                    onChange={(e) => setEnquiryEmail(e.target.value)}
-                    placeholder="your.email@example.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DDD0] text-[#2B2521] text-sm focus:outline-none focus:border-[#B12B2B]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#2B2521] mb-1">
-                    Preferred Branch / Location
-                  </label>
-                  <select
-                    value={enquiryBranch}
-                    onChange={(e) => setEnquiryBranch(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DDD0] text-[#2B2521] text-sm focus:outline-none focus:border-[#B12B2B]"
-                  >
-                    <option value="Thanjavur">Thanjavur (Headquarters)</option>
-                    <option value="Kumbakonam">Kumbakonam Branch</option>
-                    <option value="Ariyalur">Ariyalur Branch</option>
-                    <option value="Online">Online Consultation</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#2B2521] mb-1">
-                    Notes or Health Concerns (Optional)
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={enquiryNotes}
-                    onChange={(e) => setEnquiryNotes(e.target.value)}
-                    placeholder="Describe any pain points, fitness goals, or session queries..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#FAF8F5] border border-[#E8DDD0] text-[#2B2521] text-sm focus:outline-none focus:border-[#B12B2B] resize-none"
-                  />
-                </div>
-
-                <div className="pt-2">
+                  <h3 className="campaign-modal-title">
+                    Registration Confirmed!
+                  </h3>
+                  <p className="campaign-modal-subtitle">
+                    Thank you, <strong>{enquirySuccessData.customerName}</strong>. Your session request has been securely recorded.
+                  </p>
+                  <div className="my-5 p-4 rounded bg-[#EAD8BD]/40 border border-[#D9C4A8] text-center">
+                    <span className="block text-[11px] font-bold text-[#6B3C2B] uppercase tracking-wider">
+                      Your Reference Number
+                    </span>
+                    <strong className="block text-2xl font-mono text-[#A91414] mt-1">
+                      {enquirySuccessData.bookingNumber}
+                    </strong>
+                  </div>
+                  <p className="text-xs text-[#5C5148] leading-relaxed mb-6">
+                    Our senior master / coordinator will contact you via WhatsApp/Phone shortly with appointment timings and session instructions.
+                  </p>
                   <button
-                    type="submit"
-                    disabled={enquirySubmitting}
-                    style={{ backgroundColor: primaryBrandColor }}
-                    className="w-full py-3 rounded-xl text-white font-bold text-xs sm:text-sm tracking-wide shadow-md hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                    type="button"
+                    onClick={() => {
+                      setIsEnquiryModalOpen(false);
+                      setEnquirySuccessData(null);
+                    }}
+                    className="campaign-modal-submit"
                   >
-                    <Send className="w-4 h-4" />
-                    <span>{enquirySubmitting ? 'Submitting...' : 'Confirm Registration'}</span>
+                    Done
                   </button>
                 </div>
-              </form>
-            )}
+              ) : (
+                <>
+                  <div className="campaign-modal-header">
+                    <span className="campaign-modal-category">
+                      {campaignData.category}
+                    </span>
+                    <h3 className="campaign-modal-title">
+                      {campaignData.primaryCtaText}
+                    </h3>
+                    <p className="campaign-modal-subtitle">
+                      Complete your details below to register for this special campaign.
+                    </p>
+                  </div>
 
+                  <form onSubmit={handleEnquirySubmit}>
+                    {enquiryError && (
+                      <div className="mb-4 p-3 rounded bg-red-50 border border-red-200 text-red-800 text-xs flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 shrink-0 text-red-600" />
+                        <span>{enquiryError}</span>
+                      </div>
+                    )}
+
+                    <div className="campaign-form-group">
+                      <label className="campaign-form-label">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={enquiryName}
+                        onChange={(e) => setEnquiryName(e.target.value)}
+                        placeholder="Your full name"
+                        className="campaign-form-input"
+                      />
+                    </div>
+
+                    <div className="campaign-form-group">
+                      <label className="campaign-form-label">
+                        Phone / WhatsApp Number *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={enquiryPhone}
+                        onChange={(e) => setEnquiryPhone(e.target.value)}
+                        placeholder="+91 93452 20020"
+                        className="campaign-form-input"
+                      />
+                    </div>
+
+                    <div className="campaign-form-group">
+                      <label className="campaign-form-label">
+                        Email Address (Optional)
+                      </label>
+                      <input
+                        type="email"
+                        value={enquiryEmail}
+                        onChange={(e) => setEnquiryEmail(e.target.value)}
+                        placeholder="your.email@example.com"
+                        className="campaign-form-input"
+                      />
+                    </div>
+
+                    {offer.category !== 'ONLINE_COURSE' && (
+                      <div className="campaign-form-group">
+                        <label className="campaign-form-label">
+                          Preferred Academy Branch
+                        </label>
+                        <select
+                          value={enquiryBranch}
+                          onChange={(e) => setEnquiryBranch(e.target.value)}
+                          className="campaign-form-select"
+                        >
+                          <option value="Thanjavur">Thanjavur (Headquarters)</option>
+                          <option value="Kumbakonam">Kumbakonam Branch</option>
+                          <option value="Ariyalur">Ariyalur Branch</option>
+                        </select>
+                      </div>
+                    )}
+
+                    <div className="campaign-form-group">
+                      <label className="campaign-form-label">
+                        Notes or Specific Requirements (Optional)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={enquiryNotes}
+                        onChange={(e) => setEnquiryNotes(e.target.value)}
+                        placeholder="Describe your health goals, preferred dates, or query..."
+                        className="campaign-form-textarea resize-none"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={enquirySubmitting}
+                      className="campaign-modal-submit"
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>{enquirySubmitting ? 'Submitting Registration...' : 'Confirm Registration'}</span>
+                    </button>
+                  </form>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };

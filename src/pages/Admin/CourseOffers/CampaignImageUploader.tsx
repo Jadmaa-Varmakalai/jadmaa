@@ -1,11 +1,12 @@
-import React, { useState, useRef } from 'react';
-import { UploadCloud, Image as ImageIcon, X, RefreshCw, Loader2, AlertCircle, CheckCircle2, Copy } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { UploadCloud, X, RefreshCw, Loader2, AlertCircle, AlertTriangle, CheckCircle2, Copy } from 'lucide-react';
 import { uploadApi } from '../../../lib/api/uploadApi';
 
 interface CampaignImageUploaderProps {
   label: string;
   sublabel?: string;
   recommendedAspect?: string;
+  expectedAspect?: '16:9' | '4:5' | '1:1' | 'any';
   value: string;
   onChange: (url: string) => void;
   onCopyFrom?: () => void;
@@ -17,7 +18,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/avif'];
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
 
 /**
- * Validates and compresses images client-side before sending to server/storage
+ * Validates and measures image dimensions client-side
  */
 const prepareImageUpload = (file: File): Promise<{ dataUrl: string; dimensions: { width: number; height: number } }> => {
   return new Promise((resolve, reject) => {
@@ -30,8 +31,8 @@ const prepareImageUpload = (file: File): Promise<{ dataUrl: string; dimensions: 
         const width = img.width;
         const height = img.height;
 
-        // Compress large device camera photos (e.g., 4000x3000) down to max 2000px dimension
-        const maxDimension = 2000;
+        // Downsample extremely large camera files (>2500px) client-side for fast network transfer
+        const maxDimension = 2500;
         let targetW = width;
         let targetH = height;
 
@@ -56,7 +57,7 @@ const prepareImageUpload = (file: File): Promise<{ dataUrl: string; dimensions: 
 
         ctx.drawImage(img, 0, 0, targetW, targetH);
         const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
-        const dataUrl = canvas.toDataURL(mimeType, 0.88);
+        const dataUrl = canvas.toDataURL(mimeType, 0.90);
         resolve({ dataUrl, dimensions: { width, height } });
       };
       img.src = e.target?.result as string;
@@ -68,12 +69,13 @@ const prepareImageUpload = (file: File): Promise<{ dataUrl: string; dimensions: 
 export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
   label,
   sublabel,
-  recommendedAspect = '16:9 or 4:5',
+  recommendedAspect = '16:9',
+  expectedAspect = 'any',
   value,
   onChange,
   onCopyFrom,
   copyFromLabel,
-  previewHeightClass = 'h-44'
+  previewHeightClass
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -84,6 +86,37 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
   const [manualUrl, setManualUrl] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Measure dimensions of active image (from URL or upload)
+  useEffect(() => {
+    if (!value) {
+      setDimensions(null);
+      return;
+    }
+    let isMounted = true;
+    const img = new Image();
+    img.onload = () => {
+      if (isMounted) {
+        setDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+      }
+    };
+    img.onerror = () => {
+      if (isMounted) {
+        setDimensions(null);
+      }
+    };
+    img.src = value;
+    return () => {
+      isMounted = false;
+    };
+  }, [value]);
+
+  const ratio = dimensions ? dimensions.width / dimensions.height : null;
+  const isRatioWarning = Boolean(
+    expectedAspect === '16:9' &&
+    ratio !== null &&
+    ratio < 1.35
+  );
 
   const processFile = async (file: File) => {
     setError(null);
@@ -101,7 +134,7 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
     }
 
     setIsUploading(true);
-    setUploadProgress('Preparing & optimizing image...');
+    setUploadProgress('Analyzing & preparing image...');
 
     try {
       const { dataUrl, dimensions: dims } = await prepareImageUpload(file);
@@ -165,10 +198,17 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
     setError(null);
   };
 
+  // Determine container aspect ratio class
+  const resolvedAspectClass = previewHeightClass || (
+    expectedAspect === '16:9' ? 'aspect-video w-full' :
+    expectedAspect === '4:5' ? 'aspect-[4/5] w-full' :
+    expectedAspect === '1:1' ? 'aspect-square w-full' : 'h-48 w-full'
+  );
+
   return (
     <div className="space-y-2">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <div>
           <label className="block text-xs font-bold text-gray-800">
             {label}
@@ -177,18 +217,18 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
             <p className="text-[11px] text-gray-500">{sublabel}</p>
           )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-shrink-0">
           {onCopyFrom && copyFromLabel && !value && (
             <button
               type="button"
               onClick={onCopyFrom}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold text-red-700 bg-red-50 hover:bg-red-100 transition cursor-pointer border border-red-200"
             >
               <Copy className="w-3 h-3" />
               <span>{copyFromLabel}</span>
             </button>
           )}
-          <span className="text-[10px] font-medium text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
+          <span className="text-[10px] font-bold text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded">
             {recommendedAspect}
           </span>
         </div>
@@ -205,8 +245,8 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
 
       {/* Main Container */}
       {value ? (
-        /* Image Preview State */
-        <div className={`relative rounded-xl border border-gray-200 bg-gray-900 overflow-hidden group shadow-sm ${previewHeightClass}`}>
+        /* Image Preview State (True Aspect Ratio) */
+        <div className={`relative rounded-xl border border-gray-200 bg-gray-950 overflow-hidden group shadow-sm ${resolvedAspectClass}`}>
           <img
             src={value}
             alt={label}
@@ -214,17 +254,36 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
             onError={() => setError('Could not load image from stored URL. The image might be inaccessible.')}
           />
 
-          {/* Overlay info & actions */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3 text-white">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-sm text-[10px] font-semibold text-green-400 border border-green-500/30">
-                <CheckCircle2 className="w-3 h-3" />
-                Active Image
+          {/* Dimension Tag Badge (Always Visible on Top) */}
+          <div className="absolute top-2 left-2 z-10">
+            {dimensions ? (
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold shadow-xs backdrop-blur-md ${
+                isRatioWarning
+                  ? 'bg-amber-600/90 text-white border border-amber-400/50'
+                  : 'bg-black/70 text-emerald-300 border border-emerald-500/30'
+              }`}>
+                {isRatioWarning ? (
+                  <AlertTriangle className="w-3 h-3 text-amber-200" />
+                ) : (
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                )}
+                {dimensions.width} &times; {dimensions.height} px
+                {ratio ? ` (${ratio >= 1.5 ? '16:9' : ratio.toFixed(2)}:1)` : ''}
               </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-black/60 text-gray-300">
+                16:9 Landscape Hero
+              </span>
+            )}
+          </div>
+
+          {/* Hover Action Controls Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-between p-3 text-white z-20">
+            <div className="flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => onChange('')}
-                className="p-1 rounded-lg bg-black/60 hover:bg-red-600/90 text-white/80 hover:text-white transition cursor-pointer"
+                className="p-1 rounded-lg bg-black/60 hover:bg-red-600 text-white transition cursor-pointer"
                 title="Remove image"
               >
                 <X className="w-4 h-4" />
@@ -232,15 +291,15 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
             </div>
 
             <div className="space-y-2">
-              <div className="text-[11px] text-gray-300 truncate font-mono">
-                {value.startsWith('data:') ? 'Local preview buffer' : value}
+              <div className="text-[11px] text-gray-200 truncate font-mono bg-black/50 px-2 py-1 rounded">
+                {value.startsWith('data:') ? 'Local buffer preview' : value}
               </div>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   disabled={isUploading}
                   onClick={() => fileInputRef.current?.click()}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white font-semibold text-xs backdrop-blur-sm transition cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white font-bold text-xs backdrop-blur-sm transition cursor-pointer"
                 >
                   <RefreshCw className="w-3 h-3" />
                   <span>Replace Image</span>
@@ -248,7 +307,7 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
                 <button
                   type="button"
                   onClick={() => onChange('')}
-                  className="px-3 py-1.5 rounded-lg bg-red-600/80 hover:bg-red-700 text-white font-semibold text-xs backdrop-blur-sm transition cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-xs backdrop-blur-sm transition cursor-pointer"
                 >
                   Remove
                 </button>
@@ -262,11 +321,11 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center p-5 text-center cursor-pointer ${
+          className={`relative rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center p-4 text-center cursor-pointer ${
             isDragging
               ? 'border-red-600 bg-red-50/50 scale-[0.99]'
               : 'border-gray-300 hover:border-gray-400 bg-gray-50/50 hover:bg-gray-50'
-          } ${previewHeightClass}`}
+          } ${resolvedAspectClass}`}
           onClick={() => fileInputRef.current?.click()}
         >
           {isUploading ? (
@@ -282,7 +341,7 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-800">
-                  <span className="text-red-700 hover:underline">Click to browse from device</span> or drag and drop
+                  <span className="text-red-700 hover:underline">Click to browse 16:9 photo</span> or drag &amp; drop
                 </p>
                 <p className="text-[11px] text-gray-500 mt-0.5">
                   JPEG, PNG, WebP, AVIF up to 10MB
@@ -290,6 +349,28 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* 16:9 Aspect Ratio Warning Alert */}
+      {isRatioWarning && (
+        <div className="flex items-start gap-2 p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 text-xs">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+          <div className="space-y-0.5 flex-1">
+            <p className="font-bold">
+              This image is not 16:9. Upload a landscape image for the best landing-page appearance.
+            </p>
+            <p className="text-[11px] text-amber-700">
+              Detected dimensions: {dimensions?.width} &times; {dimensions?.height} ({ratio ? `${ratio.toFixed(2)}:1` : 'square/portrait'}).
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="text-[11px] font-bold text-red-700 underline hover:text-red-800 cursor-pointer"
+          >
+            Replace
+          </button>
         </div>
       )}
 
@@ -340,4 +421,3 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
     </div>
   );
 };
-
