@@ -235,6 +235,51 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
     }
   };
 
+  const handleCategoryChange = (newCat: string) => {
+    setCategory(newCat);
+
+    // Auto-adapt primary CTA action and default button label based on campaign category
+    switch (newCat) {
+      case 'ONLINE_COURSE':
+        setCtaType('ENROLL_COURSE');
+        setCtaText('Enrol in Online Course');
+        break;
+      case 'VARMA_TREATMENT':
+        setCtaType('BOOK_TREATMENT');
+        setCtaText('Book Treatment Session');
+        break;
+      case 'OFFLINE_CLASS':
+        setCtaType('ENQUIRE_OFFLINE');
+        setCtaText('Join Academy Batch');
+        break;
+      case 'SPECIAL_CAMP':
+        setCtaType('REGISTER_CAMP');
+        setCtaText('Register for Camp');
+        break;
+      case 'WORKSHOP':
+        setCtaType('REGISTER_WORKSHOP');
+        setCtaText('Reserve Workshop Seat');
+        break;
+      case 'SEMINAR':
+        setCtaType('REGISTER_WORKSHOP');
+        setCtaText('Register for Seminar');
+        break;
+      case 'SPECIAL_EVENT':
+        setCtaType('REGISTER_WORKSHOP');
+        setCtaText('Book Event Pass');
+        break;
+      case 'ACADEMY_PROGRAMME':
+        setCtaType('ENQUIRE_OFFLINE');
+        setCtaText('Apply for Programme');
+        break;
+      case 'CUSTOM':
+      default:
+        setCtaType('CONTACT_ACADEMY');
+        setCtaText('Enquire Now');
+        break;
+    }
+  };
+
   // Pricing calculations
   const calculateEffectiveOfferPrice = (): number => {
     if (pricingType === 'ENQUIRY_ONLY') return 0;
@@ -419,7 +464,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   </label>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    onChange={(e) => handleCategoryChange(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-medium"
                   >
                     {CATEGORIES.map(cat => (
@@ -482,9 +527,10 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                     onChange={(e) => setBranchLocation(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600"
                   >
-                    <option value="All Branches">All Branches (Thanjavur & Kumbakonam)</option>
+                    <option value="All Branches">All Branches (Thanjavur, Kumbakonam & Ariyalur)</option>
                     <option value="Thanjavur">Thanjavur Headquarters</option>
                     <option value="Kumbakonam">Kumbakonam Branch</option>
+                    <option value="Ariyalur">Ariyalur Branch</option>
                     <option value="Online">Online / Remote Session</option>
                   </select>
                 </div>
@@ -1169,32 +1215,32 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   </div>
                 </div>
               ) : (
-                /* Landing Page Hero Preview (Reference 3 Layout) */
-                <div className="w-full max-w-3xl rounded-2xl overflow-hidden border border-white/10 bg-[#0F0F12] text-white shadow-2xl p-6">
+                /* Landing Page Hero Preview (Site Warm Theme Layout) */
+                <div className="w-full max-w-3xl rounded-2xl overflow-hidden border border-[#E8DDD0] bg-[#FAF6F0] text-[#2B2521] shadow-2xl p-6">
                   <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                     <div className="md:col-span-7 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-900/40 text-red-300 border border-red-700/50">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-red-100 text-[#B12B2B] border border-red-200">
                           {category === 'CUSTOM' ? customCategory.toUpperCase() : category.replace('_', ' ')}
                         </span>
                         {branchLocation && (
-                          <span className="text-[10px] text-gray-400 font-semibold">
+                          <span className="text-[10px] text-[#5C5148] font-semibold bg-white border border-[#E8DDD0] px-2 py-0.5 rounded-full">
                             📍 {branchLocation}
                           </span>
                         )}
                       </div>
-                      <h2 className="text-2xl font-black font-heading leading-tight">
+                      <h2 className="text-2xl font-black font-heading leading-tight text-[#2B2521]">
                         {title || 'Campaign Title'}
                       </h2>
-                      <p className="text-xs text-gray-300 leading-relaxed line-clamp-3">
+                      <p className="text-xs text-[#5C5148] leading-relaxed line-clamp-3">
                         {description || shortDescription || 'Campaign description overview...'}
                       </p>
                       <div className="flex items-baseline gap-3 pt-1">
-                        <span className="text-3xl font-black font-heading text-red-400">
+                        <span className="text-3xl font-black font-heading text-[#B12B2B]">
                           ₹{effectiveOfferPrice.toLocaleString('en-IN')}
                         </span>
                         {originalPrice > effectiveOfferPrice && (
-                          <span className="text-base text-gray-500 line-through">
+                          <span className="text-base text-[#8C7E72] line-through">
                             ₹{originalPrice.toLocaleString('en-IN')}
                           </span>
                         )}
@@ -1202,14 +1248,14 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                       <div className="pt-2 flex items-center gap-2">
                         <button
                           style={{ backgroundColor: primaryColor }}
-                          className="px-5 py-2.5 rounded-xl text-white font-bold text-xs shadow"
+                          className="px-5 py-2.5 rounded-xl text-white font-bold text-xs shadow-md"
                         >
                           {ctaText || 'Book Session Now'}
                         </button>
                       </div>
                     </div>
                     <div className="md:col-span-5 relative">
-                      <div className="rounded-2xl overflow-hidden border border-white/15 bg-black/50 shadow-xl h-56">
+                      <div className="rounded-2xl overflow-hidden border-4 border-white bg-white shadow-xl h-56">
                         <img
                           src={bannerImageUrl || popupImageUrl || '/images/wellness-682x1024.png'}
                           alt="Hero Preview"
