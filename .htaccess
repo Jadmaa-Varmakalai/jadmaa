@@ -102,6 +102,10 @@ Options -Indexes
     RewriteCond %{REQUEST_FILENAME} -d
     RewriteRule ^ - [L]
 
+    # Route all API requests to PHP REST API Entrypoint
+    RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+    RewriteRule ^api$ api/index.php [QSA,L]
+
     # WordPress Admin & Login fallback if present
     RewriteRule ^wp-admin/?$ /wp-admin/index.php [L]
 
