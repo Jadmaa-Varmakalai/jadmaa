@@ -267,7 +267,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 {offer ? 'Edit Course Offer' : 'Create New Course Offer'}
               </h2>
               <p className="text-xs text-jadmaa-textMuted">
-                Dedicated promotional landing page and Instagram campaign URL
+                Dedicated promotional landing page and campaign URL
               </p>
             </div>
           </div>
@@ -354,7 +354,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   )}
                 </div>
                 <p className="text-[11px] text-gray-500 mt-1">
-                  Instagram Link: <span className="font-mono text-jadmaa-charcoal">{window.location.origin}/offers/{slug || '...'}</span>
+                  Campaign Link: <span className="font-mono text-jadmaa-charcoal">{window.location.origin}/offers/{slug || '...'}</span>
                 </p>
               </div>
 

@@ -147,7 +147,7 @@ export const CourseOffersManager: React.FC = () => {
               Course Offers & Campaigns
             </h2>
             <span className="px-2.5 py-0.5 rounded-full bg-jadmaa-red/10 text-jadmaa-red font-bold text-xs">
-              Instagram Ready
+              Campaign Ready
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
@@ -256,7 +256,7 @@ export const CourseOffersManager: React.FC = () => {
               <Sparkles className="w-12 h-12 text-jadmaa-red/40 mx-auto mb-3" />
               <h3 className="text-base font-bold text-gray-800">No promotional offers yet</h3>
               <p className="text-xs text-gray-500 max-w-sm mx-auto mt-1 mb-5">
-                Create your first promotional offer to generate a permanent link for Instagram advertisements.
+                Create your first promotional offer to generate a permanent link for promotional campaigns and advertisements.
               </p>
               <button
                 onClick={() => {
@@ -323,7 +323,7 @@ export const CourseOffersManager: React.FC = () => {
                         <button
                           onClick={() => copyUrl(offer.slug, offer.id)}
                           className="px-2 py-1 rounded-md border border-gray-200 hover:bg-gray-100 text-gray-600 text-[11px] font-medium flex items-center gap-1 transition shrink-0"
-                          title="Copy Instagram campaign link"
+                          title="Copy campaign link"
                         >
                           {copiedId === offer.id ? (
                             <>
