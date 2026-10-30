@@ -50,7 +50,7 @@ export const getActivePopupOffer = async (req: Request, res: Response) => {
     const now = new Date();
 
     // Filter by strict publication and validity rules
-    const validOffer = candidates.find(offer => {
+    const validOffer: any = candidates.find(offer => {
       const computed = computeOfferStatus(offer);
       if (computed !== 'PUBLISHED') return false;
       if (offer.course && offer.course.status !== 'PUBLISHED') return false;
@@ -155,6 +155,7 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Offer not found' } });
     }
 
+    const offerData = offer as any;
     const computedStatus = computeOfferStatus(offer);
 
     // If disabled or draft, do NOT expose content (404)
@@ -181,26 +182,26 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
         shortDescription: offer.shortDescription,
         description: offer.description,
         bannerImageUrl: offer.bannerImageUrl || offer.course?.thumbnailUrl || '/images/hero-kick-action-transparent.png',
-        popupImageUrl: offer.popupImageUrl || offer.bannerImageUrl || offer.course?.thumbnailUrl || null,
+        popupImageUrl: offerData.popupImageUrl || offer.bannerImageUrl || offer.course?.thumbnailUrl || null,
         galleryImages: offer.galleryImages || [],
-        category: offer.category || 'ONLINE_COURSE',
-        customCategory: offer.customCategory,
-        branchLocation: offer.branchLocation,
-        targetAudience: offer.targetAudience,
-        pricingType: offer.pricingType || 'FIXED_PRICE',
+        category: offerData.category || 'ONLINE_COURSE',
+        customCategory: offerData.customCategory,
+        branchLocation: offerData.branchLocation,
+        targetAudience: offerData.targetAudience,
+        pricingType: offerData.pricingType || 'FIXED_PRICE',
         originalPrice: offer.originalPrice,
         offerPrice: offer.offerPrice,
         discountAmount,
         discountPercent,
         currency: offer.currency,
-        theme: offer.theme || 'light',
-        primaryColor: offer.primaryColor || '#991B1B',
-        secondaryColor: offer.secondaryColor || '#141416',
-        ctaType: offer.ctaType || 'ENROLL_COURSE',
-        ctaText: offer.ctaText || null,
-        ctaUrl: offer.ctaUrl || null,
-        secondaryCtaText: offer.secondaryCtaText || null,
-        secondaryCtaUrl: offer.secondaryCtaUrl || null,
+        theme: offerData.theme || 'light',
+        primaryColor: offerData.primaryColor || '#991B1B',
+        secondaryColor: offerData.secondaryColor || '#141416',
+        ctaType: offerData.ctaType || 'ENROLL_COURSE',
+        ctaText: offerData.ctaText || null,
+        ctaUrl: offerData.ctaUrl || null,
+        secondaryCtaText: offerData.secondaryCtaText || null,
+        secondaryCtaUrl: offerData.secondaryCtaUrl || null,
         termsAndConditions: offer.termsAndConditions,
         supportEmail: offer.supportEmail || 'info@jadmaa.com',
         supportPhone: offer.supportPhone || '+91 93452 20020',
@@ -211,7 +212,7 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
         currentBookings: offer.currentBookings,
         computedStatus,
         isBookable: computedStatus === 'PUBLISHED' && courseAvailable,
-        isEnquiryOnly: offer.pricingType === 'ENQUIRY_ONLY',
+        isEnquiryOnly: offerData.pricingType === 'ENQUIRY_ONLY',
         course: offer.course ? {
           id: offer.course.id,
           title: offer.course.title,
@@ -271,6 +272,7 @@ export const submitOfferEnquiry = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Campaign offer not found.' } });
     }
 
+    const offerData = offer as any;
     const computedStatus = computeOfferStatus(offer);
     if (computedStatus === 'EXPIRED') {
       return res.status(400).json({ success: false, error: { message: 'This promotional offer has expired.' } });
@@ -286,15 +288,15 @@ export const submitOfferEnquiry = async (req: Request, res: Response) => {
       data: {
         bookingNumber,
         offerId: offer.id,
-        courseId: offer.courseId || null,
+        courseId: offer.courseId || undefined,
         amount: offer.offerPrice || 0,
         currency: offer.currency || 'INR',
         status: 'CONFIRMED',
         customerName: name.trim(),
         customerEmail: email?.trim() || null,
         customerPhone: phone.trim(),
-        category: offer.category || 'OFFLINE_CLASS',
-        notes: notes ? `${notes} | Branch: ${branchLocation || offer.branchLocation || 'All Branches'}` : (branchLocation ? `Branch: ${branchLocation}` : null)
+        category: offerData.category || 'OFFLINE_CLASS',
+        notes: notes ? `${notes} | Branch: ${branchLocation || offerData.branchLocation || 'All Branches'}` : (branchLocation ? `Branch: ${branchLocation}` : null)
       }
     });
 
@@ -682,6 +684,5 @@ export const verifyOfferPayment = async (req: Request, res: Response) => {
     });
   }
 };
-
 
 
