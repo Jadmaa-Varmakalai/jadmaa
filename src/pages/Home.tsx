@@ -10,6 +10,7 @@ import type { Course } from '../types';
 import { reviewsApi, type Testimonial } from '../lib/api/reviewsApi';
 import { CountUp } from '../components/common/CountUp';
 import { EditableText } from '../components/common/EditableText';
+import { ResponsiveImage } from '../components/common/ResponsiveImage';
 import { useSettings } from '../context/SettingsContext';
 
 export const Home: React.FC = () => {
@@ -341,14 +342,13 @@ export const Home: React.FC = () => {
             {/* Right Column: Hero Practitioner Kick Image */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0" data-aos="fade-up" data-aos-delay="100">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center">
-                <img 
+                <ResponsiveImage 
                   src="/images/hero-kick-action-transparent.png" 
                   alt="Varmakalai Practitioner Stance" 
-                  fetchPriority="high"
-                  loading="eager"
-                  decoding="async"
-                  width={650}
-                  height={650}
+                  priority={true}
+                  width={386}
+                  height={1024}
+                  sizes="(max-width: 640px) 360px, (max-width: 1024px) 480px, 650px"
                   className="max-h-[440px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out animate-jd-hero-float"
                 />
               </div>
@@ -359,18 +359,18 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 2. ABOUT JADMAA TEASER SECTION */}
-      <section className="py-12 lg:py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+      <section className="py-14 lg:py-20 bg-white border-b border-[#EBE3D7] text-left overflow-hidden relative" data-aos="fade-up">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             
-            <div className="lg:col-span-8 space-y-4">
-              <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
-                <EditableText settingKey="home.about.eyebrow" defaultText="About JADMAA" />
+            <div className="lg:col-span-8 space-y-5">
+              <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.4px] font-body block">
+                <EditableText settingKey="home.about.eyebrow" defaultText="About JADMAA Varmakalai" />
               </span>
-              <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
+              <h2 className="font-heading font-extrabold text-2xl sm:text-3xl lg:text-[38px] text-[#241E1B] leading-[1.18] tracking-tight">
                 <EditableText settingKey="home.about.title" defaultText="Ancient Power. Modern Training." />
               </h2>
-              <div className="space-y-4 font-body text-[16px] text-[#5C5148] leading-[1.6]">
+              <div className="space-y-4 font-body text-[16px] md:text-[16.5px] text-[#554A42] leading-[1.7] max-w-3xl">
                 <p>
                   <EditableText 
                     settingKey="home.about.description" 
@@ -389,22 +389,26 @@ export const Home: React.FC = () => {
               <div className="pt-2">
                 <Link 
                   to="/about" 
-                  className="inline-flex items-center space-x-1.5 font-semibold text-[15px] text-[#B12B2B] hover:text-[#8F2020] transition-colors group font-body"
+                  className="inline-flex items-center gap-1.5 font-bold text-[15px] text-[#B12B2B] hover:text-[#8F2020] transition-colors group font-body"
                 >
-                  <span><EditableText settingKey="home.about.cta" defaultText="Learn More →" /></span>
+                  <span><EditableText settingKey="home.about.cta" defaultText="Learn More" /></span>
+                  <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 text-[#B12B2B]" />
                 </Link>
               </div>
             </div>
 
-            <div className="lg:col-span-4 flex justify-center">
-              <div className="w-full max-w-[360px] overflow-hidden rounded-[14px]">
-                <img 
-                  src="/images/pose-dab-red-e1785095608624-653x1024.jpg" 
+            <div className="lg:col-span-4 flex justify-center items-center relative">
+              {/* Subtle ambient aura behind martial stance */}
+              <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-[#B12B2B]/5 blur-3xl pointer-events-none -z-0" />
+              <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px]">
+                <ResponsiveImage 
+                  src="/images/pose-dab-red-transparent.png" 
                   alt="Varmakalai practitioner demonstrating a traditional stance" 
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
-                  }}
-                  className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
+                  width={380}
+                  height={595}
+                  aspectRatio="653/1024"
+                  sizes="(max-width: 640px) 100vw, 380px"
+                  className="w-full h-auto object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:scale-[1.03] transition-transform duration-500 ease-out"
                 />
               </div>
             </div>
@@ -476,9 +480,13 @@ export const Home: React.FC = () => {
             {/* Left: Big Martial Arts Stance Image (1st on mobile) */}
             <div className="lg:col-span-5 flex justify-center items-center" data-aos="fade-up">
               <div className="relative group text-center">
-                <img 
+                <ResponsiveImage 
                   src="/images/training-stance.png" 
                   alt="Traditional Varmakalai Training Stance at JADMAA" 
+                  width={576}
+                  height={1024}
+                  aspectRatio="576/1024"
+                  sizes="(max-width: 640px) 360px, 576px"
                   className="max-h-[380px] sm:max-h-[440px] lg:max-h-[480px] w-auto object-contain drop-shadow-[0_16px_32px_rgba(43,37,33,0.18)] hover:scale-105 transition-transform duration-500 ease-out"
                 />
               </div>
@@ -739,12 +747,13 @@ export const Home: React.FC = () => {
             {/* Left Image - Full size matching section height */}
             <div className="lg:col-span-4 flex flex-col h-full">
               <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-[#FAF6F0]">
-                <img 
+                <ResponsiveImage 
                   src="/images/wellness-682x1024.png" 
                   alt="Traditional Varma therapy session at JADMAA Varmakalai" 
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/images/course-basic.jpg';
-                  }}
+                  width={682}
+                  height={1024}
+                  aspectRatio="2/3"
+                  sizes="(max-width: 1024px) 100vw, 480px"
                   className="w-full h-full min-h-[460px] lg:min-h-[540px] object-cover object-top rounded-[14px] hover:scale-105 transition-transform duration-700 ease-out"
                 />
               </div>
@@ -918,7 +927,7 @@ export const Home: React.FC = () => {
                   </div>
                   <div className="pt-2 border-t border-[#E8DDD0] flex items-center space-x-3">
                     {t.avatar ? (
-                      <img src={t.avatar} alt={t.name} className="w-8 h-8 rounded-full" referrerPolicy="no-referrer" />
+                      <ResponsiveImage src={t.avatar || '/images/logo-1.png'} alt={t.name} width={32} height={32} className="w-8 h-8 rounded-full object-cover" />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-[#E8DDD0] flex items-center justify-center text-[#2B2521] font-bold text-sm">
                         {t.name.charAt(0)}
