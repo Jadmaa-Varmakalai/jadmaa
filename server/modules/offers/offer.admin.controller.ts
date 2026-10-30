@@ -41,9 +41,25 @@ export const getAdminOffers = async (req: Request, res: Response) => {
         title: offer.title,
         slug: offer.slug,
         shortDescription: offer.shortDescription,
-        bannerImageUrl: offer.bannerImageUrl || offer.course.thumbnailUrl,
+        description: offer.description,
+        bannerImageUrl: offer.bannerImageUrl || offer.course?.thumbnailUrl || null,
+        popupImageUrl: offer.popupImageUrl || null,
+        galleryImages: offer.galleryImages || [],
+        category: offer.category || 'ONLINE_COURSE',
+        customCategory: offer.customCategory || null,
+        targetAudience: offer.targetAudience || null,
+        branchLocation: offer.branchLocation || null,
+        pricingType: offer.pricingType || 'FIXED_PRICE',
+        theme: offer.theme || 'light',
+        primaryColor: offer.primaryColor || '#991B1B',
+        secondaryColor: offer.secondaryColor || '#141416',
+        ctaType: offer.ctaType || 'ENROLL_COURSE',
+        ctaText: offer.ctaText || null,
+        ctaUrl: offer.ctaUrl || null,
+        secondaryCtaText: offer.secondaryCtaText || null,
+        secondaryCtaUrl: offer.secondaryCtaUrl || null,
         courseId: offer.courseId,
-        courseTitle: offer.course.title,
+        courseTitle: offer.course?.title || null,
         originalPrice: offer.originalPrice,
         offerPrice: offer.offerPrice,
         discountAmount,
@@ -123,9 +139,25 @@ export const createOffer = async (req: Request, res: Response) => {
       shortDescription,
       description,
       bannerImageUrl,
+      popupImageUrl,
       galleryImages,
+      category = 'ONLINE_COURSE',
+      customCategory,
+      targetAudience,
+      branchLocation,
       courseId,
-      offerPrice,
+      pricingType = 'FIXED_PRICE',
+      originalPrice: rawOriginalPrice,
+      offerPrice: rawOfferPrice,
+      discountPercent: rawDiscountPercent,
+      theme = 'light',
+      primaryColor = '#991B1B',
+      secondaryColor = '#141416',
+      ctaType = 'ENROLL_COURSE',
+      ctaText,
+      ctaUrl,
+      secondaryCtaText,
+      secondaryCtaUrl,
       termsAndConditions,
       supportEmail,
       supportPhone,
@@ -143,32 +175,49 @@ export const createOffer = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: { message: 'Offer title is required.' } });
     }
 
-    if (!courseId) {
-      return res.status(400).json({ success: false, error: { message: 'Associated course is required.' } });
-    }
+    let resolvedCourseId: string | null = null;
+    let originalPrice = parseFloat(rawOriginalPrice) || 0;
+    let numOfferPrice = parseFloat(rawOfferPrice) || 0;
 
-    // Verify course exists
-    const course = await prisma.course.findUnique({
-      where: { id: courseId },
-      select: { id: true, title: true, price: true }
-    });
-
-    if (!course) {
-      return res.status(404).json({ success: false, error: { message: 'Selected course not found.' } });
-    }
-
-    const originalPrice = course.price;
-    const numOfferPrice = parseFloat(offerPrice);
-
-    if (isNaN(numOfferPrice) || numOfferPrice <= 0) {
-      return res.status(400).json({ success: false, error: { message: 'Offer price must be greater than zero.' } });
-    }
-
-    if (originalPrice > 0 && numOfferPrice > originalPrice) {
-      return res.status(400).json({
-        success: false,
-        error: { message: `Offer price (₹${numOfferPrice}) cannot exceed original price (₹${originalPrice}).` }
+    // If associated course provided, verify existence
+    if (courseId) {
+      const course = await prisma.course.findUnique({
+        where: { id: courseId },
+        select: { id: true, title: true, price: true }
       });
+
+      if (!course) {
+        return res.status(404).json({ success: false, error: { message: 'Selected course not found.' } });
+      }
+      resolvedCourseId = course.id;
+      if (course.price > 0 && (!rawOriginalPrice || originalPrice === 0)) {
+        originalPrice = course.price;
+      }
+    }
+
+    // Dynamic price calculation based on pricingType
+    if (pricingType === 'ENQUIRY_ONLY') {
+      originalPrice = 0;
+      numOfferPrice = 0;
+    } else if (pricingType === 'PERCENTAGE') {
+      const pct = Math.min(100, Math.max(0, parseFloat(rawDiscountPercent) || 0));
+      numOfferPrice = Math.max(0, Math.round(originalPrice * (1 - pct / 100)));
+    } else if (pricingType === 'NO_DISCOUNT') {
+      numOfferPrice = originalPrice > 0 ? originalPrice : (parseFloat(rawOfferPrice) || 0);
+      originalPrice = numOfferPrice;
+    } else if (pricingType === 'FIXED_DISCOUNT') {
+      const discountAmt = parseFloat(rawOfferPrice) || 0;
+      numOfferPrice = Math.max(0, originalPrice - discountAmt);
+    }
+
+    // Server-side validation
+    if (pricingType !== 'ENQUIRY_ONLY') {
+      if (originalPrice > 0 && numOfferPrice > originalPrice) {
+        return res.status(400).json({
+          success: false,
+          error: { message: `Offer price (₹${numOfferPrice}) cannot exceed original price (₹${originalPrice}).` }
+        });
+      }
     }
 
     // Clean & validate slug
@@ -210,11 +259,26 @@ export const createOffer = async (req: Request, res: Response) => {
         shortDescription: shortDescription || '',
         description: description || '',
         bannerImageUrl: bannerImageUrl || null,
+        popupImageUrl: popupImageUrl || null,
         galleryImages: Array.isArray(galleryImages) ? galleryImages : [],
-        courseId,
+        category,
+        customCategory: customCategory || null,
+        targetAudience: targetAudience || null,
+        branchLocation: branchLocation || null,
+        courseId: resolvedCourseId,
+        pricingType,
+        discountPercent: rawDiscountPercent ? parseFloat(rawDiscountPercent) : null,
         originalPrice,
         offerPrice: numOfferPrice,
         currency: 'INR',
+        theme,
+        primaryColor,
+        secondaryColor,
+        ctaType,
+        ctaText: ctaText || null,
+        ctaUrl: ctaUrl || null,
+        secondaryCtaText: secondaryCtaText || null,
+        secondaryCtaUrl: secondaryCtaUrl || null,
         termsAndConditions: termsAndConditions || null,
         supportEmail: supportEmail || 'info@jadmaa.com',
         supportPhone: supportPhone || '+91 93452 20020',
@@ -257,9 +321,25 @@ export const updateOffer = async (req: Request, res: Response) => {
       shortDescription,
       description,
       bannerImageUrl,
+      popupImageUrl,
       galleryImages,
+      category,
+      customCategory,
+      targetAudience,
+      branchLocation,
       courseId,
+      pricingType,
+      originalPrice,
       offerPrice,
+      discountPercent,
+      theme,
+      primaryColor,
+      secondaryColor,
+      ctaType,
+      ctaText,
+      ctaUrl,
+      secondaryCtaText,
+      secondaryCtaUrl,
       termsAndConditions,
       supportEmail,
       supportPhone,
@@ -279,7 +359,23 @@ export const updateOffer = async (req: Request, res: Response) => {
     if (shortDescription !== undefined) updateData.shortDescription = shortDescription;
     if (description !== undefined) updateData.description = description;
     if (bannerImageUrl !== undefined) updateData.bannerImageUrl = bannerImageUrl || null;
+    if (popupImageUrl !== undefined) updateData.popupImageUrl = popupImageUrl || null;
     if (galleryImages !== undefined) updateData.galleryImages = Array.isArray(galleryImages) ? galleryImages : [];
+    if (category !== undefined) updateData.category = category;
+    if (customCategory !== undefined) updateData.customCategory = customCategory || null;
+    if (targetAudience !== undefined) updateData.targetAudience = targetAudience || null;
+    if (branchLocation !== undefined) updateData.branchLocation = branchLocation || null;
+    if (courseId !== undefined) updateData.courseId = courseId || null;
+    if (pricingType !== undefined) updateData.pricingType = pricingType;
+    if (discountPercent !== undefined) updateData.discountPercent = discountPercent !== null ? parseFloat(discountPercent) : null;
+    if (theme !== undefined) updateData.theme = theme;
+    if (primaryColor !== undefined) updateData.primaryColor = primaryColor;
+    if (secondaryColor !== undefined) updateData.secondaryColor = secondaryColor;
+    if (ctaType !== undefined) updateData.ctaType = ctaType;
+    if (ctaText !== undefined) updateData.ctaText = ctaText || null;
+    if (ctaUrl !== undefined) updateData.ctaUrl = ctaUrl || null;
+    if (secondaryCtaText !== undefined) updateData.secondaryCtaText = secondaryCtaText || null;
+    if (secondaryCtaUrl !== undefined) updateData.secondaryCtaUrl = secondaryCtaUrl || null;
     if (termsAndConditions !== undefined) updateData.termsAndConditions = termsAndConditions || null;
     if (supportEmail !== undefined) updateData.supportEmail = supportEmail || null;
     if (supportPhone !== undefined) updateData.supportPhone = supportPhone || null;
@@ -289,6 +385,10 @@ export const updateOffer = async (req: Request, res: Response) => {
     if (popupPriority !== undefined) updateData.popupPriority = parseInt(popupPriority, 10) || 0;
     if (countdownEnabled !== undefined) updateData.countdownEnabled = Boolean(countdownEnabled);
     if (bookingLimit !== undefined) updateData.bookingLimit = bookingLimit ? parseInt(bookingLimit, 10) : null;
+
+    if (originalPrice !== undefined) {
+      updateData.originalPrice = parseFloat(originalPrice) || 0;
+    }
 
     if (startAt !== undefined) {
       updateData.startAt = startAt ? new Date(startAt) : null;
@@ -316,19 +416,10 @@ export const updateOffer = async (req: Request, res: Response) => {
       updateData.slug = cleanSlug;
     }
 
-    // Price validation
+    // Price handling
     if (offerPrice !== undefined) {
       const numOfferPrice = parseFloat(offerPrice);
-      if (isNaN(numOfferPrice) || numOfferPrice <= 0) {
-        return res.status(400).json({ success: false, error: { message: 'Offer price must be greater than zero.' } });
-      }
-      if (numOfferPrice > existing.originalPrice) {
-        return res.status(400).json({
-          success: false,
-          error: { message: `Offer price (₹${numOfferPrice}) cannot exceed original price (₹${existing.originalPrice}).` }
-        });
-      }
-      updateData.offerPrice = numOfferPrice;
+      updateData.offerPrice = isNaN(numOfferPrice) ? 0 : numOfferPrice;
     }
 
     const updated = await prisma.courseOffer.update({
@@ -408,11 +499,26 @@ export const duplicateOffer = async (req: Request, res: Response) => {
         shortDescription: source.shortDescription,
         description: source.description,
         bannerImageUrl: source.bannerImageUrl,
+        popupImageUrl: source.popupImageUrl,
         galleryImages: source.galleryImages,
+        category: source.category,
+        customCategory: source.customCategory,
+        targetAudience: source.targetAudience,
+        branchLocation: source.branchLocation,
         courseId: source.courseId,
+        pricingType: source.pricingType,
+        discountPercent: source.discountPercent,
         originalPrice: source.originalPrice,
         offerPrice: source.offerPrice,
         currency: source.currency,
+        theme: source.theme,
+        primaryColor: source.primaryColor,
+        secondaryColor: source.secondaryColor,
+        ctaType: source.ctaType,
+        ctaText: source.ctaText,
+        ctaUrl: source.ctaUrl,
+        secondaryCtaText: source.secondaryCtaText,
+        secondaryCtaUrl: source.secondaryCtaUrl,
         termsAndConditions: source.termsAndConditions,
         supportEmail: source.supportEmail,
         supportPhone: source.supportPhone,

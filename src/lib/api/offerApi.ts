@@ -7,9 +7,23 @@ export interface CourseOfferItem {
   shortDescription: string;
   description?: string;
   bannerImageUrl?: string;
+  popupImageUrl?: string;
   galleryImages?: string[];
-  courseId: string;
-  courseTitle: string;
+  category: string;
+  customCategory?: string;
+  targetAudience?: string;
+  branchLocation?: string;
+  pricingType: string;
+  theme?: 'light' | 'dark';
+  primaryColor?: string;
+  secondaryColor?: string;
+  ctaType?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  secondaryCtaText?: string;
+  secondaryCtaUrl?: string;
+  courseId?: string | null;
+  courseTitle?: string | null;
   originalPrice: number;
   offerPrice: number;
   discountAmount: number;
@@ -38,10 +52,10 @@ export interface OfferBookingItem {
   bookingNumber: string;
   offerId: string;
   offer: { id: string; title: string; slug: string };
-  courseId: string;
-  course: { id: string; title: string };
-  userId: string;
-  user: { id: string; name: string; email: string; phone?: string };
+  courseId?: string | null;
+  course?: { id: string; title: string } | null;
+  userId?: string | null;
+  user?: { id: string; name: string; email: string; phone?: string } | null;
   paymentId?: string;
   payment?: {
     id: string;
@@ -58,6 +72,8 @@ export interface OfferBookingItem {
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
+  category?: string;
+  notes?: string;
   createdAt: string;
 }
 
@@ -73,12 +89,26 @@ export interface PublicOfferDetails {
   shortDescription: string;
   description: string;
   bannerImageUrl?: string;
+  popupImageUrl?: string;
   galleryImages: string[];
+  category: string;
+  customCategory?: string;
+  targetAudience?: string;
+  branchLocation?: string;
+  pricingType: string;
   originalPrice: number;
   offerPrice: number;
   discountAmount: number;
   discountPercent: number;
   currency: string;
+  theme?: 'light' | 'dark';
+  primaryColor?: string;
+  secondaryColor?: string;
+  ctaType?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  secondaryCtaText?: string;
+  secondaryCtaUrl?: string;
   termsAndConditions?: string;
   supportEmail: string;
   supportPhone: string;
@@ -89,7 +119,8 @@ export interface PublicOfferDetails {
   currentBookings: number;
   computedStatus: string;
   isBookable: boolean;
-  course: {
+  isEnquiryOnly?: boolean;
+  course?: {
     id: string;
     title: string;
     subtitle?: string;
@@ -120,7 +151,7 @@ export interface PublicOfferDetails {
         isFreePreview: boolean;
       }>;
     }>;
-  };
+  } | null;
 }
 
 export const offerApi = {
@@ -131,6 +162,19 @@ export const offerApi = {
 
   getOfferBySlug: async (slug: string) => {
     return fetchApi(`/offers/${slug}`);
+  },
+
+  submitOfferEnquiry: async (slug: string, payload: {
+    name: string;
+    email?: string;
+    phone: string;
+    branchLocation?: string;
+    notes?: string;
+  }) => {
+    return fetchApi(`/offers/${slug}/enquire`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
   },
 
   initiateOfferBooking: async (slug: string) => {

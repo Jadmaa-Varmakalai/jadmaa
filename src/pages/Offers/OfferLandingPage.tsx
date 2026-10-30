@@ -6,10 +6,34 @@ import type { PublicOfferDetails } from '../../lib/api/offerApi';
 import { loadRazorpayScript } from '../../lib/razorpay';
 import { useAuth } from '../../context/AuthContext';
 import {
-  Sparkles, Clock, CheckCircle, ShieldCheck, Award, BookOpen,
+  Clock, CheckCircle, ShieldCheck, Award, BookOpen,
   ArrowRight, Phone, Mail, AlertTriangle, Users, Play, ChevronDown,
-  ChevronUp, Lock, Check, Share2, Copy, Flame, Compass, HeartPulse
+  ChevronUp, Lock, Check, Share2, Copy, Flame, MapPin, Calendar,
+  MessageCircle, Send, X, Sparkles
 } from 'lucide-react';
+
+const getCategoryDisplay = (category?: string, customCategory?: string) => {
+  if (customCategory) return customCategory.toUpperCase();
+  switch (category) {
+    case 'VARMA_TREATMENT':
+      return 'VARMA THERAPY & TREATMENT';
+    case 'OFFLINE_CLASS':
+      return 'OFFLINE MARTIAL ARTS CLASSES';
+    case 'SPECIAL_CAMP':
+      return 'INTENSIVE RESIDENTIAL CAMP';
+    case 'WORKSHOP':
+      return 'MASTER WORKSHOP';
+    case 'SEMINAR':
+      return 'ACADEMY SEMINAR';
+    case 'SPECIAL_EVENT':
+      return 'SPECIAL EVENT';
+    case 'ACADEMY_PROGRAMME':
+      return 'ACADEMY PROGRAMME';
+    case 'ONLINE_COURSE':
+    default:
+      return 'ONLINE MARTIAL ARTS COURSE';
+  }
+};
 
 export const OfferLandingPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -22,6 +46,17 @@ export const OfferLandingPage: React.FC = () => {
   const [paymentStep, setPaymentStep] = useState<'IDLE' | 'PROCESSING' | 'VERIFYING' | 'SUCCESS' | 'FAILED'>('IDLE');
   const [copied, setCopied] = useState(false);
   const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
+
+  // Enquiry / Registration Form modal state
+  const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
+  const [enquiryName, setEnquiryName] = useState('');
+  const [enquiryPhone, setEnquiryPhone] = useState('');
+  const [enquiryEmail, setEnquiryEmail] = useState('');
+  const [enquiryBranch, setEnquiryBranch] = useState('Thanjavur');
+  const [enquiryNotes, setEnquiryNotes] = useState('');
+  const [enquirySubmitting, setEnquirySubmitting] = useState(false);
+  const [enquirySuccessData, setEnquirySuccessData] = useState<{ bookingNumber: string; customerName: string } | null>(null);
+  const [enquiryError, setEnquiryError] = useState<string | null>(null);
 
   // Live countdown state
   const [timeLeft, setTimeLeft] = useState<{
@@ -42,11 +77,14 @@ export const OfferLandingPage: React.FC = () => {
         const res = await offerApi.getOfferBySlug(slug);
         if (res.success && res.data) {
           setOffer(res.data);
+          if (res.data.branchLocation) {
+            setEnquiryBranch(res.data.branchLocation);
+          }
         } else {
-          setError(res.error?.message || 'This course offer is currently unavailable or has expired.');
+          setError(res.error?.message || 'This promotional campaign is currently unavailable or has expired.');
         }
       } catch (err: any) {
-        setError(err.message || 'This course offer is currently unavailable or has expired.');
+        setError(err.message || 'This promotional campaign is currently unavailable or has expired.');
       } finally {
         setLoading(false);
       }
@@ -90,8 +128,8 @@ export const OfferLandingPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  // Payment Handler (Secure Razorpay Flow)
-  const handleBookNow = async () => {
+  // Online Course Razorpay Payment Flow
+  const handleCourseBooking = async () => {
     if (!offer || !offer.isBookable || (timeLeft && timeLeft.isExpired)) {
       alert('This offer has ended or is unavailable for bookings.');
       return;
@@ -113,7 +151,6 @@ export const OfferLandingPage: React.FC = () => {
         return;
       }
 
-      // 1. Initiate booking on server (authoritative offer price from DB)
       const res = await offerApi.initiateOfferBooking(offer.slug);
       if (!res.success || !res.data) {
         setPaymentStep('FAILED');
@@ -123,7 +160,6 @@ export const OfferLandingPage: React.FC = () => {
 
       const { keyId, orderId, amount, currency, prefill } = res.data;
 
-      // 2. Open Razorpay Checkout Modal
       const options = {
         key: keyId,
         amount,
@@ -140,7 +176,7 @@ export const OfferLandingPage: React.FC = () => {
           contact: (prefill?.contact || '').replace(/[^0-9+]/g, '')
         },
         theme: {
-          color: '#991B1B',
+          color: offer.primaryColor || '#991B1B',
           backdrop_color: 'rgba(0, 0, 0, 0.85)'
         },
         modal: {
@@ -194,6 +230,49 @@ export const OfferLandingPage: React.FC = () => {
     }
   };
 
+  // Primary Action Router
+  const handlePrimaryAction = () => {
+    if (!offer) return;
+    if (offer.category === 'ONLINE_COURSE' && offer.course && !offer.isEnquiryOnly) {
+      handleCourseBooking();
+    } else if (offer.ctaType === 'CUSTOM_URL' && offer.ctaUrl) {
+      if (offer.ctaUrl.startsWith('http')) {
+        window.open(offer.ctaUrl, '_blank');
+      } else {
+        navigate(offer.ctaUrl);
+      }
+    } else {
+      // Open Registration / Enquiry Modal
+      setIsEnquiryModalOpen(true);
+    }
+  };
+
+  // Submit Enquiry / Registration Form
+  const handleEnquirySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!offer) return;
+    setEnquirySubmitting(true);
+    setEnquiryError(null);
+    try {
+      const res = await offerApi.submitOfferEnquiry(offer.slug, {
+        name: enquiryName,
+        phone: enquiryPhone,
+        email: enquiryEmail,
+        branchLocation: enquiryBranch,
+        notes: enquiryNotes
+      });
+      if (res.success && res.data) {
+        setEnquirySuccessData(res.data);
+      } else {
+        setEnquiryError(res.error?.message || 'Failed to submit registration.');
+      }
+    } catch (err: any) {
+      setEnquiryError(err.message || 'Failed to submit registration.');
+    } finally {
+      setEnquirySubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0F0F12] text-white flex items-center justify-center p-4">
@@ -233,7 +312,9 @@ export const OfferLandingPage: React.FC = () => {
   }
 
   const isExpired = timeLeft ? timeLeft.isExpired : !offer.isBookable;
-  const imageSource = offer.bannerImageUrl || offer.course.thumbnailUrl || '/images/hero-fallback.jpg';
+  const imageSource = offer.bannerImageUrl || (offer.course && offer.course.thumbnailUrl) || '/images/hero-kick-action-transparent.png';
+  const categoryTitle = getCategoryDisplay(offer.category, offer.customCategory);
+  const primaryBrandColor = offer.primaryColor || '#991B1B';
 
   return (
     <>
@@ -246,553 +327,512 @@ export const OfferLandingPage: React.FC = () => {
 
       <div className="min-h-screen bg-[#0F0F12] text-white flex flex-col selection:bg-red-900 selection:text-white">
         
-        {/* Top Campaign Bar */}
-        <header className="border-b border-white/10 bg-[#121216]/90 backdrop-blur-md sticky top-0 z-30">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-            <Link to="/" className="flex items-center gap-2.5 group">
-              <span className="font-heading font-black text-lg tracking-wider text-white group-hover:text-red-400 transition-colors">
-                JADMAA <span className="text-red-500 font-normal">VARMAKALAI</span>
-              </span>
+        {/* Top Header Navigation */}
+        <header className="sticky top-0 z-40 bg-[#0F0F12]/95 backdrop-blur-md border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2 group">
+              <img src="/logo.png" alt="JADMAA" className="h-8 w-auto object-contain" />
+              <div className="hidden sm:block">
+                <span className="font-heading font-black tracking-wider text-sm text-white">JADMAA</span>
+                <span className="text-[10px] block tracking-widest text-red-400 font-bold -mt-0.5">VARMAKALAI</span>
+              </div>
             </Link>
 
-            <div className="flex items-center gap-3">
-              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-widest bg-red-950/80 text-red-300 border border-red-800/50">
-                <Flame className="w-3 h-3 text-amber-400" />
-                LIMITED-TIME COURSE OFFER
-              </span>
+            <span className="h-4 w-px bg-white/20 hidden sm:block" />
 
-              <button
-                onClick={handleCopyLink}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
-                title="Copy campaign link"
-                aria-label="Copy campaign link"
-              >
-                {copied ? <Check className="w-4 h-4 text-green-400" /> : <Share2 className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-        </header>
-
-        {/* SECTION 1: CAMPAIGN HERO (Editorial Two-Column Layout) */}
-        <section className="relative overflow-hidden pt-8 pb-14 sm:pt-12 sm:pb-20 border-b border-white/10">
-          {/* Subtle Ambient Crimson Glow */}
-          <div className="absolute top-0 right-1/4 w-96 h-96 bg-red-950/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute bottom-0 left-10 w-72 h-72 bg-red-900/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              
-              {/* Left Column: Headline, Narrative & Pricing */}
-              <div className="lg:col-span-7 space-y-6 text-left">
-                
-                {/* Campaign Tag & Savings Pill */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-red-900/40 text-red-300 border border-red-700/50">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                    Special Campaign Offer
-                  </span>
-                  {offer.discountPercent > 0 && (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                      Save {offer.discountPercent}%
-                    </span>
-                  )}
-                  <span className="text-xs font-medium text-gray-400">
-                    • Online Training Program
-                  </span>
-                </div>
-
-                {/* Course Name Pre-Title */}
-                <p className="text-xs sm:text-sm font-bold uppercase tracking-widest text-red-400">
-                  {offer.course.title}
-                </p>
-
-                {/* Primary Promotional Headline */}
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-heading text-white leading-[1.15] tracking-tight">
-                  {offer.title}
-                </h1>
-
-                {/* Short Description */}
-                {offer.shortDescription && (
-                  <p className="text-base sm:text-lg text-gray-300 leading-relaxed font-sans max-w-xl">
-                    {offer.shortDescription}
-                  </p>
-                )}
-
-                {/* Course Quick Attributes */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 py-1 text-xs">
-                  <div className="p-2.5 rounded-lg bg-white/5 border border-white/10">
-                    <span className="block text-[10px] uppercase font-bold text-gray-400">Category</span>
-                    <span className="font-semibold text-white">{offer.course.category || 'Varma Kalai'}</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-white/5 border border-white/10">
-                    <span className="block text-[10px] uppercase font-bold text-gray-400">Level</span>
-                    <span className="font-semibold text-white">{offer.course.level || 'All Levels'}</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-white/5 border border-white/10">
-                    <span className="block text-[10px] uppercase font-bold text-gray-400">Duration</span>
-                    <span className="font-semibold text-white">{offer.course.duration || 'Self-Paced'}</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-white/5 border border-white/10">
-                    <span className="block text-[10px] uppercase font-bold text-gray-400">Curriculum</span>
-                    <span className="font-semibold text-white">{offer.course.totalLessons} Lessons</span>
-                  </div>
-                </div>
-
-                {/* Countdown Timer (When Enabled) */}
-                {offer.countdownEnabled && timeLeft && !timeLeft.isExpired && (
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-red-950/60 via-black/80 to-red-950/60 border border-red-900/50 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-red-300">
-                      <span className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                        Campaign Offer Closes In:
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-mono">IST (Asia/Kolkata)</span>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-2 text-center pt-1 font-mono">
-                      <div className="bg-black/70 p-2 rounded-lg border border-white/10">
-                        <span className="text-xl sm:text-2xl font-black text-white block">
-                          {String(timeLeft.days).padStart(2, '0')}
-                        </span>
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">Days</span>
-                      </div>
-                      <div className="bg-black/70 p-2 rounded-lg border border-white/10">
-                        <span className="text-xl sm:text-2xl font-black text-white block">
-                          {String(timeLeft.hours).padStart(2, '0')}
-                        </span>
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">Hours</span>
-                      </div>
-                      <div className="bg-black/70 p-2 rounded-lg border border-white/10">
-                        <span className="text-xl sm:text-2xl font-black text-white block">
-                          {String(timeLeft.minutes).padStart(2, '0')}
-                        </span>
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">Mins</span>
-                      </div>
-                      <div className="bg-black/70 p-2 rounded-lg border border-white/10">
-                        <span className="text-xl sm:text-2xl font-black text-red-400 block">
-                          {String(timeLeft.seconds).padStart(2, '0')}
-                        </span>
-                        <span className="text-[9px] font-bold text-gray-400 uppercase">Secs</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Pricing & Hero CTA */}
-                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-                  <div className="space-y-0.5">
-                    <div className="flex items-baseline gap-2.5">
-                      <span className="text-3xl sm:text-4xl font-black font-heading text-white">
-                        ₹{offer.offerPrice.toLocaleString('en-IN')}
-                      </span>
-                      {offer.originalPrice > offer.offerPrice && (
-                        <span className="text-lg text-gray-400 line-through">
-                          ₹{offer.originalPrice.toLocaleString('en-IN')}
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs font-semibold text-green-400">
-                      Save ₹{offer.discountAmount.toLocaleString('en-IN')} with this link
-                    </span>
-                  </div>
-
-                  <button
-                    onClick={handleBookNow}
-                    disabled={isExpired || paymentStep === 'PROCESSING' || paymentStep === 'VERIFYING'}
-                    className={`flex-1 sm:max-w-xs py-3.5 px-6 rounded-lg font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-xl transition-all ${
-                      isExpired
-                        ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10'
-                        : 'bg-red-700 hover:bg-red-600 text-white shadow-red-900/50 hover:scale-[1.02] active:scale-[0.98] cursor-pointer border border-red-500/30'
-                    }`}
-                  >
-                    <Lock className="w-4 h-4" />
-                    <span>
-                      {paymentStep === 'PROCESSING'
-                        ? 'Preparing Checkout...'
-                        : paymentStep === 'VERIFYING'
-                        ? 'Verifying Payment...'
-                        : isExpired
-                        ? 'Offer Expired'
-                        : 'BOOK THIS COURSE'}
-                    </span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Trust Line */}
-                <div className="flex flex-wrap items-center gap-4 pt-1 text-[11px] text-gray-400">
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-green-400" />
-                    256-bit Razorpay Checkout
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-amber-400" />
-                    Official JADMAA Certification
-                  </span>
-                  <span className="flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-blue-400" />
-                    Immediate Lifetime Access
-                  </span>
-                </div>
-
-              </div>
-
-              {/* Right Column: Hero Visual Showcase */}
-              <div className="lg:col-span-5">
-                <div className="relative rounded-2xl overflow-hidden border border-white/15 shadow-2xl bg-[#141418] group">
-                  
-                  {/* Decorative Frame Line */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 via-amber-500 to-red-600 z-10" />
-
-                  {/* Image */}
-                  <div className="aspect-[4/3] sm:aspect-[16/11] w-full overflow-hidden relative">
-                    <img
-                      src={imageSource}
-                      alt={offer.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0F0F12] via-transparent to-black/30" />
-                  </div>
-
-                  {/* Floating Overlay Details */}
-                  <div className="p-5 space-y-3 relative z-10 -mt-10 bg-gradient-to-t from-[#141418] via-[#141418] to-transparent">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-ping" />
-                        <span className="text-xs font-bold text-gray-200">Admissions Open</span>
-                      </div>
-                      <span className="text-xs font-mono text-gray-400">
-                        {offer.course.totalLessons} HD Video Lessons
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-gray-400 line-clamp-2">
-                      {offer.course.subtitle || offer.course.description}
-                    </p>
-
-                    {offer.bookingLimit && (
-                      <div className="space-y-1 pt-1">
-                        <div className="flex justify-between text-[11px] font-semibold text-gray-400">
-                          <span>Seats Claimed:</span>
-                          <span className="text-red-400 font-bold">
-                            {offer.currentBookings} / {offer.bookingLimit}
-                          </span>
-                        </div>
-                        <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
-                          <div
-                            className="bg-red-600 h-full rounded-full"
-                            style={{
-                              width: `${Math.min(100, Math.round((offer.currentBookings / offer.bookingLimit) * 100))}%`
-                            }}
-                          />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 2: WHAT YOU WILL LEARN & SYLLABUS (Clean Readable Parchment) */}
-        <section className="py-14 sm:py-20 bg-[#FAF6F0] text-[#1C1917] border-b border-gray-200">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10 text-left">
-            
-            <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#B12B2B]">
-                Curriculum & Syllabus
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black font-heading text-[#1C1917]">
-                What You Will Learn in This Course
-              </h2>
-              <p className="text-sm text-gray-600 max-w-2xl leading-relaxed">
-                Step-by-step curriculum directly formulated from traditional Tamil Varmakalai martial science and healing techniques.
-              </p>
-            </div>
-
-            {/* Campaign Narrative */}
-            {offer.description && (
-              <div className="p-6 rounded-xl bg-white border border-gray-200 shadow-sm text-sm leading-relaxed whitespace-pre-line text-gray-700">
-                {offer.description}
-              </div>
-            )}
-
-            {/* Modules and Lessons */}
-            {offer.course.modules && offer.course.modules.length > 0 ? (
-              <div className="space-y-3">
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-gray-800">
-                  Course Modules & Lessons Breakdown ({offer.course.totalLessons} Lessons)
-                </h3>
-
-                <div className="space-y-2.5">
-                  {offer.course.modules.map((m, idx) => {
-                    const isOpen = openModuleIndex === idx;
-                    return (
-                      <div
-                        key={m.id}
-                        className="rounded-xl border border-gray-200 overflow-hidden bg-white shadow-sm transition"
-                      >
-                        <button
-                          onClick={() => setOpenModuleIndex(isOpen ? null : idx)}
-                          className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="w-7 h-7 rounded-md bg-[#FAF6F0] text-[#B12B2B] font-bold text-xs flex items-center justify-center border border-gray-200">
-                              {idx + 1}
-                            </span>
-                            <div>
-                              <h4 className="text-sm font-bold text-gray-900">{m.title}</h4>
-                              <p className="text-[11px] text-gray-500">{m.lessonCount} Lessons</p>
-                            </div>
-                          </div>
-                          {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
-                        </button>
-
-                        {isOpen && (
-                          <div className="p-4 pt-1 border-t border-gray-100 bg-[#FAF6F0]/50 space-y-2">
-                            {m.lessons.map((l) => (
-                              <div
-                                key={l.id}
-                                className="flex items-center justify-between py-2 px-3 rounded-lg bg-white border border-gray-200 text-xs"
-                              >
-                                <div className="flex items-center gap-2.5">
-                                  <Play className="w-3.5 h-3.5 text-[#B12B2B] shrink-0" />
-                                  <span className="font-medium text-gray-800">{l.title}</span>
-                                  {l.isFreePreview && (
-                                    <span className="text-[10px] bg-green-100 text-green-800 px-1.5 py-0.2 rounded font-bold">
-                                      Free Preview
-                                    </span>
-                                  )}
-                                </div>
-                                <span className="text-[11px] text-gray-500 font-mono">{l.duration}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="p-6 rounded-xl bg-white border border-gray-200 text-sm text-gray-600">
-                {offer.course.longDescription || offer.course.description}
-              </div>
-            )}
-
-          </div>
-        </section>
-
-        {/* SECTION 3: COURSE BENEFITS & TRADITIONAL LINEAGE */}
-        <section className="py-14 sm:py-20 border-b border-white/10 bg-[#121216]">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-10 text-left">
-            
-            <div className="space-y-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-red-400">
-                Traditional Discipline
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black font-heading text-white">
-                Why Study with JADMAA Varmakalai
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                <div className="w-9 h-9 rounded-lg bg-red-950/60 text-red-400 flex items-center justify-center border border-red-800/40">
-                  <Compass className="w-5 h-5" />
-                </div>
-                <h4 className="text-sm font-bold text-white">Authentic Asan Lineage</h4>
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  Preserving centuries-old knowledge of vital pressure points (Varma Pulligal), combat applications and natural body alignment.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                <div className="w-9 h-9 rounded-lg bg-red-950/60 text-red-400 flex items-center justify-center border border-red-800/40">
-                  <HeartPulse className="w-5 h-5" />
-                </div>
-                <h4 className="text-sm font-bold text-white">Defence & Therapeutic Health</h4>
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  Learn practical self-protection techniques alongside natural healing points for nervous system balance and wellness.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-xl bg-white/5 border border-white/10 space-y-2">
-                <div className="w-9 h-9 rounded-lg bg-red-950/60 text-red-400 flex items-center justify-center border border-red-800/40">
-                  <Award className="w-5 h-5" />
-                </div>
-                <h4 className="text-sm font-bold text-white">Recognized Academy Certification</h4>
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  Receive an authenticated JADMAA certificate of completion upon finishing all lessons in the course curriculum.
-                </p>
-              </div>
-            </div>
-
-            {/* Instructor Feature */}
-            {offer.course.instructor && (
-              <div className="p-6 rounded-xl bg-white/5 border border-white/10 flex flex-col sm:flex-row items-center sm:items-start gap-5">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-neutral-800 shrink-0 border border-white/10">
-                  {offer.course.instructor.avatarUrl ? (
-                    <img
-                      src={offer.course.instructor.avatarUrl}
-                      alt={offer.course.instructor.displayName}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center font-bold text-red-400 text-xl font-heading">
-                      {offer.course.instructor.displayName.charAt(0)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="text-center sm:text-left space-y-1">
-                  <p className="text-xs font-bold uppercase tracking-wider text-red-400">Master Instructor</p>
-                  <h3 className="text-base font-bold text-white">{offer.course.instructor.displayName}</h3>
-                  {offer.course.instructor.title && (
-                    <p className="text-xs text-gray-400">{offer.course.instructor.title}</p>
-                  )}
-                  {offer.course.instructor.bio && (
-                    <p className="text-xs text-gray-300 pt-1 leading-relaxed max-w-2xl">{offer.course.instructor.bio}</p>
-                  )}
-                </div>
-              </div>
-            )}
-
-          </div>
-        </section>
-
-        {/* SECTION 4: CONVERSION & BOOKING CARD */}
-        <section className="py-14 sm:py-20 border-b border-white/10 bg-[#0F0F12]">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6">
-            <div className="rounded-2xl bg-gradient-to-b from-[#18181D] to-[#121216] border border-red-900/40 p-6 sm:p-10 shadow-2xl space-y-6 text-left relative overflow-hidden">
-              
-              <div className="space-y-1">
-                <span className="text-[11px] font-extrabold uppercase tracking-widest text-red-400">
-                  Enrollment Checkout
-                </span>
-                <h3 className="text-2xl sm:text-3xl font-black font-heading text-white">
-                  Claim Promotional Access to {offer.course.title}
-                </h3>
-              </div>
-
-              {/* Price Details */}
-              <div className="p-4 rounded-xl bg-black/60 border border-white/10 flex items-center justify-between">
-                <div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">Special Price</span>
-                  <div className="flex items-baseline gap-2 mt-0.5">
-                    <span className="text-3xl font-black text-red-400 font-heading">
-                      ₹{offer.offerPrice.toLocaleString('en-IN')}
-                    </span>
-                    {offer.originalPrice > offer.offerPrice && (
-                      <span className="text-base text-gray-500 line-through">
-                        ₹{offer.originalPrice.toLocaleString('en-IN')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="inline-block px-2.5 py-1 rounded-md bg-green-900/60 text-green-300 border border-green-700/50 text-xs font-bold">
-                    Save ₹{offer.discountAmount.toLocaleString('en-IN')}
-                  </span>
-                  <p className="text-[10px] text-gray-400 mt-1">One-time payment</p>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <button
-                onClick={handleBookNow}
-                disabled={isExpired || paymentStep === 'PROCESSING' || paymentStep === 'VERIFYING'}
-                className={`w-full py-4 rounded-xl font-black text-sm uppercase tracking-wider flex items-center justify-center gap-2 shadow-2xl transition-all ${
-                  isExpired
-                    ? 'bg-gray-800 text-gray-500 cursor-not-allowed border border-white/10'
-                    : 'bg-red-700 hover:bg-red-600 text-white shadow-red-900/50 hover:scale-[1.01] active:scale-[0.99] cursor-pointer border border-red-500/30'
-                }`}
-              >
-                <Lock className="w-4 h-4" />
-                <span>
-                  {paymentStep === 'PROCESSING'
-                    ? 'Preparing Secure Checkout...'
-                    : paymentStep === 'VERIFYING'
-                    ? 'Verifying Payment...'
-                    : isExpired
-                    ? 'Campaign Offer Closed'
-                    : `ENROLL NOW FOR ₹${offer.offerPrice.toLocaleString('en-IN')}`}
-                </span>
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </button>
-
-              {/* Terms and Conditions (If Specified) */}
-              {offer.termsAndConditions && (
-                <div className="pt-2 border-t border-white/10 text-xs text-gray-400 space-y-1">
-                  <span className="font-bold text-gray-300">Terms & Conditions:</span>
-                  <p className="whitespace-pre-line leading-relaxed">{offer.termsAndConditions}</p>
-                </div>
-              )}
-
-              {/* Help & Support Details */}
-              <div className="pt-2 border-t border-white/10 flex flex-wrap items-center justify-between gap-3 text-xs text-gray-400">
-                <span>Need assistance before enrolling?</span>
-                <div className="flex items-center gap-4 text-gray-300 font-semibold">
-                  <a href={`tel:${offer.supportPhone}`} className="hover:text-red-400 transition flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-red-400" />
-                    <span>{offer.supportPhone}</span>
-                  </a>
-                  <a href={`mailto:${offer.supportEmail}`} className="hover:text-red-400 transition flex items-center gap-1.5">
-                    <Mail className="w-3.5 h-3.5 text-red-400" />
-                    <span>{offer.supportEmail}</span>
-                  </a>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 6: FOOTER */}
-        <footer className="py-8 bg-black border-t border-white/10 text-xs text-gray-500 text-center space-y-2">
-          <p>© {new Date().getFullYear()} JADMAA Varmakalai Academy. All rights reserved.</p>
-          <div className="flex items-center justify-center gap-4 text-gray-400">
-            <Link to="/courses" className="hover:text-white transition">All Courses</Link>
-            <span>•</span>
-            <Link to="/about" className="hover:text-white transition">About Academy</Link>
-            <span>•</span>
-            <Link to="/contact" className="hover:text-white transition">Contact</Link>
-          </div>
-        </footer>
-
-        {/* MOBILE STICKY BOTTOM BAR */}
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#121216]/95 backdrop-blur-md border-t border-white/15 p-3 px-4 flex items-center justify-between shadow-2xl">
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold font-heading text-red-400">
-                ₹{offer.offerPrice.toLocaleString('en-IN')}
-              </span>
-              <span className="text-xs text-gray-500 line-through">
-                ₹{offer.originalPrice.toLocaleString('en-IN')}
-              </span>
-            </div>
-            <span className="text-[10px] font-bold text-amber-300">
-              Save {offer.discountPercent}%
+            <span className="text-xs font-semibold text-gray-400 hidden md:block">
+              Official Campaign
             </span>
           </div>
 
-          <button
-            onClick={handleBookNow}
-            disabled={isExpired || paymentStep === 'PROCESSING' || paymentStep === 'VERIFYING'}
-            className={`px-5 py-2.5 rounded-lg font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transition ${
-              isExpired
-                ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
-                : 'bg-red-700 hover:bg-red-600 text-white'
-            }`}
-          >
-            <span>{isExpired ? 'Offer Closed' : 'Book Now'}</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleCopyLink}
+              className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-gray-300 flex items-center gap-1.5 transition"
+            >
+              {copied ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">{copied ? 'Copied' : 'Share'}</span>
+            </button>
+
+            <button
+              onClick={handlePrimaryAction}
+              disabled={isExpired}
+              style={{ backgroundColor: primaryBrandColor }}
+              className="px-4 py-1.5 rounded-lg text-white font-bold text-xs tracking-wide shadow-md hover:brightness-110 active:scale-95 transition disabled:opacity-50"
+            >
+              {offer.ctaText || (offer.category === 'VARMA_TREATMENT' ? 'Book Treatment' : offer.category === 'ONLINE_COURSE' ? 'Enrol Now' : 'Register Now')}
+            </button>
+          </div>
+        </header>
+
+        {/* SECTION 1: SPLIT-SCREEN CAMPAIGN HERO (Reference 3 Composition) */}
+        <section className="relative overflow-hidden border-b border-white/10 bg-gradient-to-b from-[#141418] via-[#0F0F12] to-[#0A0A0C]">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 lg:py-20">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              
+              {/* LEFT SECTION: Details & Countdown */}
+              <div className="lg:col-span-7 space-y-6 z-10">
+                {/* Category Pill + Savings */}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span
+                    className="px-3 py-1 rounded-full text-xs font-extrabold tracking-widest uppercase border"
+                    style={{
+                      backgroundColor: `${primaryBrandColor}22`,
+                      borderColor: `${primaryBrandColor}55`,
+                      color: '#FCA5A5'
+                    }}
+                  >
+                    {categoryTitle}
+                  </span>
+
+                  {offer.discountPercent > 0 && (
+                    <span className="px-2.5 py-1 rounded-full text-xs font-black tracking-wider uppercase bg-amber-500/20 border border-amber-500/40 text-amber-300">
+                      {offer.discountPercent}% LIMITED DISCOUNT
+                    </span>
+                  )}
+
+                  {offer.branchLocation && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/5 border border-white/10 text-gray-300">
+                      <MapPin className="w-3 h-3 text-red-400" />
+                      {offer.branchLocation}
+                    </span>
+                  )}
+                </div>
+
+                {/* Main Headline */}
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-heading leading-[1.12] tracking-tight text-white">
+                  {offer.title}
+                </h1>
+
+                {/* Supporting Description */}
+                <p className="text-base sm:text-lg text-gray-300 leading-relaxed max-w-2xl font-light">
+                  {offer.shortDescription || offer.description}
+                </p>
+
+                {/* Offer Pricing / Value Badge */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm flex flex-wrap items-baseline gap-4 max-w-xl">
+                  {offer.pricingType === 'ENQUIRY_ONLY' ? (
+                    <div>
+                      <span className="text-2xl sm:text-3xl font-black font-heading text-red-400">
+                        Open for Bookings
+                      </span>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Free enquiry & consultation with certified Aasan
+                      </p>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-[11px] font-bold tracking-wider text-gray-400 uppercase">
+                        Promotional Campaign Price
+                      </p>
+                      <div className="flex items-baseline gap-3 mt-1">
+                        <span
+                          className="text-3xl sm:text-4xl font-black font-heading"
+                          style={{ color: '#F87171' }}
+                        >
+                          ₹{offer.offerPrice.toLocaleString('en-IN')}
+                        </span>
+                        {offer.originalPrice > offer.offerPrice && (
+                          <span className="text-lg text-gray-500 line-through font-medium">
+                            ₹{offer.originalPrice.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                        {offer.discountAmount > 0 && (
+                          <span className="text-xs font-extrabold text-green-400 bg-green-950/60 border border-green-800/60 px-2 py-0.5 rounded">
+                            Save ₹{offer.discountAmount.toLocaleString('en-IN')}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Real-time Countdown Timer */}
+                {timeLeft && !timeLeft.isExpired && (
+                  <div className="space-y-2 max-w-xl">
+                    <div className="flex items-center gap-2 text-xs font-bold text-gray-300 uppercase tracking-wider">
+                      <Clock className="w-4 h-4 text-red-400" />
+                      <span>Promotional Window Closing Soon</span>
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-2.5 max-w-md">
+                      <div className="p-3 rounded-xl bg-[#18181D] border border-white/10 text-center">
+                        <span className="block text-2xl sm:text-3xl font-black font-mono text-white">
+                          {String(timeLeft.days).padStart(2, '0')}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Days</span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-[#18181D] border border-white/10 text-center">
+                        <span className="block text-2xl sm:text-3xl font-black font-mono text-white">
+                          {String(timeLeft.hours).padStart(2, '0')}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Hours</span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-[#18181D] border border-white/10 text-center">
+                        <span className="block text-2xl sm:text-3xl font-black font-mono text-white">
+                          {String(timeLeft.minutes).padStart(2, '0')}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Mins</span>
+                      </div>
+
+                      <div className="p-3 rounded-xl bg-[#18181D] border border-white/10 text-center">
+                        <span className="block text-2xl sm:text-3xl font-black font-mono text-red-400">
+                          {String(timeLeft.seconds).padStart(2, '0')}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Secs</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Primary & Secondary Action Buttons */}
+                <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 max-w-md">
+                  <button
+                    onClick={handlePrimaryAction}
+                    disabled={isExpired || paymentStep === 'PROCESSING'}
+                    style={{ backgroundColor: primaryBrandColor }}
+                    className="flex-1 px-7 py-4 rounded-xl text-white font-black text-sm tracking-wide shadow-xl shadow-red-950/40 hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    <span>
+                      {paymentStep === 'PROCESSING'
+                        ? 'Opening Checkout...'
+                        : offer.ctaText || (offer.category === 'VARMA_TREATMENT' ? 'Book Treatment Session' : offer.category === 'ONLINE_COURSE' ? 'Claim Offer & Enrol' : 'Register for Campaign')}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+
+                  <a
+                    href={`https://wa.me/919345220020?text=${encodeURIComponent(`Hello JADMAA, I am inquiring about the ${offer.title} promotional offer.`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-5 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 font-bold text-xs sm:text-sm text-gray-200 flex items-center justify-center gap-2 transition"
+                  >
+                    <MessageCircle className="w-4 h-4 text-green-400" />
+                    <span>WhatsApp Aasan</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* RIGHT SECTION: Large Product/Service Photograph with Diagonal/Curved Cut */}
+              <div className="lg:col-span-5 relative mt-6 lg:mt-0">
+                <div className="relative mx-auto max-w-md lg:max-w-none">
+                  
+                  {/* Decorative Background Glow */}
+                  <div
+                    className="absolute -inset-4 rounded-3xl opacity-30 blur-2xl pointer-events-none"
+                    style={{ backgroundColor: primaryBrandColor }}
+                  />
+
+                  {/* Shaped Photograph Container inspired by Reference 3 */}
+                  <div className="relative rounded-3xl overflow-hidden border border-white/15 bg-[#141418] shadow-2xl">
+                    <img
+                      src={imageSource}
+                      alt={offer.title}
+                      className="w-full h-[360px] sm:h-[440px] lg:h-[500px] object-cover object-top"
+                    />
+
+                    {/* Subtle Angled Shade & Bottom Card */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20" />
+
+                    <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-black/70 backdrop-blur-md border border-white/10 flex items-center justify-between">
+                      <div>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                          Certified Lineage
+                        </p>
+                        <p className="text-sm font-bold text-white mt-0.5">
+                          JADMAA Varmakalai Academy
+                        </p>
+                      </div>
+                      <span className="w-9 h-9 rounded-xl bg-red-600/20 text-red-400 flex items-center justify-center font-bold text-xs border border-red-500/30">
+                        1000y
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* SECTION 2: CURRICULUM OR SERVICE DETAILS */}
+        <section className="bg-[#FAF6F0] text-[#1F2937] py-14 sm:py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-5xl mx-auto space-y-12">
+            
+            {/* Description & Overview */}
+            <div className="max-w-3xl space-y-4">
+              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-red-100 text-red-800">
+                Detailed Overview
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-black font-heading text-gray-900 tracking-tight">
+                About this {categoryTitle.toLowerCase()}
+              </h2>
+              <div className="text-base text-gray-700 leading-relaxed font-body whitespace-pre-line">
+                {offer.description || offer.shortDescription}
+              </div>
+            </div>
+
+            {/* Course Curriculum Accordion (when course modules exist) */}
+            {offer.course && offer.course.modules && offer.course.modules.length > 0 && (
+              <div className="space-y-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold font-heading text-gray-900">
+                    Course Curriculum & Lessons ({offer.course.totalLessons} Lessons)
+                  </h3>
+                  <span className="text-xs font-semibold text-gray-500">
+                    {offer.course.duration || 'Self-paced'}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {offer.course.modules.map((module, idx) => (
+                    <div
+                      key={module.id}
+                      className="rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm"
+                    >
+                      <button
+                        onClick={() => setOpenModuleIndex(openModuleIndex === idx ? null : idx)}
+                        className="w-full px-5 py-4 text-left flex items-center justify-between gap-4 hover:bg-gray-50 transition"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="w-7 h-7 rounded-lg bg-red-50 text-red-700 font-bold text-xs flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <div>
+                            <h4 className="text-sm font-bold text-gray-900">{module.title}</h4>
+                            <span className="text-xs text-gray-500 font-medium">{module.lessonCount} Lessons</span>
+                          </div>
+                        </div>
+                        {openModuleIndex === idx ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+                      </button>
+
+                      {openModuleIndex === idx && (
+                        <div className="px-5 pb-4 pt-1 border-t border-gray-100 divide-y divide-gray-100 text-xs text-gray-600">
+                          {module.lessons.map((lesson) => (
+                            <div key={lesson.id} className="py-2.5 flex items-center justify-between gap-2">
+                              <span className="flex items-center gap-2">
+                                <Play className="w-3.5 h-3.5 text-gray-400" />
+                                <span className="font-medium text-gray-800">{lesson.title}</span>
+                              </span>
+                              <span className="font-mono text-gray-400">{lesson.duration}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Offline Branch Location Info (for treatments, camps, offline classes) */}
+            {offer.category !== 'ONLINE_COURSE' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-4">
+                <div className="p-6 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-red-700 flex items-center justify-center">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-base font-bold text-gray-900">Headquarters: Thanjavur</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Opp. Sastra University Campus, Tirumalaisamudram, Thanjavur, Tamil Nadu 613401.
+                  </p>
+                  <p className="text-xs font-semibold text-red-700">Phone: +91 93452 20020</p>
+                </div>
+
+                <div className="p-6 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
+                  <div className="w-10 h-10 rounded-xl bg-red-50 text-red-700 flex items-center justify-center">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-base font-bold text-gray-900">Branch: Kumbakonam</h4>
+                  <p className="text-xs text-gray-600 leading-relaxed">
+                    Near Town Hall Road, Kumbakonam, Tamil Nadu 612001.
+                  </p>
+                  <p className="text-xs font-semibold text-red-700">Phone: +91 96554 57500</p>
+                </div>
+              </div>
+            )}
+
+            {/* Terms and Conditions */}
+            {offer.termsAndConditions && (
+              <div className="p-6 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
+                <h4 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                  Campaign Terms & Enrollment Conditions
+                </h4>
+                <div className="text-xs text-gray-600 leading-relaxed whitespace-pre-line font-mono">
+                  {offer.termsAndConditions}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </section>
+
+        {/* SECTION 3: FOOTER SUPPORT */}
+        <footer className="mt-auto bg-[#0A0A0C] border-t border-white/10 py-10 px-4 text-center text-xs text-gray-500 space-y-3">
+          <p>
+            Have questions about this campaign? Contact support at{' '}
+            <a href={`mailto:${offer.supportEmail}`} className="text-gray-300 underline font-medium">
+              {offer.supportEmail}
+            </a>{' '}
+            or call{' '}
+            <a href={`tel:${offer.supportPhone}`} className="text-gray-300 underline font-medium">
+              {offer.supportPhone}
+            </a>.
+          </p>
+          <p>© {new Date().getFullYear()} JADMAA Varmakalai. All rights reserved.</p>
+        </footer>
+
+        {/* REGISTRATION / ENQUIRY MODAL */}
+        {isEnquiryModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn">
+            <div className="relative w-full max-w-md bg-[#141418] text-white border border-white/15 rounded-2xl p-6 sm:p-7 shadow-2xl">
+              
+              <button
+                onClick={() => {
+                  setIsEnquiryModalOpen(false);
+                  setEnquirySuccessData(null);
+                  setEnquiryError(null);
+                }}
+                className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {enquirySuccessData ? (
+                <div className="text-center space-y-4 py-4">
+                  <div className="w-14 h-14 rounded-full bg-green-500/20 text-green-400 border border-green-500/40 flex items-center justify-center mx-auto">
+                    <CheckCircle className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-xl font-bold font-heading text-white">Registration Confirmed!</h3>
+                  <p className="text-xs text-gray-300 leading-relaxed">
+                    Thank you, <strong className="text-white">{enquirySuccessData.customerName}</strong>. Your enquiry number is{' '}
+                    <span className="font-mono text-red-400 font-bold">{enquirySuccessData.bookingNumber}</span>.
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Our master instructors will reach out to your phone number shortly to coordinate dates and schedule.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setIsEnquiryModalOpen(false);
+                      setEnquirySuccessData(null);
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white font-bold text-xs transition"
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleEnquirySubmit} className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-bold font-heading text-white">
+                      Register for {offer.title}
+                    </h3>
+                    <p className="text-xs text-gray-400 mt-0.5">
+                      Enter your details to reserve your promotional spot.
+                    </p>
+                  </div>
+
+                  {enquiryError && (
+                    <div className="p-3 rounded-xl bg-red-950/80 border border-red-800 text-red-200 text-xs flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4 shrink-0" />
+                      <span>{enquiryError}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Full Name <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={enquiryName}
+                      onChange={(e) => setEnquiryName(e.target.value)}
+                      placeholder="Your full name"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Phone / WhatsApp Number <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={enquiryPhone}
+                      onChange={(e) => setEnquiryPhone(e.target.value)}
+                      placeholder="+91 93452 20020"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Email Address (Optional)
+                    </label>
+                    <input
+                      type="email"
+                      value={enquiryEmail}
+                      onChange={(e) => setEnquiryEmail(e.target.value)}
+                      placeholder="your.email@example.com"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Preferred Branch
+                    </label>
+                    <select
+                      value={enquiryBranch}
+                      onChange={(e) => setEnquiryBranch(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-[#1A1A20] border border-white/10 text-white text-sm focus:outline-none focus:border-red-500"
+                    >
+                      <option value="Thanjavur">Thanjavur (Headquarters)</option>
+                      <option value="Kumbakonam">Kumbakonam Branch</option>
+                      <option value="Online">Online Consultation</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-300 mb-1">
+                      Notes or Health Concerns (Optional)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={enquiryNotes}
+                      onChange={(e) => setEnquiryNotes(e.target.value)}
+                      placeholder="Any specific questions or ailments..."
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-red-500 resize-none"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={enquirySubmitting}
+                    style={{ backgroundColor: primaryBrandColor }}
+                    className="w-full py-3 rounded-xl text-white font-bold text-sm shadow-lg hover:brightness-110 active:scale-[0.99] transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  >
+                    {enquirySubmitting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Submitting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>Submit Registration</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
 
       </div>
     </>

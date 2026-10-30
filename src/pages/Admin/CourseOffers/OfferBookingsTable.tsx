@@ -175,8 +175,13 @@ export const OfferBookingsTable: React.FC = () => {
                         {b.offer?.title || 'Promotional Offer'}
                       </p>
                       <p className="text-[11px] text-gray-600 truncate">
-                        Course: {b.course?.title || '—'}
+                        {b.course?.title ? `Course: ${b.course.title}` : (b.category ? b.category.replace('_', ' ') : 'Campaign Registration')}
                       </p>
+                      {b.notes && (
+                        <p className="text-[10px] text-gray-400 truncate max-w-[200px]" title={b.notes}>
+                          {b.notes}
+                        </p>
+                      )}
                     </td>
 
                     <td className="py-3.5 px-4 font-bold text-gray-900">

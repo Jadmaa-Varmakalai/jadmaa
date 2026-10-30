@@ -521,12 +521,27 @@ model CourseOffer {
   shortDescription    String
   description         String         @db.Text
   bannerImageUrl      String?
+  popupImageUrl       String?
   galleryImages       String[]       @default([])
-  courseId            String
-  course              Course         @relation(fields: [courseId], references: [id], onDelete: Restrict)
-  originalPrice       Float
-  offerPrice          Float
+  category            String         @default("ONLINE_COURSE")
+  customCategory      String?
+  targetAudience      String?
+  branchLocation      String?
+  courseId            String?
+  course              Course?        @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  pricingType         String         @default("FIXED_PRICE")
+  discountPercent     Float?
+  originalPrice       Float          @default(0)
+  offerPrice          Float          @default(0)
   currency            String         @default("INR")
+  theme               String         @default("light")
+  primaryColor        String?        @default("#991B1B")
+  secondaryColor      String?        @default("#141416")
+  ctaType             String         @default("ENROLL_COURSE")
+  ctaText             String?
+  ctaUrl              String?
+  secondaryCtaText    String?
+  secondaryCtaUrl     String?
   termsAndConditions  String?        @db.Text
   supportEmail        String?
   supportPhone        String?
@@ -547,6 +562,7 @@ model CourseOffer {
   @@index([slug])
   @@index([status, isEnabled])
   @@index([showPopup, isEnabled])
+  @@index([category])
 }
 
 model OfferBooking {
@@ -554,10 +570,10 @@ model OfferBooking {
   bookingNumber String       @unique
   offerId       String
   offer         CourseOffer  @relation(fields: [offerId], references: [id], onDelete: Restrict)
-  courseId      String
-  course        Course       @relation(fields: [courseId], references: [id], onDelete: Restrict)
-  userId        String
-  user          User         @relation(fields: [userId], references: [id], onDelete: Restrict)
+  courseId      String?
+  course        Course?      @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  userId        String?
+  user          User?        @relation(fields: [userId], references: [id], onDelete: Restrict)
   paymentId     String?      @unique
   payment       Payment?     @relation(fields: [paymentId], references: [id])
   enrollmentId  String?
@@ -568,6 +584,8 @@ model OfferBooking {
   customerName  String?
   customerEmail String?
   customerPhone String?
+  category      String       @default("ONLINE_COURSE")
+  notes         String?      @db.Text
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 

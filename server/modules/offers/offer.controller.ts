@@ -53,7 +53,7 @@ export const getActivePopupOffer = async (req: Request, res: Response) => {
     const validOffer = candidates.find(offer => {
       const computed = computeOfferStatus(offer);
       if (computed !== 'PUBLISHED') return false;
-      if (offer.course.status !== 'PUBLISHED') return false;
+      if (offer.course && offer.course.status !== 'PUBLISHED') return false;
       return true;
     });
 
@@ -73,19 +73,33 @@ export const getActivePopupOffer = async (req: Request, res: Response) => {
         slug: validOffer.slug,
         title: validOffer.title,
         shortDescription: validOffer.shortDescription,
-        bannerImageUrl: validOffer.bannerImageUrl || validOffer.course.thumbnailUrl,
+        bannerImageUrl: validOffer.bannerImageUrl || validOffer.course?.thumbnailUrl || '/images/hero-kick-action-transparent.png',
+        popupImageUrl: validOffer.popupImageUrl || validOffer.bannerImageUrl || validOffer.course?.thumbnailUrl || '/images/hero-kick-action-transparent.png',
+        category: validOffer.category || 'ONLINE_COURSE',
+        customCategory: validOffer.customCategory,
+        branchLocation: validOffer.branchLocation,
+        targetAudience: validOffer.targetAudience,
+        pricingType: validOffer.pricingType || 'FIXED_PRICE',
         originalPrice: validOffer.originalPrice,
         offerPrice: validOffer.offerPrice,
         discountAmount,
         discountPercent,
         currency: validOffer.currency,
+        theme: validOffer.theme || 'light',
+        primaryColor: validOffer.primaryColor || '#991B1B',
+        secondaryColor: validOffer.secondaryColor || '#141416',
+        ctaType: validOffer.ctaType || 'ENROLL_COURSE',
+        ctaText: validOffer.ctaText || null,
+        ctaUrl: validOffer.ctaUrl || null,
+        secondaryCtaText: validOffer.secondaryCtaText || null,
+        secondaryCtaUrl: validOffer.secondaryCtaUrl || null,
         countdownEnabled: validOffer.countdownEnabled,
         expiresAt: validOffer.expiresAt,
         popupDelaySeconds: delaySeconds,
-        course: {
+        course: validOffer.course ? {
           id: validOffer.course.id,
           title: validOffer.course.title
-        }
+        } : null
       }
     });
   } catch (err: any) {
@@ -148,15 +162,15 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
       return res.status(404).json({ success: false, error: { message: 'Offer unavailable' } });
     }
 
-    // Check course availability
-    const courseAvailable = offer.course.status === 'PUBLISHED';
+    // Check course availability if associated with a course
+    const courseAvailable = offer.course ? offer.course.status === 'PUBLISHED' : true;
 
     const discountAmount = Math.max(0, offer.originalPrice - offer.offerPrice);
     const discountPercent = offer.originalPrice > 0
       ? Math.round((discountAmount / offer.originalPrice) * 100)
       : 0;
 
-    const totalLessons = offer.course.modules.reduce((acc, m) => acc + m.lessons.length, 0);
+    const totalLessons = offer.course ? offer.course.modules.reduce((acc, m) => acc + m.lessons.length, 0) : 0;
 
     return res.json({
       success: true,
@@ -166,13 +180,27 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
         title: offer.title,
         shortDescription: offer.shortDescription,
         description: offer.description,
-        bannerImageUrl: offer.bannerImageUrl || offer.course.thumbnailUrl,
+        bannerImageUrl: offer.bannerImageUrl || offer.course?.thumbnailUrl || '/images/hero-kick-action-transparent.png',
+        popupImageUrl: offer.popupImageUrl || offer.bannerImageUrl || offer.course?.thumbnailUrl || null,
         galleryImages: offer.galleryImages || [],
+        category: offer.category || 'ONLINE_COURSE',
+        customCategory: offer.customCategory,
+        branchLocation: offer.branchLocation,
+        targetAudience: offer.targetAudience,
+        pricingType: offer.pricingType || 'FIXED_PRICE',
         originalPrice: offer.originalPrice,
         offerPrice: offer.offerPrice,
         discountAmount,
         discountPercent,
         currency: offer.currency,
+        theme: offer.theme || 'light',
+        primaryColor: offer.primaryColor || '#991B1B',
+        secondaryColor: offer.secondaryColor || '#141416',
+        ctaType: offer.ctaType || 'ENROLL_COURSE',
+        ctaText: offer.ctaText || null,
+        ctaUrl: offer.ctaUrl || null,
+        secondaryCtaText: offer.secondaryCtaText || null,
+        secondaryCtaUrl: offer.secondaryCtaUrl || null,
         termsAndConditions: offer.termsAndConditions,
         supportEmail: offer.supportEmail || 'info@jadmaa.com',
         supportPhone: offer.supportPhone || '+91 93452 20020',
@@ -183,7 +211,8 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
         currentBookings: offer.currentBookings,
         computedStatus,
         isBookable: computedStatus === 'PUBLISHED' && courseAvailable,
-        course: {
+        isEnquiryOnly: offer.pricingType === 'ENQUIRY_ONLY',
+        course: offer.course ? {
           id: offer.course.id,
           title: offer.course.title,
           subtitle: offer.course.subtitle,
@@ -209,12 +238,83 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
               isFreePreview: l.isPreview
             }))
           }))
-        }
+        } : null
       }
     });
   } catch (err: any) {
     console.error('[Offers] Error in getOfferBySlug:', err);
     return res.status(500).json({ success: false, error: { message: 'Server error loading offer' } });
+  }
+};
+
+/**
+ * 2b. SUBMIT OFFER ENQUIRY / REGISTRATION
+ * For non-course offers (Varma treatments, offline classes, special camps, workshops, seminars, custom events)
+ */
+export const submitOfferEnquiry = async (req: Request, res: Response) => {
+  try {
+    const slug = req.params.slug as string;
+    const { name, email, phone, branchLocation, notes } = req.body;
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: { message: 'Full name is required.' } });
+    }
+    if (!phone || !phone.trim()) {
+      return res.status(400).json({ success: false, error: { message: 'Phone number is required.' } });
+    }
+
+    const offer = await prisma.courseOffer.findUnique({
+      where: { slug }
+    });
+
+    if (!offer) {
+      return res.status(404).json({ success: false, error: { message: 'Campaign offer not found.' } });
+    }
+
+    const computedStatus = computeOfferStatus(offer);
+    if (computedStatus === 'EXPIRED') {
+      return res.status(400).json({ success: false, error: { message: 'This promotional offer has expired.' } });
+    }
+
+    if (offer.bookingLimit && offer.currentBookings >= offer.bookingLimit) {
+      return res.status(400).json({ success: false, error: { message: 'This offer has reached its registration capacity.' } });
+    }
+
+    const bookingNumber = `ENQ-${Date.now().toString(36).toUpperCase()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+    const booking = await prisma.offerBooking.create({
+      data: {
+        bookingNumber,
+        offerId: offer.id,
+        courseId: offer.courseId || null,
+        amount: offer.offerPrice || 0,
+        currency: offer.currency || 'INR',
+        status: 'CONFIRMED',
+        customerName: name.trim(),
+        customerEmail: email?.trim() || null,
+        customerPhone: phone.trim(),
+        category: offer.category || 'OFFLINE_CLASS',
+        notes: notes ? `${notes} | Branch: ${branchLocation || offer.branchLocation || 'All Branches'}` : (branchLocation ? `Branch: ${branchLocation}` : null)
+      }
+    });
+
+    await prisma.courseOffer.update({
+      where: { id: offer.id },
+      data: { currentBookings: { increment: 1 } }
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Registration / Enquiry submitted successfully! Our academy team will reach out to you shortly.',
+      data: {
+        bookingNumber: booking.bookingNumber,
+        customerName: booking.customerName,
+        offerTitle: offer.title
+      }
+    });
+  } catch (err: any) {
+    console.error('[Offers] Error in submitOfferEnquiry:', err);
+    return res.status(500).json({ success: false, error: { message: 'Failed to submit registration' } });
   }
 };
 
@@ -264,29 +364,31 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: { message: msg } });
     }
 
-    // Check course availability
-    if (offer.course.status !== 'PUBLISHED') {
+    // Check course availability if associated
+    if (offer.course && offer.course.status !== 'PUBLISHED') {
       return res.status(403).json({
         success: false,
         error: { message: 'The associated course is currently unavailable for enrollment.' }
       });
     }
 
-    // Check if user already actively enrolled
-    const existingEnrollment = await prisma.enrollment.findUnique({
-      where: {
-        userId_courseId: {
-          userId: user.id,
-          courseId: offer.courseId
+    // Check if user already actively enrolled (only for course offers)
+    if (offer.courseId) {
+      const existingEnrollment = await prisma.enrollment.findUnique({
+        where: {
+          userId_courseId: {
+            userId: user.id,
+            courseId: offer.courseId
+          }
         }
-      }
-    });
-
-    if (existingEnrollment && existingEnrollment.status === 'ACTIVE') {
-      return res.status(400).json({
-        success: false,
-        error: { message: 'You are already enrolled in this course! Check your student dashboard.' }
       });
+
+      if (existingEnrollment && existingEnrollment.status === 'ACTIVE') {
+        return res.status(400).json({
+          success: false,
+          error: { message: 'You are already enrolled in this course! Check your student dashboard.' }
+        });
+      }
     }
 
     // Validate authoritative price
@@ -502,34 +604,37 @@ export const verifyOfferPayment = async (req: Request, res: Response) => {
         }
       });
 
-      // Upsert active enrollment
-      const enrollment = await tx.enrollment.upsert({
-        where: {
-          userId_courseId: {
+      // Upsert active enrollment if course-related
+      let enrollment: any = null;
+      if (payment.courseId) {
+        enrollment = await tx.enrollment.upsert({
+          where: {
+            userId_courseId: {
+              userId: payment.userId,
+              courseId: payment.courseId
+            }
+          },
+          update: {
+            status: 'ACTIVE',
+            paymentId: payment.id
+          },
+          create: {
             userId: payment.userId,
-            courseId: payment.courseId
+            courseId: payment.courseId,
+            paymentId: payment.id,
+            status: 'ACTIVE'
           }
-        },
-        update: {
-          status: 'ACTIVE',
-          paymentId: payment.id
-        },
-        create: {
-          userId: payment.userId,
-          courseId: payment.courseId,
-          paymentId: payment.id,
-          status: 'ACTIVE'
-        }
-      });
+        });
+      }
 
-      // Update OfferBooking to SUCCESS & link enrollment
+      // Update OfferBooking to SUCCESS & link enrollment if present
       let updatedBooking = null;
       if (payment.offerBooking) {
         updatedBooking = await tx.offerBooking.update({
           where: { id: payment.offerBooking.id },
           data: {
             status: 'SUCCESS',
-            enrollmentId: enrollment.id
+            enrollmentId: enrollment ? enrollment.id : null
           }
         });
       }
@@ -551,8 +656,8 @@ export const verifyOfferPayment = async (req: Request, res: Response) => {
     sendCoursePurchaseAdminNotificationEmail({
       userName: user.name || 'Student',
       userEmail: user.email || '',
-      courseTitle: payment.course.title,
-      courseId: payment.courseId,
+      courseTitle: payment.course?.title || payment.offer?.title || 'Promotional Campaign Booking',
+      courseId: payment.courseId || payment.offerId || 'campaign',
       amount: payment.amount,
       currency: payment.currency,
       paymentId: razorpay_payment_id,
@@ -577,4 +682,6 @@ export const verifyOfferPayment = async (req: Request, res: Response) => {
     });
   }
 };
+
+
 

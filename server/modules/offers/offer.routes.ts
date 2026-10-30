@@ -10,6 +10,7 @@ publicRouter.get('/active-popup', offerController.getActivePopupOffer);
 publicRouter.get('/:slug', offerController.getOfferBySlug);
 publicRouter.post('/:slug/book', authenticate, offerController.initiateOfferBooking);
 publicRouter.post('/:slug/verify', authenticate, offerController.verifyOfferPayment);
+publicRouter.post('/:slug/enquire', offerController.submitOfferEnquiry);
 
 // Admin sub-router
 export const adminRouter = Router();
