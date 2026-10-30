@@ -288,7 +288,7 @@ export const submitOfferEnquiry = async (req: Request, res: Response) => {
       data: {
         bookingNumber,
         offerId: offer.id,
-        courseId: offer.courseId || undefined,
+        courseId: offer.courseId || null,
         amount: offer.offerPrice || 0,
         currency: offer.currency || 'INR',
         status: 'CONFIRMED',
@@ -297,7 +297,7 @@ export const submitOfferEnquiry = async (req: Request, res: Response) => {
         customerPhone: phone.trim(),
         category: offerData.category || 'OFFLINE_CLASS',
         notes: notes ? `${notes} | Branch: ${branchLocation || offerData.branchLocation || 'All Branches'}` : (branchLocation ? `Branch: ${branchLocation}` : null)
-      }
+      } as any
     });
 
     await prisma.courseOffer.update({
@@ -443,7 +443,7 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
       data: {
         bookingNumber,
         offerId: offer.id,
-        courseId: offer.courseId,
+        courseId: offer.courseId || null,
         userId: user.id,
         paymentId: payment.id,
         amount: amountInINR,
@@ -452,7 +452,7 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
         customerName: user.name || '',
         customerEmail: user.email || '',
         customerPhone: user.phone || ''
-      }
+      } as any
     });
 
     const dbUser = await prisma.user.findUnique({
