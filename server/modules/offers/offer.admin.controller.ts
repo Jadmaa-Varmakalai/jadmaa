@@ -29,7 +29,7 @@ export const getAdminOffers = async (req: Request, res: Response) => {
       orderBy: { createdAt: 'desc' }
     });
 
-    const formatted = offers.map(offer => {
+    const formatted = offers.map((offer: any) => {
       const computedStatus = computeOfferStatus(offer);
       const discountAmount = Math.max(0, offer.originalPrice - offer.offerPrice);
       const discountPercent = offer.originalPrice > 0
@@ -94,7 +94,7 @@ export const getAdminOffers = async (req: Request, res: Response) => {
  */
 export const getAdminOfferById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const offer = await prisma.courseOffer.findUnique({
       where: { id },
       include: {
@@ -268,7 +268,7 @@ export const createOffer = async (req: Request, res: Response) => {
         customCategory: customCategory || null,
         targetAudience: targetAudience || null,
         branchLocation: branchLocation || null,
-        courseId: resolvedCourseId,
+        courseId: resolvedCourseId || undefined,
         pricingType,
         discountPercent: rawDiscountPercent ? parseFloat(rawDiscountPercent) : null,
         originalPrice,
@@ -293,7 +293,7 @@ export const createOffer = async (req: Request, res: Response) => {
         expiresAt: parsedExpiresAt,
         countdownEnabled: Boolean(countdownEnabled),
         bookingLimit: bookingLimit ? parseInt(bookingLimit, 10) : null
-      }
+      } as any
     });
 
     await logAdminAction(adminUser.id, 'CREATE_OFFER', 'CourseOffer', newOffer.id, { slug: newOffer.slug }, req);
@@ -311,7 +311,7 @@ export const createOffer = async (req: Request, res: Response) => {
 export const updateOffer = async (req: Request, res: Response) => {
   try {
     const adminUser = (req as any).user;
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const existing = await prisma.courseOffer.findUnique({ where: { id } });
     if (!existing) {
@@ -447,7 +447,7 @@ export const updateOffer = async (req: Request, res: Response) => {
 export const toggleOffer = async (req: Request, res: Response) => {
   try {
     const adminUser = (req as any).user;
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const offer = await prisma.courseOffer.findUnique({ where: { id } });
     if (!offer) {
@@ -488,9 +488,9 @@ export const toggleOffer = async (req: Request, res: Response) => {
 export const duplicateOffer = async (req: Request, res: Response) => {
   try {
     const adminUser = (req as any).user;
-    const { id } = req.params;
+    const id = String(req.params.id);
 
-    const source = await prisma.courseOffer.findUnique({ where: { id } });
+    const source: any = await prisma.courseOffer.findUnique({ where: { id } });
     if (!source) {
       return res.status(404).json({ success: false, error: { message: 'Source offer not found' } });
     }
@@ -537,7 +537,7 @@ export const duplicateOffer = async (req: Request, res: Response) => {
         countdownEnabled: source.countdownEnabled,
         bookingLimit: source.bookingLimit,
         currentBookings: 0
-      }
+      } as any
     });
 
     await logAdminAction(adminUser.id, 'DUPLICATE_OFFER', 'CourseOffer', duplicated.id, { sourceId: id }, req);
@@ -555,9 +555,9 @@ export const duplicateOffer = async (req: Request, res: Response) => {
 export const deleteOffer = async (req: Request, res: Response) => {
   try {
     const adminUser = (req as any).user;
-    const { id } = req.params;
+    const id = String(req.params.id);
 
-    const offer = await prisma.courseOffer.findUnique({
+    const offer: any = await prisma.courseOffer.findUnique({
       where: { id },
       include: {
         _count: { select: { bookings: true, payments: true } }
