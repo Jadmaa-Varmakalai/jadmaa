@@ -164,7 +164,7 @@ export const createOffer = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: { message: 'Offer price must be greater than zero.' } });
     }
 
-    if (numOfferPrice > originalPrice) {
+    if (originalPrice > 0 && numOfferPrice > originalPrice) {
       return res.status(400).json({
         success: false,
         error: { message: `Offer price (₹${numOfferPrice}) cannot exceed original price (₹${originalPrice}).` }
@@ -216,8 +216,8 @@ export const createOffer = async (req: Request, res: Response) => {
         offerPrice: numOfferPrice,
         currency: 'INR',
         termsAndConditions: termsAndConditions || null,
-        supportEmail: supportEmail || null,
-        supportPhone: supportPhone || null,
+        supportEmail: supportEmail || 'info@jadmaa.com',
+        supportPhone: supportPhone || '+91 93452 20020',
         status: status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT',
         isEnabled: Boolean(isEnabled),
         showPopup: Boolean(showPopup),

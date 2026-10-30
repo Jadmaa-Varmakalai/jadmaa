@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { offerApi } from '../../../lib/api/offerApi';
 import type { CourseOfferItem } from '../../../lib/api/offerApi';
 import { adminApi } from '../../../lib/api/adminApi';
-import { X, Sparkles, Copy, Check, ExternalLink, AlertCircle, Clock, Tag } from 'lucide-react';
+import { X, Sparkles, Copy, Check, ExternalLink, AlertCircle, Clock, Tag, Loader2 } from 'lucide-react';
 
 interface OfferEditorModalProps {
   offer: CourseOfferItem | null; // null means creating new
@@ -31,6 +31,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   // Form states
   const [title, setTitle] = useState('');
@@ -43,8 +44,8 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const [description, setDescription] = useState('');
   const [bannerImageUrl, setBannerImageUrl] = useState('');
   const [termsAndConditions, setTermsAndConditions] = useState('');
-  const [supportEmail, setSupportEmail] = useState('contact@jadmaavarmakalai.com');
-  const [supportPhone, setSupportPhone] = useState('+91 97894 88878');
+  const [supportEmail, setSupportEmail] = useState('info@jadmaa.com');
+  const [supportPhone, setSupportPhone] = useState('+91 93452 20020');
   const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');
   const [isEnabled, setIsEnabled] = useState(true);
   const [showPopup, setShowPopup] = useState(false);
@@ -61,8 +62,13 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setLoadingCourses(true);
       try {
         const res = await adminApi.getCourses({ limit: 100 });
-        if (res.data?.items) {
-          setCourses(res.data.items);
+        const items = res.data?.items || (Array.isArray(res.data) ? res.data : []);
+        setCourses(items);
+        if (!offer && items.length > 0 && !courseId) {
+          setCourseId(items[0].id);
+          setOriginalPrice(items[0].price || 0);
+          if (items[0].thumbnailUrl) setBannerImageUrl(items[0].thumbnailUrl);
+          if (items[0].subtitle) setShortDescription(items[0].subtitle);
         }
       } catch (err) {
         console.error('Failed to load courses', err);
@@ -86,8 +92,8 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setDescription(offer.description || '');
       setBannerImageUrl(offer.bannerImageUrl || '');
       setTermsAndConditions(offer.termsAndConditions || '');
-      setSupportEmail(offer.supportEmail || 'contact@jadmaavarmakalai.com');
-      setSupportPhone(offer.supportPhone || '+91 97894 88878');
+      setSupportEmail(offer.supportEmail || 'info@jadmaa.com');
+      setSupportPhone(offer.supportPhone || '+91 93452 20020');
       setStatus(offer.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT');
       setIsEnabled(offer.isEnabled);
       setShowPopup(offer.showPopup);
@@ -108,8 +114,8 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setDescription('');
       setBannerImageUrl('');
       setTermsAndConditions('• Valid exclusively for online registration\n• Cannot be combined with other promotional coupons\n• Instant lifetime access upon verified checkout');
-      setSupportEmail('contact@jadmaavarmakalai.com');
-      setSupportPhone('+91 97894 88878');
+      setSupportEmail('info@jadmaa.com');
+      setSupportPhone('+91 93452 20020');
       setStatus('DRAFT');
       setIsEnabled(true);
       setShowPopup(false);
@@ -161,38 +167,44 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const discountAmount = Math.max(0, originalPrice - numOfferPrice);
   const discountPercent = originalPrice > 0 ? Math.round((discountAmount / originalPrice) * 100) : 0;
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (targetStatus?: 'DRAFT' | 'PUBLISHED') => {
     setError(null);
+    const effectiveStatus = targetStatus || status;
+    const effectiveIsEnabled = targetStatus === 'PUBLISHED' ? true : isEnabled;
 
     if (!title.trim()) {
       setError('Offer title is required.');
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (!courseId) {
       setError('Please select an associated course.');
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (!offerPrice || numOfferPrice <= 0) {
       setError('Promotional offer price must be greater than zero.');
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    if (numOfferPrice > originalPrice) {
+    if (originalPrice > 0 && numOfferPrice > originalPrice) {
       setError(`Offer price (₹${numOfferPrice}) cannot exceed the regular course price (₹${originalPrice}).`);
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     if (startAt && expiresAt && new Date(expiresAt) <= new Date(startAt)) {
       setError('Offer expiry date must be strictly after the start date.');
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
     const payload = {
       title: title.trim(),
-      slug: slug.trim(),
+      slug: slug.trim() || generateSlug(title),
       courseId,
       originalPrice,
       offerPrice: numOfferPrice,
@@ -200,10 +212,10 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       description: description.trim(),
       bannerImageUrl: bannerImageUrl.trim() || undefined,
       termsAndConditions: termsAndConditions.trim() || undefined,
-      supportEmail: supportEmail.trim() || undefined,
-      supportPhone: supportPhone.trim() || undefined,
-      status,
-      isEnabled,
+      supportEmail: supportEmail.trim() || 'info@jadmaa.com',
+      supportPhone: supportPhone.trim() || '+91 93452 20020',
+      status: effectiveStatus,
+      isEnabled: effectiveIsEnabled,
       showPopup,
       popupPriority: Number(popupPriority) || 0,
       countdownEnabled,
@@ -222,7 +234,9 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       onSaved();
       onClose();
     } catch (err: any) {
-      setError(err?.message || 'Failed to save offer. Please check input values.');
+      const errMsg = err?.message || 'Failed to save offer. Please check input values.';
+      setError(errMsg);
+      formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setSaving(false);
     }
@@ -267,7 +281,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSave} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form ref={formRef} onSubmit={(e) => { e.preventDefault(); handleSave(); }} className="flex-1 overflow-y-auto p-6 space-y-6">
           {error && (
             <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-start gap-3">
               <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -633,7 +647,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
 
         {/* Footer actions */}
         <div className="p-4 border-t border-gray-100 bg-white flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {slug && (
               <a
                 href={`/offers/${slug}`}
@@ -645,23 +659,45 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 <span>Preview Page</span>
               </a>
             )}
+            {error && (
+              <div className="text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+                <span className="truncate max-w-[260px]">{error}</span>
+              </div>
+            )}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
             <button
               type="button"
               onClick={onClose}
               disabled={saving}
-              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition"
+              className="px-4 py-2.5 rounded-xl border border-gray-200 text-gray-700 text-xs font-semibold hover:bg-gray-50 transition"
             >
               Cancel
             </button>
             <button
-              onClick={handleSave}
+              type="button"
+              onClick={() => handleSave('DRAFT')}
               disabled={saving}
-              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-jadmaa-red hover:bg-jadmaa-red/90 text-white text-xs font-bold shadow-md shadow-jadmaa-red/20 transition disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 text-xs font-semibold transition disabled:opacity-50"
             >
-              {saving ? 'Saving Offer...' : offer ? 'Update Offer' : 'Publish & Save Offer'}
+              {saving ? 'Saving...' : 'Save as Draft'}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSave('PUBLISHED')}
+              disabled={saving}
+              className="px-5 py-2.5 rounded-xl bg-jadmaa-red hover:bg-jadmaa-red/90 text-white text-xs font-bold shadow-md shadow-jadmaa-red/20 transition disabled:opacity-50 flex items-center gap-1.5"
+            >
+              {saving ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Publishing...</span>
+                </>
+              ) : (
+                <span>Publish Offer</span>
+              )}
             </button>
           </div>
         </div>
