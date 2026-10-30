@@ -471,7 +471,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 4. MARTIAL ARTS TRAINING AT JADMAA VARMAKALAI SECTION */}
-      <section className="py-12 sm:py-16 bg-white border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
+      <section className="py-12 sm:py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-10 sm:space-y-12">
           
           {/* Top Row: Left Image & Right Section Content */}
@@ -540,7 +540,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-stretch" data-aos="fade-up">
             
             {/* Box 1: What We Offer */}
-            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
+            <div className="bg-white p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] shadow-sm space-y-3">
               <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
                 What We Offer
               </h3>
@@ -566,7 +566,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Box 2: Who Can Join? */}
-            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
+            <div className="bg-white p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] shadow-sm space-y-3">
               <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
                 Who Can Join?
               </h3>
@@ -590,7 +590,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Box 3: Benefits of Training */}
-            <div className="bg-[#FAF6F0] p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] space-y-3">
+            <div className="bg-white p-5 sm:p-6 rounded-[14px] border border-[#E8DDD0] shadow-sm space-y-3">
               <h3 className="font-heading font-semibold text-[22px] text-[#2B2521] leading-[1.2]">
                 Benefits of Training
               </h3>
@@ -621,7 +621,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 5. FEATURED COURSES SECTION */}
-      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left" data-aos="fade-up">
+      <section className="py-16 bg-white border-b border-[#E8DDD0] text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
@@ -735,7 +735,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 6. VARMA WELLNESS & TRADITIONAL THERAPY SECTION */}
-      <section className="py-8 sm:py-12 bg-white border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
+      <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
           
           <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]" data-aos="fade-up">
@@ -746,7 +746,7 @@ export const Home: React.FC = () => {
             
             {/* Left Image - Full size matching section height */}
             <div className="lg:col-span-4 flex flex-col h-full">
-              <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-[#FAF6F0]">
+              <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-white">
                 <ResponsiveImage 
                   src="/images/wellness-682x1024.png" 
                   alt="Traditional Varma therapy session at JADMAA Varmakalai" 
@@ -773,7 +773,7 @@ export const Home: React.FC = () => {
                 {wellnessServices.map((service) => (
                   <div 
                     key={service.title} 
-                    className="p-5 sm:p-6 bg-[#FAF6F0] rounded-[14px] border border-[#E8DDD0] space-y-3"
+                    className="p-5 sm:p-6 bg-white rounded-[14px] border border-[#E8DDD0] shadow-sm space-y-3"
                   >
                     <h4 className="font-heading font-semibold text-[18px] text-[#2B2521] leading-[1.2]">
                       {service.title}
