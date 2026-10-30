@@ -229,7 +229,7 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
       return res.status(401).json({ success: false, error: { message: 'Please log in to continue booking.' } });
     }
 
-    const { slug } = req.params;
+    const slug = req.params.slug as string;
     if (!slug) {
       return res.status(400).json({ success: false, error: { message: 'Offer slug is required' } });
     }
@@ -552,6 +552,7 @@ export const verifyOfferPayment = async (req: Request, res: Response) => {
       userName: user.name || 'Student',
       userEmail: user.email || '',
       courseTitle: payment.course.title,
+      courseId: payment.courseId,
       amount: payment.amount,
       currency: payment.currency,
       paymentId: razorpay_payment_id,
