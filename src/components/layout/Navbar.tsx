@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Menu, 
@@ -25,6 +25,7 @@ export const Navbar: React.FC = () => {
   const location = useLocation();
   const { user, isLoggedIn, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
   const [editPromptOpen, setEditPromptOpen] = useState(false);
   const [editPromptText, setEditPromptText] = useState('');
   const [discardWarningOpen, setDiscardWarningOpen] = useState(false);
@@ -87,7 +88,35 @@ export const Navbar: React.FC = () => {
 
   useEffect(() => {
     setIsOpen(false);
+    setProfileOpen(false);
   }, [location.pathname]);
+
+  // Close profile dropdown card when clicking outside or pressing Escape
+  useEffect(() => {
+    if (!profileOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [profileOpen]);
 
   const handleEditWebsiteSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -238,7 +267,7 @@ export const Navbar: React.FC = () => {
 
             {/* Auth / Profile Links */}
             {isLoggedIn ? (
-              <div className="relative ml-2">
+              <div ref={profileRef} className="relative ml-2">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex items-center space-x-1.5 font-body text-[15px] font-medium text-[#2B2521] hover:text-[#B12B2B] transition px-3 py-2"
