@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { offerApi } from '../../lib/api/offerApi';
-import { X, Sparkles, Clock, ArrowRight, Tag, ShieldCheck } from 'lucide-react';
+import { X, Sparkles, Clock, ArrowRight, Tag } from 'lucide-react';
 
 interface PopupOfferData {
   id: string;
@@ -31,7 +31,7 @@ export const OfferPopup: React.FC = () => {
   const [visible, setVisible] = useState(false);
   const [countdownText, setCountdownText] = useState<string | null>(null);
 
-  // Exclude administrative, checkout, and offer landing pages
+  // Exclude administrative, checkout, auth, and offer landing pages
   const isExcludedPage = () => {
     const p = location.pathname.toLowerCase();
     return (
@@ -40,7 +40,11 @@ export const OfferPopup: React.FC = () => {
       p.startsWith('/instructor') ||
       p.startsWith('/checkout') ||
       p.startsWith('/learn') ||
-      p.startsWith('/payment')
+      p.startsWith('/payment') ||
+      p.startsWith('/login') ||
+      p.startsWith('/register') ||
+      p.startsWith('/forgot-password') ||
+      p.startsWith('/reset-password')
     );
   };
 
@@ -58,24 +62,26 @@ export const OfferPopup: React.FC = () => {
         if (res.success && res.data) {
           const offerData: PopupOfferData = res.data;
 
-          // Check if dismissed in current session
-          const isDismissed = sessionStorage.getItem(`jadmaa_popup_closed_${offerData.id}`);
+          // Check if dismissed in current browsing session
+          const isDismissed = sessionStorage.getItem(`jadmaa_sticker_closed_${offerData.id}`);
           if (isDismissed === 'true') {
             return;
           }
 
           setOffer(offerData);
 
-          // Fast, responsive appearance (default 1.2s so users see it immediately)
-          const delay = Math.min((offerData.popupDelaySeconds || 1.2), 3) * 1000;
+          // Delay appearance as configured (default 2.5s)
+          const delaySeconds = typeof offerData.popupDelaySeconds === 'number' ? offerData.popupDelaySeconds : 2.5;
+          const delayMs = Math.max(delaySeconds, 1) * 1000;
+
           delayTimer = setTimeout(() => {
             if (!isExcludedPage()) {
               setVisible(true);
             }
-          }, delay);
+          }, delayMs);
         }
       } catch (err) {
-        // Non-blocking
+        // Non-blocking for general user browsing
       }
     };
 
@@ -86,7 +92,7 @@ export const OfferPopup: React.FC = () => {
     };
   }, [location.pathname]);
 
-  // Live countdown timer in popup
+  // Live countdown timer in sticker (when enabled)
   useEffect(() => {
     if (!offer || !offer.countdownEnabled || !offer.expiresAt) {
       setCountdownText(null);
@@ -107,7 +113,12 @@ export const OfferPopup: React.FC = () => {
       const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
-      setCountdownText(`${hours}h ${mins}m ${secs}s left`);
+      if (hours > 24) {
+        const days = Math.floor(hours / 24);
+        setCountdownText(`${days}d ${hours % 24}h`);
+      } else {
+        setCountdownText(`${hours}h ${mins}m ${secs}s`);
+      }
     };
 
     updateTimer();
@@ -115,17 +126,17 @@ export const OfferPopup: React.FC = () => {
     return () => clearInterval(interval);
   }, [offer]);
 
-  const handleClose = () => {
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setVisible(false);
     if (offer) {
-      // Remember dismissal in current session so it doesn't repeatedly annoy the user on every click
-      sessionStorage.setItem(`jadmaa_popup_closed_${offer.id}`, 'true');
+      // Remember dismissal in current session so it doesn't repeatedly appear on navigation
+      sessionStorage.setItem(`jadmaa_sticker_closed_${offer.id}`, 'true');
     }
   };
 
-  const handleViewOffer = () => {
+  const handleNavigate = () => {
     if (offer) {
-      setVisible(false);
       navigate(`/offers/${offer.slug}`);
     }
   };
@@ -135,122 +146,79 @@ export const OfferPopup: React.FC = () => {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
-      
-      {/* Click outside to close */}
-      <div className="fixed inset-0" onClick={handleClose} />
-
-      {/* Main Popup Modal Card */}
+    <aside
+      aria-label="Promotional Offer"
+      className="fixed bottom-5 left-5 z-40 w-[270px] sm:w-[285px] max-w-[calc(100vw-2.5rem)] animate-sticker-enter select-none"
+    >
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label="Special Promotional Offer"
-        className="relative bg-white rounded-3xl shadow-2xl border border-gray-100 max-w-md w-full overflow-hidden z-10 transform transition-all duration-300 scale-100"
+        onClick={handleNavigate}
+        className="group relative cursor-pointer overflow-hidden rounded-xl bg-[#141416]/95 hover:bg-[#1A1A1E] backdrop-blur-md border border-red-900/40 hover:border-red-600/60 p-3.5 shadow-2xl shadow-black/70 transition-all duration-300 hover:-translate-y-0.5"
       >
-        {/* Top Decorative Banner Ribbon */}
-        <div className="h-2 bg-gradient-to-r from-jadmaa-red via-jadmaa-gold to-jadmaa-red" />
+        {/* Subtle Crimson Accent Bar on Top */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-red-700 via-amber-500 to-red-600" />
 
-        {/* Circular Close Button (X) */}
-        <button
-          onClick={handleClose}
-          aria-label="Close promotional popup"
-          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center transition-all duration-200 shadow-md cursor-pointer hover:rotate-90"
-        >
-          <X className="w-5 h-5 stroke-[2.5]" />
-        </button>
-
-        {/* Promotional Image Header */}
-        <div className="relative aspect-[16/9] w-full bg-gray-900 overflow-hidden">
-          {offer.bannerImageUrl ? (
-            <img
-              src={offer.bannerImageUrl}
-              alt={offer.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-jadmaa-cream text-jadmaa-red font-bold text-lg">
-              SPECIAL PROMOTIONAL OFFER
-            </div>
-          )}
-
-          {/* Gradient Overlay & Badge */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-between p-4">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-jadmaa-red text-white text-xs font-extrabold uppercase tracking-wider shadow-lg">
-                <Sparkles className="w-3.5 h-3.5" />
-                Special Offer • Save {offer.discountPercent}%
-              </span>
-            </div>
-
-            {countdownText && (
-              <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-white bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg w-fit border border-white/20">
-                <Clock className="w-3.5 h-3.5 text-jadmaa-gold animate-pulse" />
-                <span>Offer ends in: {countdownText}</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Content Body */}
-        <div className="p-5 sm:p-6 space-y-4 text-left">
-          
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-jadmaa-red uppercase tracking-wider">
-              {offer.course.title}
+        {/* Top Header Row: Label Badge + Discount Tag + Close Button */}
+        <div className="flex items-center justify-between gap-1.5 mb-1.5">
+          <div className="flex items-center gap-1.5 overflow-hidden">
+            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-extrabold tracking-wider uppercase bg-red-950/80 text-red-300 border border-red-800/50">
+              <Sparkles className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+              SPECIAL OFFER
             </span>
-            <h3 className="text-xl font-black font-heading text-jadmaa-charcoal leading-snug">
-              {offer.title}
-            </h3>
-            {offer.shortDescription && (
-              <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed pt-0.5">
-                {offer.shortDescription}
-              </p>
+
+            {offer.discountPercent > 0 && (
+              <span className="inline-flex items-center text-[10px] font-black text-amber-300 bg-amber-950/50 px-1.5 py-0.5 rounded border border-amber-800/40 shrink-0">
+                {offer.discountPercent}% OFF
+              </span>
             )}
           </div>
 
-          {/* Price Highlight Banner */}
-          <div className="bg-jadmaa-cream/80 p-3.5 rounded-2xl border border-jadmaa-border/40 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Exclusive Offer Price</p>
-              <div className="flex items-baseline gap-2 mt-0.5">
-                <span className="text-2xl font-black font-heading text-jadmaa-red">
-                  ₹{offer.offerPrice.toLocaleString('en-IN')}
-                </span>
-                <span className="text-sm font-semibold text-gray-400 line-through">
-                  ₹{offer.originalPrice.toLocaleString('en-IN')}
-                </span>
-              </div>
-            </div>
-
-            <div className="text-right">
-              <span className="inline-block px-2.5 py-1 rounded-xl bg-green-600 text-white text-xs font-bold shadow-sm">
-                Save ₹{offer.discountAmount.toLocaleString('en-IN')}
-              </span>
-              <p className="text-[10px] text-gray-500 font-medium mt-0.5">Instant Online Access</p>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="space-y-2 pt-1">
-            <button
-              onClick={handleViewOffer}
-              className="w-full py-3.5 px-5 rounded-2xl bg-jadmaa-red hover:bg-[#8C1E1E] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-jadmaa-red/25 transition-all duration-200 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
-            >
-              <span>View Offer & Claim Deal</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <button
-              onClick={handleClose}
-              className="w-full py-2 text-center text-xs font-semibold text-gray-400 hover:text-gray-700 transition"
-            >
-              No thanks, maybe later
-            </button>
-          </div>
-
+          {/* Close 'X' Button */}
+          <button
+            onClick={handleClose}
+            aria-label="Dismiss promotional offer"
+            className="shrink-0 p-1 rounded-md text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
 
+        {/* Course Title & Short Detail */}
+        <div className="text-left pr-2">
+          <h4 className="text-xs font-bold text-white tracking-tight line-clamp-1 group-hover:text-red-200 transition-colors">
+            {offer.title || offer.course.title}
+          </h4>
+          <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5 font-normal">
+            {offer.course.title}
+          </p>
+        </div>
+
+        {/* Price & Action Row */}
+        <div className="mt-2.5 pt-2 border-t border-white/10 flex items-center justify-between gap-2">
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-sm font-extrabold text-red-400 font-heading">
+              ₹{offer.offerPrice.toLocaleString('en-IN')}
+            </span>
+            {offer.originalPrice > offer.offerPrice && (
+              <span className="text-[11px] text-gray-500 line-through">
+                ₹{offer.originalPrice.toLocaleString('en-IN')}
+              </span>
+            )}
+          </div>
+
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-white group-hover:text-red-300 transition-colors shrink-0">
+            <span>View Offer</span>
+            <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+          </span>
+        </div>
+
+        {/* Optional Tiny Countdown Indicator */}
+        {countdownText && (
+          <div className="mt-1.5 flex items-center gap-1 text-[10px] font-mono font-medium text-amber-300/90">
+            <Clock className="w-2.5 h-2.5 text-amber-400 shrink-0" />
+            <span>Ends in {countdownText}</span>
+          </div>
+        )}
       </div>
-    </div>
+    </aside>
   );
 };

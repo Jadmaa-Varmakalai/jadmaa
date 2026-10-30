@@ -530,11 +530,11 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
             </div>
           </div>
 
-          {/* Section: Publication & Popup Controls */}
+          {/* Section: Publication & Offer Sticker Controls */}
           <div className="bg-gray-50/70 p-5 rounded-2xl border border-gray-100 space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-jadmaa-textMuted flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-jadmaa-red" />
-              4. Publication State & Promotional Popup
+              4. Publication State & Website Offer Sticker
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
@@ -578,14 +578,14 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-jadmaa-red"></div>
                 </label>
                 <span className="text-xs font-semibold text-gray-700">
-                  Show in Website Popup
+                  Show as Floating Offer Sticker
                 </span>
               </div>
 
               {showPopup && (
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Popup Display Priority (Higher appears first)
+                    Sticker Display Priority (Higher appears first)
                   </label>
                   <input
                     type="number"

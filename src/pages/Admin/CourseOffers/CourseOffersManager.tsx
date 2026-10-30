@@ -151,7 +151,7 @@ export const CourseOffersManager: React.FC = () => {
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-0.5">
-            Manage promotional landing pages, discounted pricing campaigns, live countdowns and website popups.
+            Manage promotional landing pages, discounted pricing campaigns, live countdowns and floating website stickers.
           </p>
         </div>
 
@@ -161,7 +161,7 @@ export const CourseOffersManager: React.FC = () => {
             className="flex-1 sm:flex-none px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition shadow-sm"
           >
             <Settings className="w-4 h-4 text-gray-500" />
-            <span>Popup Settings</span>
+            <span>Sticker Settings</span>
           </button>
 
           <button
@@ -291,8 +291,8 @@ export const CourseOffersManager: React.FC = () => {
                         </div>
                       )}
                       {offer.showPopup && (
-                        <span className="absolute bottom-1 right-1 bg-jadmaa-red text-white text-[9px] font-bold px-1 rounded shadow" title="Appears in website popup">
-                          POPUP
+                        <span className="absolute bottom-1 right-1 bg-jadmaa-red text-white text-[9px] font-bold px-1.5 py-0.5 rounded shadow tracking-wider uppercase" title={`Floating Offer Sticker (Priority: ${offer.popupPriority || 0})`}>
+                          STICKER{offer.popupPriority ? ` P${offer.popupPriority}` : ''}
                         </span>
                       )}
                     </div>
