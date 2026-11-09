@@ -26,12 +26,60 @@ const blogSlugCache = new Map<string, BlogPost>();
 
 const defaultBlogs: BlogPost[] = defaultBlogsData as unknown as BlogPost[];
 
-export const cleanSlug = (s: string) =>
-  decodeURIComponent(s || '')
+const TAMIL_VOWELS: Record<string, string> = {
+  'அ': 'a', 'ஆ': 'aa', 'இ': 'i', 'ஈ': 'ee', 'உ': 'u',
+  'ஊ': 'oo', 'எ': 'e', 'ஏ': 'ae', 'ஐ': 'ai', 'ஒ': 'o',
+  'ஓ': 'oa', 'ஔ': 'au', 'ஃ': 'ah'
+};
+
+const TAMIL_CONSONANTS: Record<string, string> = {
+  'க': 'k', 'ங': 'ng', 'ச': 's', 'ஞ': 'gn', 'ட': 't',
+  'ண': 'n', 'த': 'th', 'ந': 'n', 'ப': 'p', 'ம': 'm',
+  'ய': 'y', 'ர': 'r', 'ல': 'l', 'வ': 'v', 'ழ': 'zh',
+  'ள': 'l', 'ற': 'r', 'ன': 'n', 'ஜ': 'j', 'ஷ': 'sh',
+  'ஸ': 's', 'ஹ': 'h'
+};
+
+const TAMIL_VOWEL_SIGNS: Record<string, string> = {
+  'ா': 'aa', 'ி': 'i', 'ீ': 'ee', 'ு': 'u', 'ூ': 'oo',
+  'ெ': 'e', 'ே': 'ae', 'ை': 'ai', 'ொ': 'o', 'ோ': 'oa',
+  'ௌ': 'au', '்': ''
+};
+
+export function transliterateTamilToEnglish(text: string): string {
+  if (!text) return '';
+  let result = '';
+  const chars = Array.from(text);
+
+  for (let i = 0; i < chars.length; i++) {
+    const char = chars[i];
+    const nextChar = chars[i + 1];
+
+    if (TAMIL_VOWELS[char]) {
+      result += TAMIL_VOWELS[char];
+    } else if (TAMIL_CONSONANTS[char]) {
+      if (nextChar && TAMIL_VOWEL_SIGNS[nextChar] !== undefined) {
+        result += TAMIL_CONSONANTS[char] + TAMIL_VOWEL_SIGNS[nextChar];
+        i++;
+      } else {
+        result += TAMIL_CONSONANTS[char] + 'a';
+      }
+    } else {
+      result += char;
+    }
+  }
+  return result;
+}
+
+export const cleanSlug = (s: string) => {
+  const transliterated = transliterateTamilToEnglish(decodeURIComponent(s || ''));
+  return transliterated
     .toLowerCase()
     .trim()
-    .replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
+};
 
 const normalizeSlug = cleanSlug;
 

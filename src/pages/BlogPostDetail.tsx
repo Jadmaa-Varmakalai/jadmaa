@@ -58,7 +58,13 @@ export const BlogPostDetail: React.FC = () => {
           blogApi.getBlogBySlug(slug),
           blogApi.getBlogs()
         ]);
-        if (data) setBlog(data);
+        if (data) {
+          setBlog(data);
+          // Canonical URL check: If accessed via legacy Tamil or percent-encoded slug, update browser URL smoothly
+          if (data.slug && slug && slug !== data.slug && decodeURIComponent(slug) !== data.slug) {
+            window.history.replaceState(null, '', `/blog/${data.slug}`);
+          }
+        }
         if (list && list.length > 0) setAllBlogs(list);
       } catch (err: any) {
         if (!blog) {

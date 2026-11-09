@@ -25,6 +25,7 @@ import offerRoutes, { adminRouter as offerAdminRoutes } from './modules/offers/o
 import { getSitemapXml, getRobotsTxt, botPrerenderMiddleware } from './modules/seo/seo.controller.js';
 import { initCourseAvailability } from './services/courseAvailability.service.js';
 import path from 'path';
+import fs from 'fs';
 
 // Warm course availability cache from DB
 initCourseAvailability().catch(() => {});
@@ -120,5 +121,17 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/offers', offerRoutes);
 app.use('/api/v1/admin/offers', offerAdminRoutes);
+
+// Fallback handler for non-API routes (SPA index.html)
+app.use((req, res, next) => {
+  if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
+  const distHtml = path.resolve(process.cwd(), 'dist', 'index.html');
+  const rootHtml = path.resolve(process.cwd(), 'index.html');
+  const htmlPath = fs.existsSync(distHtml) ? distHtml : rootHtml;
+  if (fs.existsSync(htmlPath)) {
+    return res.sendFile(htmlPath);
+  }
+  return res.status(404).send('Page not found');
+});
 
 export default app;

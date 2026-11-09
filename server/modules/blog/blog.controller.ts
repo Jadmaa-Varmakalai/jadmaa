@@ -6,7 +6,7 @@ import os from 'os';
 import sharp from 'sharp';
 import { prisma } from '../../db.js';
 import defaultBlogsData from '../../../src/data/jadmaa_blogs.js';
-import { generateSeoSlug, getUniqueSlug } from '../../utils/slugify.js';
+import { generateSeoSlug, getUniqueSlug, transliterateTamilToEnglish } from '../../utils/slugify.js';
 
 let blogsCache: any = null;
 let blogsCacheTime = 0;
@@ -196,8 +196,16 @@ export const getBlogs = async (req: Request, res: Response) => {
   }
 };
 
+function safeDecode(str: string): string {
+  try {
+    return decodeURIComponent(str || '');
+  } catch {
+    return str || '';
+  }
+}
+
 export const cleanSlug = (s: string) => {
-  return decodeURIComponent(s || '')
+  return safeDecode(s)
     .toLowerCase()
     .trim()
     .replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')
@@ -206,7 +214,8 @@ export const cleanSlug = (s: string) => {
 
 export const getBlogBySlug = async (req: Request, res: Response) => {
   const rawParam = (req.params.slug as string || '').trim();
-  const decoded = decodeURIComponent(rawParam).trim();
+  const decoded = safeDecode(rawParam).trim();
+  const transliterated = transliterateTamilToEnglish(decoded).toLowerCase().replace(/[\s_-]+/g, '-');
   const unicodeSlug = cleanSlug(rawParam);
 
   try {
@@ -220,8 +229,19 @@ export const getBlogBySlug = async (req: Request, res: Response) => {
     if (decoded && decoded !== rawParam) {
       conditions.push({ slug: decoded }, { id: decoded });
     }
+    if (transliterated && transliterated !== rawParam && transliterated !== decoded) {
+      conditions.push({ slug: transliterated });
+    }
     if (unicodeSlug && unicodeSlug !== rawParam && unicodeSlug !== decoded) {
       conditions.push({ slug: unicodeSlug });
+    }
+
+    // Specific backward-compatible mappings for legacy Tamil slugs
+    if (decoded.includes('சிகிச்சை') || decoded.includes('sikissai') || rawParam.includes('%E0%AE%9A%E0%AE%BF%E0%AE%9A%E0%AF%8D%E0%AE%9A%E0%AF%88')) {
+      conditions.push({ slug: 'varma-sikissai-enraal-enna-alikkappatum-muraikal' });
+    }
+    if (decoded.includes('யார்') || decoded.includes('ஆசான்') || decoded.includes('aasaan') || rawParam.includes('%E0%AE%AF%E0%AE%BE%E0%AE%B0%E0%AF%8D')) {
+      conditions.push({ slug: 'yaar-varma-aasaan-yaar-varmaani-virivaana-vilakkam' });
     }
 
     let dbQueried = false;
@@ -276,13 +296,8 @@ export const createBlog = async (req: Request, res: Response) => {
     const { title, slug, content, excerpt, thumbnailUrl, published, topic, metaTitle, metaDesc, keywords } = req.body;
     
     const trimmedTitle = (title || 'Untitled Post').trim();
-    let cleanSlugVal: string;
-    if (slug && slug.trim()) {
-      cleanSlugVal = await getUniqueSlug(prisma.blogPost, generateSeoSlug(slug, { allowUnicode: true }));
-    } else {
-      const base = generateSeoSlug(trimmedTitle, { intentKeywords: ['varmakalai', 'traditional-healing'], allowUnicode: true });
-      cleanSlugVal = await getUniqueSlug(prisma.blogPost, base);
-    }
+    const generatedSlug = generateSeoSlug(trimmedTitle, slug, { intentKeywords: ['varmakalai', 'traditional-healing'] });
+    const cleanSlugVal = await getUniqueSlug(prisma.blogPost, generatedSlug);
 
     let finalContent = content || '';
     if (topic && topic.trim()) {
@@ -343,8 +358,11 @@ export const updateBlog = async (req: Request, res: Response) => {
     if (existing) {
       let updatedSlug = existing.slug;
       if (slug && slug !== existing.slug) {
-        const base = generateSeoSlug(slug, { allowUnicode: true });
+        const base = generateSeoSlug(title ?? existing.title, slug);
         updatedSlug = await getUniqueSlug(prisma.blogPost, base, existing.id);
+      } else if (!slug && title && title !== existing.title) {
+        // If title changed and slug wasn't explicitly customized, keep current slug or update
+        // We preserve existing slug to prevent breaking links unless admin explicitly overrides
       }
 
       blog = await prisma.blogPost.update({

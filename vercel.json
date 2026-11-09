@@ -1,7 +1,7 @@
 {
   "functions": {
     "api/index.ts": {
-      "includeFiles": "node_modules/.prisma/client/**"
+      "includeFiles": "{node_modules/.prisma/client/**,dist/index.html,index.html}"
     }
   },
   "rewrites": [
@@ -19,8 +19,22 @@
     },
     {
       "source": "/(.*)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": "(?i).*(googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora|showyoubot|outbrain|pinterest|slackbot|vkshare|w3c_validator|whatsapp|telegrambot|duckduckbot|discordbot|applebot).*"
+        }
+      ],
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/blog/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]
 }
-

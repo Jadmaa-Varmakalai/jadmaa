@@ -49,13 +49,26 @@ export const SEO: React.FC<SEOProps> = ({
 
       {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-      {/* Open Graph / Facebook */}
+      {/* Open Graph / Facebook / WhatsApp / Instagram / LinkedIn */}
       <meta property="og:type" content={type} />
       <meta property="og:site_name" content="JADMAA Varmakalai" />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={fullTitle} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={resolvedImage} />
+      <meta property="og:image:secure_url" content={resolvedImage} />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+      <meta
+        property="og:image:type"
+        content={
+          /\.png($|\?)/i.test(resolvedImage)
+            ? 'image/png'
+            : /\.webp($|\?)/i.test(resolvedImage)
+            ? 'image/webp'
+            : 'image/jpeg'
+        }
+      />
 
       {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />

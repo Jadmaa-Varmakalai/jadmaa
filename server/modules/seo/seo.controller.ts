@@ -1,17 +1,26 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db.js';
+import { transliterateTamilToEnglish } from '../../utils/slugify.js';
 import fs from 'fs';
 import path from 'path';
 
 const BASE_URL = process.env.FRONTEND_URL || 'https://jadmaa.com';
 
-const BOT_USER_AGENTS = /googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest\/0\.|pinterestbot|slackbot|vkshare|w3c_validator|whatsapp|telegrambot|duckduckbot/i;
+const BOT_USER_AGENTS = /googlebot|bingbot|yandex|baiduspider|twitterbot|facebookexternalhit|facebot|rogerbot|linkedinbot|embedly|quora link preview|quora|showyoubot|outbrain|pinterest|slackbot|vkshare|w3c_validator|whatsapp|telegrambot|duckduckbot|discordbot|applebot/i;
+
+function safeDecode(str: string): string {
+  try {
+    return decodeURIComponent(str || '');
+  } catch {
+    return str || '';
+  }
+}
 
 /**
- * Escapes XML special characters for sitemap validity
+ * Escapes XML/HTML special characters for valid tag attributes
  */
 function escapeXml(unsafe: string): string {
-  return unsafe.replace(/[<>&'"]/g, (c) => {
+  return (unsafe || '').replace(/[<>&'"]/g, (c) => {
     switch (c) {
       case '<': return '&lt;';
       case '>': return '&gt;';
@@ -21,6 +30,31 @@ function escapeXml(unsafe: string): string {
       default: return c;
     }
   });
+}
+
+/**
+ * Ensures an image URL is fully qualified with domain (required by WhatsApp/Facebook)
+ */
+function getAbsoluteImageUrl(imgUrl?: string | null): string {
+  if (!imgUrl || !imgUrl.trim()) {
+    return `${BASE_URL}/images/blog/varmakalai-history-origins-cover.jpg`;
+  }
+  const trimmed = imgUrl.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    return trimmed;
+  }
+  const clean = trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  return `${BASE_URL}${clean}`;
+}
+
+/**
+ * Determines OpenGraph image mime type
+ */
+function getImageMimeType(url: string): string {
+  if (/\.png($|\?)/i.test(url)) return 'image/png';
+  if (/\.webp($|\?)/i.test(url)) return 'image/webp';
+  if (/\.gif($|\?)/i.test(url)) return 'image/gif';
+  return 'image/jpeg';
 }
 
 /**
@@ -166,24 +200,74 @@ Sitemap: ${BASE_URL}/sitemap.xml
 };
 
 /**
- * Pre-renders SEO meta tags into index.html when search engine crawlers or social preview bots request pages
+ * Pre-renders rich OpenGraph & Twitter card meta tags into raw HTML
+ * when social preview crawlers (WhatsApp, Facebook, Instagram DM, Twitter/X, Telegram, LinkedIn)
+ * or search engines request shared pages.
  */
 export const botPrerenderMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   const userAgent = req.headers['user-agent'] || '';
-  if (!BOT_USER_AGENTS.test(userAgent)) {
-    return next();
-  }
+  const isBot = BOT_USER_AGENTS.test(userAgent);
 
-  // Only handle GET requests for HTML pages
+  // Only handle GET requests for web pages
   if (req.method !== 'GET' || req.path.startsWith('/api/') || req.path.includes('.')) {
     return next();
   }
 
+  const urlPath = req.path;
+
+  // Check backward-compatible 301 redirects for legacy percent-encoded or Tamil blog slugs
+  if (urlPath.startsWith('/blog/')) {
+    const rawSlug = urlPath.replace('/blog/', '').split('?')[0].trim();
+    const decodedSlug = safeDecode(rawSlug).trim();
+
+    // Check if the requested slug contains non-ASCII or percent-encoded characters
+    const isLegacySlug = rawSlug.includes('%') || /[^\x00-\x7F]/.test(decodedSlug);
+
+    if (isLegacySlug) {
+      try {
+        const transliterated = transliterateTamilToEnglish(decodedSlug).toLowerCase().replace(/[\s_-]+/g, '-');
+        const blog = await prisma.blogPost.findFirst({
+          where: {
+            OR: [
+              { slug: rawSlug },
+              { slug: decodedSlug },
+              { slug: transliterated },
+              { id: rawSlug },
+              // Legacy hardcoded mappings
+              ...(decodedSlug.includes('சிகிச்சை') || decodedSlug.includes('sikissai') || rawSlug.includes('%E0%AE%9A%E0%AE%BF%E0%AE%9A%E0%AF%8D%E0%AE%9A%E0%AF%88')
+                ? [{ slug: 'varma-sikissai-enraal-enna-alikkappatum-muraikal' }]
+                : []),
+              ...(decodedSlug.includes('யார்') || decodedSlug.includes('ஆசான்') || decodedSlug.includes('aasaan') || rawSlug.includes('%E0%AE%AF%E0%AE%BE%E0%AE%B0%E0%AF%8D')
+                ? [{ slug: 'yaar-varma-aasaan-yaar-varmaani-virivaana-vilakkam' }]
+                : [])
+            ]
+          },
+          select: { slug: true }
+        });
+
+        if (blog && blog.slug) {
+          // If human browser, issue 301 redirect
+          if (!isBot && blog.slug !== rawSlug && blog.slug !== decodedSlug) {
+            return res.redirect(301, `/blog/${blog.slug}`);
+          }
+        }
+      } catch (err) {
+        console.warn('Legacy slug resolution error:', err);
+      }
+    }
+  }
+
+  // If not a bot and not redirected, continue normal client SPA routing
+  if (!isBot) {
+    return next();
+  }
+
   try {
-    const urlPath = req.path;
     let pageTitle = 'JADMAA Varmakalai | Authentic Varmam Training & Traditional Medicine';
     let pageDesc = 'Learn authentic Varmakalai, traditional Tamil martial arts, and Siddha healing from certified lineage masters in Thanjavur, Kumbakonam & Ariyalur.';
     let pageImage = `${BASE_URL}/images/logo-1.png`;
+    let pageImageMime = 'image/png';
+    let pageCanonical = `${BASE_URL}${urlPath}`;
     let pageType = 'website';
     let schemaJson: any = null;
 
@@ -197,14 +281,17 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
 
       if (course) {
         pageTitle = course.metaTitle || `${course.title} | JADMAA Varmakalai Course`;
-        pageDesc = course.metaDesc || course.subtitle || course.description.slice(0, 160);
-        if (course.thumbnailUrl) pageImage = course.thumbnailUrl.startsWith('http') ? course.thumbnailUrl : `${BASE_URL}${course.thumbnailUrl}`;
+        pageDesc = course.metaDesc || course.subtitle || course.description.slice(0, 160).trim();
+        pageImage = getAbsoluteImageUrl(course.thumbnailUrl);
+        pageImageMime = getImageMimeType(pageImage);
+        pageCanonical = `${BASE_URL}/courses/${course.slug}`;
         pageType = 'article';
         schemaJson = {
           '@context': 'https://schema.org',
           '@type': 'Course',
           name: course.title,
           description: pageDesc,
+          image: pageImage,
           provider: {
             '@type': 'Organization',
             name: 'JADMAA Varmakalai',
@@ -222,16 +309,33 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
     // 2. Blog post: /blog/:slug
     else if (urlPath.startsWith('/blog/')) {
       const rawSlug = urlPath.replace('/blog/', '').split('?')[0].trim();
-      const decodedSlug = decodeURIComponent(rawSlug);
+      const decodedSlug = decodeURIComponent(rawSlug).trim();
+      const transliterated = transliterateTamilToEnglish(decodedSlug).toLowerCase().replace(/[\s_-]+/g, '-');
+
       const blog = await prisma.blogPost.findFirst({
-        where: { OR: [{ slug: rawSlug }, { slug: decodedSlug }, { id: rawSlug }] },
+        where: {
+          OR: [
+            { slug: rawSlug },
+            { slug: decodedSlug },
+            { slug: transliterated },
+            { id: rawSlug },
+            ...(decodedSlug.includes('வர்ம-சிகிச்சை') || rawSlug.includes('%E0%AE%B5%E0%AE%B0%E0%AF%8D%E0%AE%AE')
+              ? [{ slug: 'varma-sikissai-enraal-enna-alikkappatum-muraikal' }]
+              : []),
+            ...(decodedSlug.includes('யார்-வர்ம') || rawSlug.includes('%E0%AE%AF%E0%AE%BE%E0%AE%B0%E0%AF%8D')
+              ? [{ slug: 'yaar-varma-aasaan-yaar-varmaani-virivaana-vilakkam' }]
+              : [])
+          ]
+        },
         include: { author: true }
       });
 
       if (blog) {
         pageTitle = blog.metaTitle || `${blog.title} | JADMAA Varmakalai`;
-        pageDesc = blog.metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160);
-        if (blog.thumbnailUrl) pageImage = blog.thumbnailUrl.startsWith('http') ? blog.thumbnailUrl : `${BASE_URL}${blog.thumbnailUrl}`;
+        pageDesc = blog.metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160).trim();
+        pageImage = getAbsoluteImageUrl(blog.thumbnailUrl);
+        pageImageMime = getImageMimeType(pageImage);
+        pageCanonical = `${BASE_URL}/blog/${blog.slug}`;
         pageType = 'article';
         schemaJson = {
           '@context': 'https://schema.org',
@@ -265,50 +369,82 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
 
       if (offer) {
         pageTitle = offer.metaTitle || `${offer.title} | Special Campaign Offer — JADMAA`;
-        pageDesc = offer.metaDesc || offer.shortDescription || offer.description.slice(0, 160);
-        if (offer.bannerImageUrl) pageImage = offer.bannerImageUrl.startsWith('http') ? offer.bannerImageUrl : `${BASE_URL}${offer.bannerImageUrl}`;
+        pageDesc = offer.metaDesc || offer.shortDescription || offer.description.slice(0, 160).trim();
+        pageImage = getAbsoluteImageUrl(offer.bannerImageUrl);
+        pageImageMime = getImageMimeType(pageImage);
+        pageCanonical = `${BASE_URL}/offers/${offer.slug}`;
         pageType = 'website';
       }
     }
+    // 4. Products: /shop/product/:slug or /products/:slug
+    else if (urlPath.startsWith('/shop/product/') || urlPath.startsWith('/products/')) {
+      const slug = urlPath.replace('/shop/product/', '').replace('/products/', '').split('?')[0].trim();
+      const product = await prisma.product.findFirst({
+        where: { OR: [{ slug }, { id: slug }] }
+      });
 
-    // Try reading built index.html or fallback to root index.html
-    const distHtml = path.resolve(process.cwd(), 'dist', 'index.html');
-    const rootHtml = path.resolve(process.cwd(), 'index.html');
-    const htmlPath = fs.existsSync(distHtml) ? distHtml : rootHtml;
-
-    if (!fs.existsSync(htmlPath)) {
-      return next();
+      if (product) {
+        pageTitle = product.metaTitle || `${product.name} | JADMAA Official Store`;
+        pageDesc = product.metaDesc || product.description?.slice(0, 160).trim() || 'Official JADMAA equipment, uniforms and Siddhar literature.';
+        const firstImg = product.images && product.images.length > 0 ? product.images[0] : null;
+        pageImage = getAbsoluteImageUrl(firstImg);
+        pageImageMime = getImageMimeType(pageImage);
+        pageCanonical = `${BASE_URL}/shop/product/${product.slug}`;
+        pageType = 'product';
+      }
     }
 
-    let html = fs.readFileSync(htmlPath, 'utf8');
-
-    // Inject meta tags
+    // Build OpenGraph & Twitter Card tags according to exact social platform specs
     const metaTags = `
     <title>${escapeXml(pageTitle)}</title>
     <meta name="description" content="${escapeXml(pageDesc)}" />
-    <link rel="canonical" href="${escapeXml(`${BASE_URL}${urlPath}`)}" />
+    <link rel="canonical" href="${escapeXml(pageCanonical)}" />
+
+    <!-- OpenGraph / Facebook / WhatsApp / Instagram / LinkedIn Rich Link Preview -->
     <meta property="og:type" content="${pageType}" />
+    <meta property="og:site_name" content="JADMAA Varmakalai" />
     <meta property="og:title" content="${escapeXml(pageTitle)}" />
     <meta property="og:description" content="${escapeXml(pageDesc)}" />
     <meta property="og:image" content="${escapeXml(pageImage)}" />
-    <meta property="og:url" content="${escapeXml(`${BASE_URL}${urlPath}`)}" />
-    <meta property="og:site_name" content="JADMAA Varmakalai" />
+    <meta property="og:image:secure_url" content="${escapeXml(pageImage)}" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="${pageImageMime}" />
+    <meta property="og:url" content="${escapeXml(pageCanonical)}" />
+
+    <!-- Twitter / X / Social App Large Image Card Preview -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@Jadmaavarmakalai" />
     <meta name="twitter:title" content="${escapeXml(pageTitle)}" />
     <meta name="twitter:description" content="${escapeXml(pageDesc)}" />
     <meta name="twitter:image" content="${escapeXml(pageImage)}" />
     ${schemaJson ? `<script type="application/ld+json">${JSON.stringify(schemaJson)}</script>` : ''}
     `;
 
-    html = html.replace(/<title>.*?<\/title>/i, '');
-    html = html.replace(/<meta\s+name="description".*?>/i, '');
-    html = html.replace('</head>', `${metaTags}\n  </head>`);
+    // Try reading built index.html or fallback to root index.html
+    const distHtml = path.resolve(process.cwd(), 'dist', 'index.html');
+    const rootHtml = path.resolve(process.cwd(), 'index.html');
+    const htmlPath = fs.existsSync(distHtml) ? distHtml : rootHtml;
+
+    let html = '';
+    if (fs.existsSync(htmlPath)) {
+      html = fs.readFileSync(htmlPath, 'utf8');
+      // Strip default generic tags from index.html template so social scrapers don't see conflicts
+      html = html
+        .replace(/<title>[\s\S]*?<\/title>/gi, '')
+        .replace(/<meta\s+[^>]*?(?:name|property)=["'](?:og:[^"']+|twitter:[^"']+|description)["'][^>]*\/?>/gi, '')
+        .replace(/<link\s+[^>]*?rel=["']canonical["'][^>]*\/?>/gi, '');
+      html = html.replace(/<head>/i, `<head>\n${metaTags}\n`);
+    } else {
+      // Fallback HTML shell when static files aren't on serverless disk
+      html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />${metaTags}</head><body><div id="root"></div></body></html>`;
+    }
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600');
     return res.send(html);
   } catch (err) {
     console.warn('botPrerenderMiddleware error:', err);
     return next();
   }
 };
-
