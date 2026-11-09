@@ -7,6 +7,7 @@ import * as offerAdminController from './offer.admin.controller.js';
 const publicRouter = Router();
 
 // Public & student endpoints
+publicRouter.get('/active-banner', offerController.getActiveBannerOffer);
 publicRouter.get('/active-popup', offerController.getActivePopupOffer);
 publicRouter.get('/:slug', offerController.getOfferBySlug);
 publicRouter.post('/:slug/book', authenticate, offerController.initiateOfferBooking);

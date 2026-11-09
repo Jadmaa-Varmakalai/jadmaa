@@ -344,14 +344,18 @@ export const Home: React.FC = () => {
             {/* Right Column: Hero Practitioner Kick Image */}
             <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0" data-aos="fade-up" data-aos-delay="100">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center">
-                <img 
-                  src="/images/hero-kick-action-transparent.png" 
-                  alt="Varmakalai Practitioner Stance" 
-                  fetchPriority="high"
-                  loading="eager"
-                  decoding="async"
-                  className="max-h-[440px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out animate-jd-hero-float"
-                />
+                <picture>
+                  <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />
+                  <source type="image/webp" srcSet="/images/optimized/hero-kick-action-transparent-386w.webp 386w, /images/optimized/hero-kick-action-transparent.webp 386w" />
+                  <img 
+                    src="/images/optimized/hero-kick-action-transparent.webp" 
+                    alt="Varmakalai Practitioner Stance" 
+                    fetchPriority="high"
+                    loading="eager"
+                    decoding="async"
+                    className="max-h-[440px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out animate-jd-hero-float"
+                  />
+                </picture>
               </div>
             </div>
 
@@ -479,13 +483,17 @@ export const Home: React.FC = () => {
             {/* Left: Big Martial Arts Stance Image (1st on mobile) */}
             <div className="lg:col-span-5 flex justify-center items-center" data-aos="fade-up">
               <div className="relative group text-center">
-                <img 
-                  src="/images/training-stance.png" 
-                  alt="Traditional Varmakalai Training Stance at JADMAA" 
-                  loading="lazy"
-                  decoding="async"
-                  className="max-h-[380px] sm:max-h-[440px] lg:max-h-[480px] w-auto object-contain drop-shadow-[0_16px_32px_rgba(43,37,33,0.18)] hover:scale-105 transition-transform duration-500 ease-out"
-                />
+                <picture>
+                  <source type="image/avif" srcSet="/images/optimized/training-stance-576w.avif 576w, /images/optimized/training-stance.avif 576w" />
+                  <source type="image/webp" srcSet="/images/optimized/training-stance-576w.webp 576w, /images/optimized/training-stance.webp 576w" />
+                  <img 
+                    src="/images/optimized/training-stance.webp" 
+                    alt="Traditional Varmakalai Training Stance at JADMAA" 
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-[380px] sm:max-h-[440px] lg:max-h-[480px] w-auto object-contain drop-shadow-[0_16px_32px_rgba(43,37,33,0.18)] hover:scale-105 transition-transform duration-500 ease-out"
+                  />
+                </picture>
               </div>
             </div>
 

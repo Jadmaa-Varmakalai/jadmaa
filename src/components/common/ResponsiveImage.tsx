@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { 
   getOptimizedConfig, 
   getOptimizedBlogThumbnail, 
@@ -37,8 +37,16 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   onError,
   ...rest
 }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const isLocal = Boolean(src?.startsWith('/images/') || (src?.startsWith('/') && !src?.startsWith('/uploads/') && !src?.startsWith('/api/')));
+  const [isLoaded, setIsLoaded] = useState(() => priority || isLocal || !showSkeleton);
   const [hasError, setHasError] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  useLayoutEffect(() => {
+    if (imgRef.current?.complete && imgRef.current?.naturalWidth > 0) {
+      setIsLoaded(true);
+    }
+  }, [src]);
 
   const handleLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     setIsLoaded(true);
@@ -53,13 +61,14 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
 
   // Base image attributes
   const commonImgProps = {
+    ref: imgRef,
     alt: alt || 'JADMAA Varmakalai',
-    loading: priority ? ('eager' as const) : ('lazy' as const),
+    loading: priority || isLocal ? ('eager' as const) : ('lazy' as const),
     decoding: 'async' as const,
     fetchPriority: priority ? ('high' as const) : ('auto' as const),
     onLoad: handleLoad,
     onError: handleError,
-    className: `${className} transition-opacity duration-300 ${!isLoaded && !priority ? 'opacity-0' : 'opacity-100'}`,
+    className: `${className} transition-opacity duration-200 ${!isLoaded && !priority && !isLocal ? 'opacity-0' : 'opacity-100'}`,
     style: {
       aspectRatio,
       ...style,
@@ -67,13 +76,15 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
     ...rest,
   };
 
+  const shouldRenderSkeleton = showSkeleton && !isLoaded && !priority && !isLocal;
+
   // 1. Dedicated blog thumbnail (pre-rendered local derivatives or optimized proxy)
   const isBlogContext = isBlog || src.includes('/images/blog/') || src.includes('/blog/');
   const blogThumbnail = isBlogContext ? getOptimizedBlogThumbnail(src) : null;
   if (blogThumbnail && !hasError) {
     return (
       <div className={`relative overflow-hidden ${wrapperClassName}`}>
-        {showSkeleton && !isLoaded && (
+        {shouldRenderSkeleton && (
           <div className="absolute inset-0 bg-[#FAF6F0] animate-pulse z-0" aria-hidden="true" />
         )}
         <picture className="block w-full h-full">
@@ -108,7 +119,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
 
     return (
       <div className={`relative overflow-hidden ${wrapperClassName}`}>
-        {showSkeleton && !isLoaded && (
+        {shouldRenderSkeleton && (
           <div className="absolute inset-0 bg-[#FAF6F0] animate-pulse z-0" aria-hidden="true" />
         )}
         <picture className="block w-full h-full">
@@ -138,7 +149,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
 
     return (
       <div className={`relative overflow-hidden ${wrapperClassName}`}>
-        {showSkeleton && !isLoaded && (
+        {shouldRenderSkeleton && (
           <div className="absolute inset-0 bg-[#FAF6F0] animate-pulse z-0" aria-hidden="true" />
         )}
         <picture className="block w-full h-full">
@@ -168,7 +179,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
 
   return (
     <div className={`relative overflow-hidden ${wrapperClassName}`}>
-      {showSkeleton && !isLoaded && (
+      {shouldRenderSkeleton && (
         <div className="absolute inset-0 bg-[#FAF6F0] animate-pulse z-0" aria-hidden="true" />
       )}
       <img

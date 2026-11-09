@@ -58,10 +58,21 @@ export const ScrollObserver: React.FC = () => {
         '[data-aos], section:not(.no-aos), .reveal-on-scroll'
       );
 
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+
       elements.forEach((el) => {
         if (!el.getAttribute('data-aos') && el.tagName.toLowerCase() === 'section') {
           el.setAttribute('data-aos', 'fade-up');
         }
+        
+        // Immediately reveal elements already inside or near viewport on page load
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= viewportHeight * 1.25) {
+          el.classList.add('aos-animate');
+          el.classList.add('is-revealed');
+          return;
+        }
+
         if (!el.classList.contains('is-revealed') && !el.classList.contains('aos-animate')) {
           observer?.observe(el);
         }

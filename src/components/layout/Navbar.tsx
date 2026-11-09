@@ -20,6 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useSettings } from '../../context/SettingsContext';
 import { ResponsiveImage } from '../common/ResponsiveImage';
 import { useCart } from '../../context/CartContext';
+import { CampaignAnnouncementBar } from './CampaignAnnouncementBar';
 
 export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -277,9 +278,11 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
     )}
-    <header className={`sticky top-0 z-50 bg-[#FAF6F0] transition-shadow duration-200 border-b border-[#E8DDD0] ${
-      scrolled ? 'shadow-sm py-2 sm:py-3' : 'py-2.5 sm:py-4'
-    }`}>
+    <div className="sticky top-0 z-50 w-full">
+      <CampaignAnnouncementBar />
+      <header className={`w-full bg-[#FAF6F0] transition-all duration-200 border-b border-[#E8DDD0] ${
+        scrolled ? 'shadow-md py-2 sm:py-2.5' : 'py-2.5 sm:py-3.5'
+      }`}>
       {/* Full-Navbar Interactive Search Overlay with Smooth Slide-Down Animation */}
       {isSearchOpen ? (
         <div className="max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-10 xl:px-12 animate-search-slide-down">
@@ -634,6 +637,7 @@ export const Navbar: React.FC = () => {
         </div>
       )}
     </header>
+    </div>
 
     {/* Edit Website Prompt Modal */}
     {editPromptOpen && (

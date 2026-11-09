@@ -170,6 +170,10 @@ export interface PublicOfferDetails {
 
 export const offerApi = {
   // Public endpoints
+  getActiveBannerOffer: async () => {
+    return fetchApi('/offers/active-banner');
+  },
+
   getActivePopupOffer: async () => {
     return fetchApi('/offers/active-popup');
   },

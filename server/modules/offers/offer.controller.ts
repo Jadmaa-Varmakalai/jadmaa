@@ -6,6 +6,72 @@ import { sendCoursePurchaseAdminNotificationEmail } from '../../services/email/e
 import { computeOfferStatus } from './offer.utils.js';
 
 /**
+ * 0. GET ACTIVE BANNER OFFER
+ * Returns the highest priority active enabled offer for top announcement bar display.
+ */
+export const getActiveBannerOffer = async (req: Request, res: Response) => {
+  try {
+    const candidates = await prisma.courseOffer.findMany({
+      where: {
+        isEnabled: true,
+        status: { in: ['PUBLISHED', 'SCHEDULED'] }
+      },
+      include: {
+        course: {
+          select: {
+            id: true,
+            title: true,
+            status: true
+          }
+        }
+      },
+      orderBy: [
+        { popupPriority: 'desc' },
+        { createdAt: 'desc' }
+      ]
+    });
+
+    const validOffer: any = candidates.find(offer => {
+      const computed = computeOfferStatus(offer);
+      if (computed !== 'PUBLISHED') return false;
+      if (offer.course && offer.course.status !== 'PUBLISHED') return false;
+      return true;
+    });
+
+    if (!validOffer) {
+      return res.json({ success: true, data: null });
+    }
+
+    const discountAmount = Math.max(0, validOffer.originalPrice - validOffer.offerPrice);
+    const discountPercent = validOffer.originalPrice > 0
+      ? (validOffer.discountPercent || Math.round((discountAmount / validOffer.originalPrice) * 100))
+      : (validOffer.discountPercent || 0);
+
+    res.setHeader('Cache-Control', 'public, max-age=60, s-maxage=180, stale-while-revalidate=300');
+    return res.json({
+      success: true,
+      data: {
+        id: validOffer.id,
+        title: validOffer.title,
+        slug: validOffer.slug,
+        eyebrow: validOffer.eyebrow,
+        headline: validOffer.headline,
+        shortDescription: validOffer.shortDescription,
+        discountPercent,
+        originalPrice: validOffer.originalPrice,
+        offerPrice: validOffer.offerPrice,
+        currency: validOffer.currency || 'INR',
+        category: validOffer.category,
+        expiresAt: validOffer.expiresAt
+      }
+    });
+  } catch (err: any) {
+    console.error('[Offers] Error in getActiveBannerOffer:', err);
+    return res.json({ success: true, data: null });
+  }
+};
+
+/**
  * 1. GET ACTIVE POPUP OFFER
  * Returns the single highest priority active offer eligible for public popup display.
  */

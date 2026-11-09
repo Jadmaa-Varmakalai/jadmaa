@@ -61,6 +61,7 @@ export const About: React.FC = () => {
                   <ResponsiveImage 
                     src="/images/pose-dab-red-e1785095608624-653x1024.jpg" 
                     alt="Varmakalai practitioner demonstrating a traditional stance" 
+                    priority={true}
                     width={360}
                     height={564}
                     aspectRatio="653/1024"
@@ -114,6 +115,7 @@ export const About: React.FC = () => {
                   <ResponsiveImage 
                     src="/images/founder.webp" 
                     alt="Bojagarajan with his master Aasan R. Rajendran of Madurai - JADMAA Varmakalai lineage" 
+                    priority={true}
                     width={480}
                     height={360}
                     aspectRatio="4/3"
