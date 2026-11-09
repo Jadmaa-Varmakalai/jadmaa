@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SEO } from '../../components/common/SEO';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import {
   BookOpen,
   Plus,
@@ -151,10 +152,14 @@ export const InstructorCoursesPage: React.FC = () => {
                   {/* Thumbnail */}
                   <div className="relative aspect-video w-full bg-gray-100 overflow-hidden">
                     {course.thumbnailUrl ? (
-                      <img
+                      <ResponsiveImage
                         src={course.thumbnailUrl}
                         alt={course.title}
+                        width={360}
+                        height={202}
+                        aspectRatio="16/9"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        wrapperClassName="w-full h-full"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-[#FAF6F0] text-[#B12B2B]">

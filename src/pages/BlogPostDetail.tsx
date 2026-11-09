@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { SEO, buildArticleSchema } from '../components/common/SEO';
 import { BlogCard } from '../components/common/BlogCard';
 import { ImageCropModal } from '../components/common/ImageCropModal';
-import { getOptimizedBlogThumbnail } from '../utils/imageUtils';
+import { getOptimizedBlogThumbnail, getOptimizedImageUrl } from '../utils/imageUtils';
+import { ResponsiveImage } from '../components/common/ResponsiveImage';
 import { blogApi, cleanSlug } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
 import { useAuth } from '../context/AuthContext';
@@ -259,7 +260,7 @@ export const BlogPostDetail: React.FC = () => {
                     {/* Render ambient blurred backdrop ONLY if image is uncropped */}
                     {!isCropped && (
                       <img
-                        src={insideBannerUrl}
+                        src={getOptimizedImageUrl(insideBannerUrl, 160, undefined, 'webp')}
                         alt=""
                         aria-hidden="true"
                         className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
@@ -267,15 +268,20 @@ export const BlogPostDetail: React.FC = () => {
                     )}
 
                     {/* Main Image: uncropped uses object-contain; cropped fills cleanly with object-cover and NO blur backdrop */}
-                    <img
+                    <ResponsiveImage
                       key={insideBannerUrl}
                       src={insideBannerUrl}
                       alt={blog.title}
-                      loading="eager"
-                      decoding="async"
+                      priority={true}
+                      width={1080}
+                      height={608}
+                      aspectRatio="16/9"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 840px"
                       className={`w-full h-full ${
                         isCropped ? 'object-cover' : 'object-contain'
                       } object-center rounded-xl sm:rounded-2xl block transition-all duration-300 relative z-10`}
+                      wrapperClassName="w-full h-full"
+                      fallbackSrc={featuredImageUrl}
                     />
                   </div>
 

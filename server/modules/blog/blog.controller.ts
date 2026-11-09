@@ -48,6 +48,13 @@ function formatBlogResponse(b: any) {
   };
 }
 
+interface CachedImageEntry {
+  buffer: Buffer;
+  contentType: string;
+}
+const memoryImageCache = new Map<string, CachedImageEntry>();
+const MAX_MEMORY_CACHE_ITEMS = 100;
+
 /**
  * High-performance on-demand image optimization and caching.
  * Transforms remote and local images to modern responsive WebP/AVIF formats,
@@ -66,8 +73,23 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
     const quality = Math.min(100, Math.max(40, parseInt(req.query.q as string, 10) || 80));
 
     const targetFormat: 'webp' | 'avif' | 'jpeg' = format === 'avif' ? 'avif' : format === 'jpeg' || format === 'jpg' ? 'jpeg' : 'webp';
+    const contentType = `image/${targetFormat}`;
 
-    // Use writable system temp directory on serverless (e.g. /tmp on Vercel/Linux)
+    const hash = crypto
+      .createHash('sha256')
+      .update(`${rawUrl}__w${width}__h${height || 'auto'}__f${targetFormat}__q${quality}`)
+      .digest('hex')
+      .slice(0, 32);
+
+    // 1. In-memory fast cache check (0ms response)
+    const memCached = memoryImageCache.get(hash);
+    if (memCached) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+      res.setHeader('Content-Type', memCached.contentType);
+      return res.send(memCached.buffer);
+    }
+
+    // 2. Disk cache check
     const cacheDir = path.join(os.tmpdir(), 'jadmaa_image_cache');
     try {
       if (!fs.existsSync(cacheDir)) {
@@ -77,19 +99,20 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
       // Safe ignore if filesystem is read-only
     }
 
-    const hash = crypto
-      .createHash('sha256')
-      .update(`${rawUrl}__w${width}__h${height || 'auto'}__f${targetFormat}__q${quality}`)
-      .digest('hex')
-      .slice(0, 32);
-
     const cachedFilePath = path.join(cacheDir, `${hash}.${targetFormat}`);
 
     try {
       if (fs.existsSync(cachedFilePath)) {
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-        res.setHeader('Content-Type', `image/${targetFormat}`);
-        return res.sendFile(cachedFilePath);
+        const fileBuf = await fs.promises.readFile(cachedFilePath);
+        if (memoryImageCache.size >= MAX_MEMORY_CACHE_ITEMS) {
+          const firstKey = memoryImageCache.keys().next().value;
+          if (firstKey) memoryImageCache.delete(firstKey);
+        }
+        memoryImageCache.set(hash, { buffer: fileBuf, contentType });
+
+        res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+        res.setHeader('Content-Type', contentType);
+        return res.send(fileBuf);
       }
     } catch {
       // Fallback to on-demand processing if cache file check fails
@@ -120,23 +143,31 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
     });
 
     if (targetFormat === 'webp') {
-      pipeline = pipeline.webp({ quality, effort: 4 });
+      pipeline = pipeline.webp({ quality, effort: 3 });
     } else if (targetFormat === 'avif') {
-      pipeline = pipeline.avif({ quality, effort: 4 });
+      pipeline = pipeline.avif({ quality, effort: 3 });
     } else {
       pipeline = pipeline.jpeg({ quality, progressive: true });
     }
 
     const outputBuffer = await pipeline.toBuffer();
 
+    // Cache to disk asynchronously
     try {
       fs.promises.writeFile(cachedFilePath, outputBuffer).catch(() => {});
     } catch {
       // Ignore cache write errors on ephemeral disk
     }
 
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-    res.setHeader('Content-Type', `image/${targetFormat}`);
+    // Cache to memory
+    if (memoryImageCache.size >= MAX_MEMORY_CACHE_ITEMS) {
+      const firstKey = memoryImageCache.keys().next().value;
+      if (firstKey) memoryImageCache.delete(firstKey);
+    }
+    memoryImageCache.set(hash, { buffer: outputBuffer, contentType });
+
+    res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+    res.setHeader('Content-Type', contentType);
     return res.send(outputBuffer);
   } catch (err: any) {
     console.warn('[ImageOptimizer] Error optimizing image:', err?.message);

@@ -175,8 +175,8 @@ export function getOptimizedBlogThumbnail(slugOrUrl: string): {
     };
   }
 
-  // If it's a remote URL for a blog thumbnail
-  if ((slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://')) && (slugOrUrl.includes('/blog') || key.includes('blog'))) {
+  // If it's a remote URL for a blog thumbnail or cover image
+  if (slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://')) {
     return {
       avif: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=avif`,
       webp: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=webp`,
@@ -198,7 +198,7 @@ export function getOptimizedImageUrl(src: string, width = 600, height?: number, 
   if (!src) return '/images/course-basic.jpg';
   
   // Data URLs, Blobs or already optimized local derivatives
-  if (src.startsWith('data:') || src.startsWith('blob:') || src.includes('/images/optimized/') || src.includes('/images/cache/') || src.includes('/api/v1/blogs/optimized-image') || (src.startsWith('/uploads/') && src.endsWith('.webp'))) {
+  if (src.startsWith('data:') || src.startsWith('blob:') || src.includes('/images/optimized/') || src.includes('/images/cache/') || src.includes('/api/v1/blogs/optimized-image') || src.includes('/api/v1/optimized-image') || (src.startsWith('/uploads/') && src.endsWith('.webp'))) {
     return src;
   }
 

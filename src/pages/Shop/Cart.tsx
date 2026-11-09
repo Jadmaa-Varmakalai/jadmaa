@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -126,10 +127,14 @@ export const Cart: React.FC = () => {
                         className="w-20 h-20 sm:w-24 sm:h-24 bg-gray-50 rounded-xl overflow-hidden border border-gray-100 flex-shrink-0"
                       >
                         {item.product.images && item.product.images[0] ? (
-                          <img
+                          <ResponsiveImage
                             src={item.product.images[0]}
                             alt={item.product.name}
+                            width={180}
+                            height={180}
+                            aspectRatio="1/1"
                             className="w-full h-full object-cover"
+                            wrapperClassName="w-full h-full"
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-gray-300">

@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { ResponsiveImage } from '../common/ResponsiveImage';
 import { X, ShoppingBag, Plus, Minus, Trash2, ArrowRight, ShieldCheck, Truck } from 'lucide-react';
 
 export const CartDrawer: React.FC = () => {
@@ -102,10 +103,14 @@ export const CartDrawer: React.FC = () => {
                   {/* Thumbnail */}
                   <div className="w-20 h-20 bg-gray-50 rounded-lg overflow-hidden border border-gray-100 flex-shrink-0">
                     {item.product.images && item.product.images[0] ? (
-                      <img
+                      <ResponsiveImage
                         src={item.product.images[0]}
                         alt={item.product.name}
+                        width={160}
+                        height={160}
+                        aspectRatio="1/1"
                         className="w-full h-full object-cover"
+                        wrapperClassName="w-full h-full"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300">

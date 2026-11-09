@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { BlogPost } from '../../lib/api/blogApi';
 import { format } from 'date-fns';
+import { ResponsiveImage } from './ResponsiveImage';
 
 interface BlogCardProps {
   blog: BlogPost;
@@ -71,17 +72,18 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
       >
         {/* LEFT — Thumbnail Artwork (Cream Background) */}
         <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
-          <img
+          <ResponsiveImage
             src={blog.thumbnailUrl || fallbackThumbnail}
             alt={blog.title}
+            priority={priority}
+            width={320}
+            height={205}
+            aspectRatio="1/1"
+            isBlog={true}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 240px"
             className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-            onError={(e) => {
-              const img = e.target as HTMLImageElement;
-              if (img.src !== fallbackThumbnail) {
-                img.src = fallbackThumbnail;
-              }
-            }}
+            fallbackSrc={fallbackThumbnail}
+            wrapperClassName="w-full h-full"
           />
         </div>
 

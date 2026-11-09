@@ -23,6 +23,7 @@ import productRoutes from './modules/products/product.routes.js';
 import orderRoutes from './modules/orders/order.routes.js';
 import offerRoutes, { adminRouter as offerAdminRoutes } from './modules/offers/offer.routes.js';
 import { getSitemapXml, getRobotsTxt, botPrerenderMiddleware } from './modules/seo/seo.controller.js';
+import { getOptimizedImage } from './modules/blog/blog.controller.js';
 import { initCourseAvailability } from './services/courseAvailability.service.js';
 import path from 'path';
 import fs from 'fs';
@@ -105,6 +106,9 @@ app.get('/robots.txt', getRobotsTxt);
 
 // Bot Pre-render Middleware for Social & Search Crawlers
 app.use(botPrerenderMiddleware);
+
+// Global high-performance image optimization endpoint
+app.get('/api/v1/optimized-image', getOptimizedImage);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/courses', courseRoutes);

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import { orderApi } from '../../lib/api/orderApi';
@@ -391,7 +392,15 @@ export const Checkout: React.FC = () => {
                     <div className="flex items-center gap-2.5 min-w-0">
                       <div className="w-10 h-10 rounded-lg overflow-hidden bg-gray-50 border border-gray-100 flex-shrink-0">
                         {item.product.images && item.product.images[0] ? (
-                          <img src={item.product.images[0]} alt="" className="w-full h-full object-cover" />
+                          <ResponsiveImage
+                            src={item.product.images[0]}
+                            alt={item.product.name}
+                            width={80}
+                            height={80}
+                            aspectRatio="1/1"
+                            className="w-full h-full object-cover"
+                            wrapperClassName="w-full h-full"
+                          />
                         ) : (
                           <ShoppingBag className="w-4 h-4 m-auto text-gray-400" />
                         )}
