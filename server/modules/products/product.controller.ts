@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import fs from 'fs';
 import path from 'path';
 import { prisma } from '../../db.js';
+import { generateSeoSlug, getUniqueSlug } from '../../utils/slugify.js';
 
 const slugify = (text: string) => {
   return text
@@ -362,13 +363,9 @@ export const createProduct = async (req: Request, res: Response) => {
       targetCategoryId = defaultCat.id;
     }
 
-    // Auto-resolve unique slug
-    let baseSlug = slugify(slug || name);
-    let finalSlug = baseSlug;
-    let slugIndex = 1;
-    while (await prisma.product.findUnique({ where: { slug: finalSlug } })) {
-      finalSlug = `${baseSlug}-${slugIndex++}`;
-    }
+    // Auto-resolve unique SEO slug
+    const baseSlug = generateSeoSlug(slug || name, { intentKeywords: ['varmakalai', 'traditional'] });
+    const finalSlug = await getUniqueSlug(prisma.product, baseSlug);
 
     // Auto-resolve unique SKU
     let baseSku = (sku || `SKU-${Date.now().toString().slice(-6)}`).toUpperCase().trim();
@@ -465,11 +462,8 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     let finalSlug = existing.slug;
     if (slug && slug !== existing.slug) {
-      finalSlug = slugify(slug);
-      const duplicateSlug = await prisma.product.findUnique({ where: { slug: finalSlug } });
-      if (duplicateSlug && duplicateSlug.id !== id) {
-        return res.status(400).json({ success: false, error: { message: 'Slug already taken' } });
-      }
+      const base = generateSeoSlug(slug);
+      finalSlug = await getUniqueSlug(prisma.product, base, id);
     }
 
     let finalSku = existing.sku;

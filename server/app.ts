@@ -22,6 +22,7 @@ import instructorRoutes from './modules/instructor/instructor.routes.js';
 import productRoutes from './modules/products/product.routes.js';
 import orderRoutes from './modules/orders/order.routes.js';
 import offerRoutes, { adminRouter as offerAdminRoutes } from './modules/offers/offer.routes.js';
+import { getSitemapXml, getRobotsTxt, botPrerenderMiddleware } from './modules/seo/seo.controller.js';
 import { initCourseAvailability } from './services/courseAvailability.service.js';
 import path from 'path';
 
@@ -96,6 +97,13 @@ app.use('/images', express.static(path.join(process.cwd(), 'public', 'images'), 
     }
   }
 }));
+
+// SEO: Dynamic sitemap.xml & robots.txt
+app.get('/sitemap.xml', getSitemapXml);
+app.get('/robots.txt', getRobotsTxt);
+
+// Bot Pre-render Middleware for Social & Search Crawlers
+app.use(botPrerenderMiddleware);
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/courses', courseRoutes);

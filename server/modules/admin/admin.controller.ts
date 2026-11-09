@@ -7,6 +7,7 @@ import { BrevoService } from '../../services/email/brevo.service.js';
 import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 import { invalidateCoursesCache } from '../courses/course.controller.js';
 import { isCourseAvailable, setCourseAvailability } from '../../services/courseAvailability.service.js';
+import { generateSeoSlug, getUniqueSlug } from '../../utils/slugify.js';
 
 const extractYouTubeId = (input: string): string => {
   if (!input) return '';
@@ -740,9 +741,26 @@ export const createCourse = async (req: Request, res: Response) => {
   try {
     const { youtubeUrl, isAvailable, ...courseData } = req.body;
     
-    // Auto-generate slug if not provided
-    if (!courseData.slug) {
-      courseData.slug = courseData.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+    // Auto-generate canonical keyword-rich SEO slug if not provided or empty
+    if (!courseData.slug || !courseData.slug.trim()) {
+      const base = generateSeoSlug(courseData.title, {
+        intentKeywords: ['varmakalai', 'course']
+      });
+      courseData.slug = await getUniqueSlug(prisma.course, base);
+    } else {
+      const base = generateSeoSlug(courseData.slug);
+      courseData.slug = await getUniqueSlug(prisma.course, base);
+    }
+
+    // Default metadata if not explicitly provided
+    if (!courseData.metaTitle) {
+      courseData.metaTitle = `${courseData.title} | JADMAA Varmakalai Course`;
+    }
+    if (!courseData.metaDesc) {
+      courseData.metaDesc = courseData.subtitle || courseData.description?.slice(0, 160);
+    }
+    if (!courseData.keywords) {
+      courseData.keywords = `varmakalai course, learn varmam, ${courseData.category?.toLowerCase() || 'martial arts'}, traditional tamil martial arts`;
     }
     
     const course = await prisma.course.create({ data: courseData });
@@ -788,6 +806,11 @@ export const updateCourse = async (req: Request, res: Response) => {
   try {
     const { youtubeUrl, isAvailable, ...updateData } = req.body;
     const courseId = req.params.id as string;
+
+    if (updateData.slug) {
+      const base = generateSeoSlug(updateData.slug);
+      updateData.slug = await getUniqueSlug(prisma.course, base, courseId);
+    }
 
     const course = await prisma.course.update({
       where: { id: courseId },

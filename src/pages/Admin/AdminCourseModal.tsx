@@ -39,6 +39,10 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
 
         setFormData({
           title: course.title || '',
+          slug: course.slug || '',
+          metaTitle: (course as any).metaTitle || '',
+          metaDesc: (course as any).metaDesc || '',
+          keywords: (course as any).keywords || '',
           subtitle: course.subtitle || '',
           description: course.description || '',
           category: course.category || 'Varmakalai',
@@ -65,6 +69,10 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
       } else {
         setFormData({
           title: '',
+          slug: '',
+          metaTitle: '',
+          metaDesc: '',
+          keywords: '',
           subtitle: '',
           description: '',
           category: 'Varmakalai',
@@ -242,6 +250,58 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
                 <option key={inst.id} value={inst.id}>{inst.displayName}</option>
               ))}
             </select>
+          </div>
+
+          {/* SEO & URL Settings */}
+          <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+            <h4 className="text-xs font-black uppercase tracking-wider text-gray-700">SEO &amp; Canonical URL (Optional)</h4>
+            
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Custom URL Slug</label>
+              <input 
+                type="text" 
+                placeholder="e.g. varmakalai-foundation-course"
+                value={formData.slug}
+                onChange={e => setFormData({...formData, slug: e.target.value})}
+                className="w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-xs font-mono"
+              />
+              <p className="text-[11px] text-gray-400">Leave blank to automatically generate from title with high-intent keywords.</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Search Meta Title</label>
+                <input 
+                  type="text" 
+                  placeholder="Appears in Google search results"
+                  value={formData.metaTitle}
+                  onChange={e => setFormData({...formData, metaTitle: e.target.value})}
+                  className="w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-gray-600">Search Keywords</label>
+                <input 
+                  type="text" 
+                  placeholder="varmakalai course, learn varma, martial arts"
+                  value={formData.keywords}
+                  onChange={e => setFormData({...formData, keywords: e.target.value})}
+                  className="w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-semibold text-gray-600">Meta Description</label>
+              <textarea 
+                rows={2}
+                placeholder="150-160 characters search preview snippet..."
+                value={formData.metaDesc}
+                onChange={e => setFormData({...formData, metaDesc: e.target.value})}
+                className="w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-xs"
+              />
+            </div>
           </div>
 
           <ImageUpload 

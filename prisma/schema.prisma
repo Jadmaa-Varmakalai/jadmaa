@@ -74,6 +74,9 @@ model Course {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   publishedAt        DateTime?
+  metaTitle          String?
+  metaDesc           String?
+  keywords           String?
   rating             Float            @default(0)
   reviewCount        Int              @default(0)
   certificates       Certificate[]
@@ -216,6 +219,9 @@ model BlogPost {
   content      String
   excerpt      String?
   thumbnailUrl String?
+  metaTitle    String?
+  metaDesc     String?
+  keywords     String?
   authorId     String
   published    Boolean  @default(false)
   createdAt    DateTime @default(now())
@@ -456,6 +462,9 @@ model Product {
   fileType              String?
   fileSize              String?
   fileName              String?
+  metaTitle             String?
+  metaDesc              String?
+  keywords              String?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   orderItems            OrderItem[]
@@ -583,6 +592,9 @@ model CourseOffer {
   imageTagline        String?
   benefits            String[]       @default([])
   termsAndConditions  String?        @db.Text
+  metaTitle           String?
+  metaDesc            String?
+  keywords            String?
   supportEmail        String?
   supportPhone        String?
   status              OfferStatus    @default(DRAFT)

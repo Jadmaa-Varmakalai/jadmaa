@@ -284,8 +284,9 @@ export const OfferLandingPage: React.FC = () => {
   return (
     <>
       <SEO
-        title={`${offer.title} | JADMAA Varmakalai Campaign`}
-        description={offer.shortDescription || offer.description}
+        title={(offer as any).metaTitle || `${offer.title} | Special Campaign Offer — JADMAA`}
+        description={(offer as any).metaDesc || offer.shortDescription || offer.description}
+        keywords={(offer as any).keywords || `${offer.category.toLowerCase().replace('_', ' ')}, varmakalai offer, traditional healing`}
         image={campaignData.heroImage}
         url={`/offers/${offer.slug}`}
       />

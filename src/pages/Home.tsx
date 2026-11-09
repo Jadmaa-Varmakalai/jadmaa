@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { SEO } from '../components/common/SEO';
+import { SEO, buildMedicalBusinessSchema } from '../components/common/SEO';
 import { CourseCard } from '../components/courses/CourseCard';
 import { mockTestimonials } from '../data/testimonials';
 import { mockBranches } from '../data/branches';
@@ -241,8 +241,11 @@ export const Home: React.FC = () => {
   return (
     <>
       <SEO 
-        title="JADMAA Varmakalai | Varmakalai Training & Self Defence"
-        description="Learn traditional Varmakalai and self-defence training at JADMAA. Join structured programs for kids, students, women and adults in Thanjavur, Kumbakonam and Ariyalur."
+        title="JADMAA Varmakalai | Authentic Varmam Courses, Martial Arts & Siddha Therapy"
+        description="Learn authentic Varmakalai, traditional Tamil martial arts, and Siddha vital points therapy. Certified lineage courses & clinical healing in Thanjavur, Kumbakonam & Ariyalur."
+        keywords="varmakalai course online, learn varma points, varmakalai training thanjavur, varmakalai treatment for back pain, tamil traditional martial arts, varmam self defence"
+        url="/"
+        schema={buildMedicalBusinessSchema()}
       />
 
       {/* 1. HERO SECTION */}

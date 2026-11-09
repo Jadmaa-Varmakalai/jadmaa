@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { SEO } from '../components/common/SEO';
+import { SEO, buildArticleSchema } from '../components/common/SEO';
 import { BlogCard } from '../components/common/BlogCard';
 import { ImageCropModal } from '../components/common/ImageCropModal';
 import { getOptimizedBlogThumbnail } from '../utils/imageUtils';
@@ -217,8 +217,21 @@ export const BlogPostDetail: React.FC = () => {
   return (
     <>
       <SEO 
-        title={`${blog.title} | JADMAA Varmakalai`}
-        description={blog.excerpt || `Read ${blog.title} on the JADMAA Varmakalai blog.`}
+        title={(blog as any).metaTitle || `${blog.title} | JADMAA Varmakalai`}
+        description={(blog as any).metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160)}
+        keywords={(blog as any).keywords || 'varmakalai, varma therapy, traditional healing, martial arts'}
+        image={insideBannerUrl || featuredImageUrl}
+        url={`/blog/${encodeURIComponent(blog.slug)}`}
+        type="article"
+        schema={buildArticleSchema({
+          title: blog.title,
+          description: (blog as any).metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160),
+          slug: blog.slug,
+          authorName: blog.author?.name || 'Aasan Bojagarajan',
+          datePublished: blog.createdAt,
+          dateModified: blog.updatedAt,
+          imageUrl: insideBannerUrl || featuredImageUrl,
+        })}
       />
 
       <div className="bg-[#FAF6F0] min-h-screen py-8 sm:py-12 px-3 sm:px-6">

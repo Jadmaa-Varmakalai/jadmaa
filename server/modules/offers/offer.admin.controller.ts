@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { logAdminAction } from '../../utils/audit.js';
 import { computeOfferStatus, slugify } from './offer.utils.js';
+import { generateSeoSlug, getUniqueSlug } from '../../utils/slugify.js';
 
 /**
  * 1. GET ALL OFFERS (Admin list view)
@@ -234,16 +235,12 @@ export const createOffer = async (req: Request, res: Response) => {
       }
     }
 
-    // Clean & validate slug
-    let finalSlug = slugify(customSlug || title);
-    if (!finalSlug) {
-      finalSlug = `offer-${Date.now().toString(36)}`;
-    }
-
-    const existingSlug = await prisma.courseOffer.findUnique({ where: { slug: finalSlug } });
-    if (existingSlug) {
-      finalSlug = `${finalSlug}-${Date.now().toString(36).substring(0, 4)}`;
-    }
+    // Clean & validate canonical SEO slug
+    const intentKeywords = category === 'VARMA_TREATMENT'
+      ? ['varma-therapy', 'treatment']
+      : ['varmakalai', 'offer'];
+    const baseSlug = generateSeoSlug(customSlug || title, { intentKeywords });
+    const finalSlug = await getUniqueSlug(prisma.courseOffer, baseSlug);
 
     // Validate dates if provided
     let parsedStartAt: Date | null = null;
@@ -444,16 +441,10 @@ export const updateOffer = async (req: Request, res: Response) => {
       });
     }
 
-    // If slug changed, validate uniqueness
+    // If slug changed, validate and ensure unique SEO slug
     if (customSlug && customSlug !== existing.slug) {
-      const cleanSlug = slugify(customSlug);
-      const duplicate = await prisma.courseOffer.findFirst({
-        where: { slug: cleanSlug, id: { not: id } }
-      });
-      if (duplicate) {
-        return res.status(400).json({ success: false, error: { message: 'This slug is already in use by another offer.' } });
-      }
-      updateData.slug = cleanSlug;
+      const base = generateSeoSlug(customSlug);
+      updateData.slug = await getUniqueSlug(prisma.courseOffer, base, id);
     }
 
     // Price handling

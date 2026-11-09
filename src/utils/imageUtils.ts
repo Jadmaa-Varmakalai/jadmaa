@@ -175,8 +175,8 @@ export function getOptimizedBlogThumbnail(slugOrUrl: string): {
     };
   }
 
-  // If it's a remote URL (such as Supabase storage or external CDN)
-  if (slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://')) {
+  // If it's a remote URL for a blog thumbnail
+  if ((slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://')) && (slugOrUrl.includes('/blog') || key.includes('blog'))) {
     return {
       avif: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=avif`,
       webp: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=webp`,

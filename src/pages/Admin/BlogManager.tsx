@@ -163,6 +163,42 @@ export const BlogManager: React.FC = () => {
               className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
             />
           </div>
+
+          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+            <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Search Engine Optimization (SEO)</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Meta Title</label>
+                <input
+                  type="text"
+                  placeholder="Appears in Google search results"
+                  value={(currentBlog as any).metaTitle || ''}
+                  onChange={(e) => setCurrentBlog({...currentBlog, metaTitle: e.target.value})}
+                  className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Keywords</label>
+                <input
+                  type="text"
+                  placeholder="varmam points, traditional healing"
+                  value={(currentBlog as any).keywords || ''}
+                  onChange={(e) => setCurrentBlog({...currentBlog, keywords: e.target.value})}
+                  className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Meta Description</label>
+              <textarea
+                rows={2}
+                placeholder="150-160 characters search snippet..."
+                value={(currentBlog as any).metaDesc || ''}
+                onChange={(e) => setCurrentBlog({...currentBlog, metaDesc: e.target.value})}
+                className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
+              />
+            </div>
+          </div>
           <ImageUpload 
             label="Thumbnail Image (Fixed 1:1 Square Proportion)"
             value={currentBlog.thumbnailUrl || ''}

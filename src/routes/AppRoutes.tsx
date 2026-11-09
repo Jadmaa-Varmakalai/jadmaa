@@ -99,14 +99,19 @@ export const AppRoutes: React.FC = () => {
           <Route path="/about" element={<About />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/courses/:slug" element={<CourseDetails />} />
+          <Route path="/course/:slug" element={<CourseDetails />} />
           <Route path="/offers/:slug" element={<OfferLandingPage />} />
           <Route path="/campaign/:slug" element={<OfferLandingPage />} />
+          <Route path="/treatments/:slug" element={<OfferLandingPage />} />
+          <Route path="/services/:slug" element={<OfferLandingPage />} />
           
           {/* Store & E-Commerce */}
           <Route path="/products" element={<Products />} />
           <Route path="/shop" element={<Navigate to="/products" replace />} />
           <Route path="/store" element={<Navigate to="/products" replace />} />
           <Route path="/products/:slug" element={<ProductDetails />} />
+          <Route path="/product/:slug" element={<ProductDetails />} />
+          <Route path="/shop/product/:slug" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
           <Route path="/order-success/:orderNumber" element={<OrderSuccess />} />

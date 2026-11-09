@@ -16,6 +16,7 @@ export interface ResponsiveImageProps extends React.ImgHTMLAttributes<HTMLImageE
   sizes?: string;
   wrapperClassName?: string;
   showSkeleton?: boolean;
+  isBlog?: boolean;
 }
 
 export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
@@ -23,11 +24,12 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   alt,
   priority = false,
   aspectRatio,
-  fallbackSrc = '/images/course-basic.jpg',
+  fallbackSrc = '',
   sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
   className = '',
   wrapperClassName = '',
   showSkeleton = true,
+  isBlog = false,
   width,
   height,
   style,
@@ -66,7 +68,8 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   };
 
   // 1. Dedicated blog thumbnail (pre-rendered local derivatives or optimized proxy)
-  const blogThumbnail = getOptimizedBlogThumbnail(src);
+  const isBlogContext = isBlog || src.includes('/images/blog/') || src.includes('/blog/');
+  const blogThumbnail = isBlogContext ? getOptimizedBlogThumbnail(src) : null;
   if (blogThumbnail && !hasError) {
     return (
       <div className={`relative overflow-hidden ${wrapperClassName}`}>
@@ -126,25 +129,42 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
     );
   }
 
-  // 3. Dynamic remote images (e.g. Supabase storage or uploads) -> Auto WebP responsive srcSet
+  // 3. Dynamic remote images (e.g. Supabase storage or uploads)
   if ((src?.startsWith('http://') || src?.startsWith('https://') || src?.startsWith('/uploads/')) && !hasError) {
-    const defaultOptimizedUrl = getOptimizedImageUrl(src, typeof width === 'number' ? width : 600);
-    const responsiveWebpSrcSet = buildResponsiveSrcSet(src, [360, 480, 720, 1200], 'webp');
+    if (isBlogContext) {
+      const defaultOptimizedUrl = getOptimizedImageUrl(src, typeof width === 'number' ? width : 600);
+      const responsiveWebpSrcSet = buildResponsiveSrcSet(src, [360, 480, 720, 1200], 'webp');
 
+      return (
+        <div className={`relative overflow-hidden ${wrapperClassName}`}>
+          {showSkeleton && !isLoaded && (
+            <div className="absolute inset-0 bg-[#FAF6F0] animate-pulse z-0" aria-hidden="true" />
+          )}
+          <picture className="block w-full h-full">
+            <source type="image/webp" srcSet={responsiveWebpSrcSet} sizes={sizes} />
+            <img
+              src={defaultOptimizedUrl}
+              width={width}
+              height={height}
+              {...commonImgProps}
+            />
+          </picture>
+        </div>
+      );
+    }
+
+    // Direct remote image rendering (e.g. Products, Store items, general media)
     return (
       <div className={`relative overflow-hidden ${wrapperClassName}`}>
         {showSkeleton && !isLoaded && (
           <div className="absolute inset-0 bg-[#FAF6F0] animate-pulse z-0" aria-hidden="true" />
         )}
-        <picture className="block w-full h-full">
-          <source type="image/webp" srcSet={responsiveWebpSrcSet} sizes={sizes} />
-          <img
-            src={defaultOptimizedUrl}
-            width={width}
-            height={height}
-            {...commonImgProps}
-          />
-        </picture>
+        <img
+          src={src}
+          width={width}
+          height={height}
+          {...commonImgProps}
+        />
       </div>
     );
   }

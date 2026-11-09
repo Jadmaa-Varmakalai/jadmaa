@@ -2,9 +2,11 @@ import { Request, Response } from 'express';
 import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import sharp from 'sharp';
 import { prisma } from '../../db.js';
 import defaultBlogsData from '../../../src/data/jadmaa_blogs.js';
+import { generateSeoSlug, getUniqueSlug } from '../../utils/slugify.js';
 
 let blogsCache: any = null;
 let blogsCacheTime = 0;
@@ -65,9 +67,14 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
 
     const targetFormat: 'webp' | 'avif' | 'jpeg' = format === 'avif' ? 'avif' : format === 'jpeg' || format === 'jpg' ? 'jpeg' : 'webp';
 
-    const cacheDir = path.join(process.cwd(), 'public', 'images', 'cache');
-    if (!fs.existsSync(cacheDir)) {
-      fs.mkdirSync(cacheDir, { recursive: true });
+    // Use writable system temp directory on serverless (e.g. /tmp on Vercel/Linux)
+    const cacheDir = path.join(os.tmpdir(), 'jadmaa_image_cache');
+    try {
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir, { recursive: true });
+      }
+    } catch {
+      // Safe ignore if filesystem is read-only
     }
 
     const hash = crypto
@@ -78,10 +85,14 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
 
     const cachedFilePath = path.join(cacheDir, `${hash}.${targetFormat}`);
 
-    if (fs.existsSync(cachedFilePath)) {
-      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      res.setHeader('Content-Type', `image/${targetFormat}`);
-      return res.sendFile(cachedFilePath);
+    try {
+      if (fs.existsSync(cachedFilePath)) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('Content-Type', `image/${targetFormat}`);
+        return res.sendFile(cachedFilePath);
+      }
+    } catch {
+      // Fallback to on-demand processing if cache file check fails
     }
 
     let inputBuffer: Buffer;
@@ -118,20 +129,25 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
 
     const outputBuffer = await pipeline.toBuffer();
 
-    fs.promises.writeFile(cachedFilePath, outputBuffer).catch((err) => {
-      console.warn('[ImageOptimizer] Cache write failed:', err.message);
-    });
+    try {
+      fs.promises.writeFile(cachedFilePath, outputBuffer).catch(() => {});
+    } catch {
+      // Ignore cache write errors on ephemeral disk
+    }
 
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.setHeader('Content-Type', `image/${targetFormat}`);
     return res.send(outputBuffer);
   } catch (err: any) {
     console.warn('[ImageOptimizer] Error optimizing image:', err?.message);
-    const fallbackPath = path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
-    if (fs.existsSync(fallbackPath)) {
-      res.setHeader('Cache-Control', 'public, max-age=300');
-      res.setHeader('Content-Type', 'image/jpeg');
-      return res.sendFile(fallbackPath);
+    const rawUrl = (req.query.url as string || '').trim();
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      return res.redirect(302, rawUrl);
+    }
+    const cleanPath = rawUrl.replace(/^\//, '');
+    const localFallback = path.join(process.cwd(), 'public', cleanPath);
+    if (fs.existsSync(localFallback)) {
+      return res.sendFile(localFallback);
     }
     return res.status(500).send('Image optimization failed');
   }
@@ -257,10 +273,16 @@ export const getBlogBySlug = async (req: Request, res: Response) => {
 export const createBlog = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user?.userId || (req as any).user?.id;
-    const { title, slug, content, excerpt, thumbnailUrl, published, topic } = req.body;
+    const { title, slug, content, excerpt, thumbnailUrl, published, topic, metaTitle, metaDesc, keywords } = req.body;
     
-    const trimmedTitle = (title || 'Untitled Post').trim().slice(0, 50);
-    const cleanSlugVal = (slug ? cleanSlug(slug) : cleanSlug(trimmedTitle)) || `post-${Date.now()}`;
+    const trimmedTitle = (title || 'Untitled Post').trim();
+    let cleanSlugVal: string;
+    if (slug && slug.trim()) {
+      cleanSlugVal = await getUniqueSlug(prisma.blogPost, generateSeoSlug(slug, { allowUnicode: true }));
+    } else {
+      const base = generateSeoSlug(trimmedTitle, { intentKeywords: ['varmakalai', 'traditional-healing'], allowUnicode: true });
+      cleanSlugVal = await getUniqueSlug(prisma.blogPost, base);
+    }
 
     let finalContent = content || '';
     if (topic && topic.trim()) {
@@ -275,6 +297,9 @@ export const createBlog = async (req: Request, res: Response) => {
         content: finalContent,
         excerpt: excerpt || null,
         thumbnailUrl: thumbnailUrl || null,
+        metaTitle: metaTitle || `${trimmedTitle} | JADMAA Varmakalai Blog`,
+        metaDesc: metaDesc || excerpt || finalContent.replace(/<[^>]+>/g, '').slice(0, 160),
+        keywords: keywords || 'varmakalai, varma therapy, traditional tamil healing',
         published: published ?? true,
         authorId: userId
       }
@@ -316,11 +341,17 @@ export const updateBlog = async (req: Request, res: Response) => {
 
     let blog;
     if (existing) {
+      let updatedSlug = existing.slug;
+      if (slug && slug !== existing.slug) {
+        const base = generateSeoSlug(slug, { allowUnicode: true });
+        updatedSlug = await getUniqueSlug(prisma.blogPost, base, existing.id);
+      }
+
       blog = await prisma.blogPost.update({
         where: { id: existing.id },
         data: {
           title: title ?? existing.title,
-          slug: slug ?? existing.slug,
+          slug: updatedSlug,
           content: finalContent,
           excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
           thumbnailUrl: thumbnailUrl !== undefined ? thumbnailUrl : existing.thumbnailUrl,

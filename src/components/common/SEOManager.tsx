@@ -6,6 +6,17 @@ export const SEOManager: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
 
+  // Let detail pages manage their own dynamic SEO & Schema completely
+  const hasDynamicPageSeo =
+    (path.startsWith('/courses/') && path !== '/courses') ||
+    (path.startsWith('/blog/') && path !== '/blog') ||
+    (path.startsWith('/offers/') && path !== '/offers') ||
+    path.startsWith('/shop/product/');
+
+  if (hasDynamicPageSeo) {
+    return null;
+  }
+
   let title = 'JADMAA — Varmakalai Training & Traditional Tamil Martial Arts';
   let description = 'Learn authentic Varmakalai, traditional Tamil martial arts, and practical self defence. JADMAA offers expert training for all levels, kids, and women.';
   let isCourse = false;

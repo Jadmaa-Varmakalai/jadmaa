@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
-import { SEO } from '../components/common/SEO';
+import { SEO, buildCourseSchema } from '../components/common/SEO';
 import { CurriculumAccordion } from '../components/courses/CurriculumAccordion';
 import { CourseCard, isOnlineCourse, getValidCourseThumbnail } from '../components/courses/CourseCard';
 import { ResponsiveImage } from '../components/common/ResponsiveImage';
@@ -48,6 +48,10 @@ export const CourseDetails: React.FC = () => {
           const courseData = await courseApi.getCourseBySlug(slug);
           if (courseData) {
             setCourse(courseData);
+            // Canonical URL replacement if accessed via old UUID or alias
+            if (courseData.slug && slug !== courseData.slug) {
+              navigate(`/courses/${courseData.slug}`, { replace: true });
+            }
           }
         }
         const allCourses = await courseApi.getCourses();
@@ -287,8 +291,21 @@ export const CourseDetails: React.FC = () => {
   return (
     <>
       <SEO 
-        title={`${course.title} | JADMAA Varmakalai`}
-        description={course.description}
+        title={(course as any).metaTitle || `${course.title} | JADMAA Varmakalai`}
+        description={(course as any).metaDesc || course.subtitle || course.description}
+        keywords={(course as any).keywords || `varmakalai course, learn varmam, ${course.category?.toLowerCase() || 'martial arts'}, traditional tamil martial arts, self defence`}
+        image={course.thumbnail}
+        url={`/courses/${course.slug}`}
+        type="article"
+        schema={buildCourseSchema({
+          title: course.title,
+          description: (course as any).metaDesc || course.subtitle || course.description,
+          slug: course.slug,
+          price: course.price,
+          instructorName: instructorName,
+          category: course.category,
+          imageUrl: course.thumbnail,
+        })}
       />
 
       {/* Main Container mirroring jadmaa.com single course layout */}

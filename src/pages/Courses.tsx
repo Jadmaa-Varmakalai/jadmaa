@@ -72,8 +72,10 @@ export const Courses: React.FC = () => {
   return (
     <>
       <SEO 
-        title="Courses & Training Programs | JADMAA Varmakalai Academy"
-        description="Explore JADMAA recorded online courses and in-person branch training across Thanjavur, Kumbakonam, and Ariyalur."
+        title="Varmakalai Courses & Certification Online | JADMAA Academy"
+        description="Enroll in authentic Varmakalai online courses, foundational vital points training, and in-person branch programs in Thanjavur, Kumbakonam & Ariyalur."
+        keywords="varmakalai course online, learn varma points, varmakalai certification, tamil traditional martial arts course, adimurai training"
+        url="/courses"
       />
 
       {/* Page Header */}

@@ -147,8 +147,26 @@ export const ProductDetails: React.FC = () => {
   return (
     <>
       <SEO
-        title={`${product.name} | JADMAA Official Store`}
-        description={product.description?.slice(0, 160)}
+        title={(product as any).metaTitle || `${product.name} | JADMAA Official Store`}
+        description={(product as any).metaDesc || product.description?.slice(0, 160)}
+        keywords={(product as any).keywords || `${product.name}, varmakalai store, martial arts books`}
+        image={currentImage}
+        url={`/shop/product/${product.slug}`}
+        type="product"
+        schema={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.name,
+          description: product.description?.slice(0, 160),
+          image: currentImage,
+          sku: product.sku,
+          offers: {
+            '@type': 'Offer',
+            price: product.price,
+            priceCurrency: 'INR',
+            availability: product.stockQuantity > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+          },
+        }}
       />
 
       <div className="bg-[#FAF6F0] min-h-screen py-8 text-left">
