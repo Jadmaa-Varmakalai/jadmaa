@@ -1,5 +1,5 @@
 /**
- * Image optimization utilities for JADMAA LMS.
+ * Image optimization utilities for JADMAA.
  * Maps original asset paths to modern responsive derivatives (AVIF, WebP, optimized JPEG/PNG).
  */
 
@@ -141,9 +141,14 @@ export function getOptimizedConfig(src: string): ImageDerivativeConfig | null {
 }
 
 /**
- * Resolves a blog thumbnail to its optimized local asset.
+ * Resolves a blog thumbnail to its optimized local asset or optimized proxy URL.
  */
-export function getOptimizedBlogThumbnail(slugOrUrl: string): { avif: string; webp: string; jpg: string } | null {
+export function getOptimizedBlogThumbnail(slugOrUrl: string): { 
+  avif: string; 
+  webp: string; 
+  jpg: string;
+  srcSetWebp?: string;
+} | null {
   if (!slugOrUrl) return null;
 
   const key = slugOrUrl.toLowerCase();
@@ -161,17 +166,75 @@ export function getOptimizedBlogThumbnail(slugOrUrl: string): { avif: string; we
     baseName = 'varmakalai-history-origins-cover';
   }
 
-  if (!baseName) return null;
+  if (baseName) {
+    return {
+      avif: `/images/blog/${baseName}.avif`,
+      webp: `/images/blog/${baseName}.webp`,
+      jpg: `/images/blog/${baseName}.jpg`,
+      srcSetWebp: `/images/blog/${baseName}.webp 480w, /images/blog/${baseName}.webp 720w, /images/blog/${baseName}.webp 1200w`,
+    };
+  }
 
-  return {
-    avif: `/images/blog/${baseName}.avif`,
-    webp: `/images/blog/${baseName}.webp`,
-    jpg: `/images/blog/${baseName}.jpg`,
-  };
+  // If it's a remote URL (such as Supabase storage or external CDN)
+  if (slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://')) {
+    return {
+      avif: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=avif`,
+      webp: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=webp`,
+      jpg: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=jpeg`,
+      srcSetWebp: [360, 480, 720, 1200]
+        .map(w => `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=${w}&format=webp ${w}w`)
+        .join(', '),
+    };
+  }
+
+  return null;
 }
 
 /**
- * Generates responsive srcset strings for AVIF, WebP, and original format.
+ * Returns an optimized image URL for any image source.
+ * Converts heavy images on the fly via the backend optimizer.
+ */
+export function getOptimizedImageUrl(src: string, width = 600, height?: number, format: 'webp' | 'avif' | 'jpeg' = 'webp'): string {
+  if (!src) return '/images/course-basic.jpg';
+  
+  // Data URLs, Blobs or already optimized local derivatives
+  if (src.startsWith('data:') || src.startsWith('blob:') || src.includes('/images/optimized/') || src.includes('/images/cache/') || src.includes('/api/v1/blogs/optimized-image') || (src.startsWith('/uploads/') && src.endsWith('.webp'))) {
+    return src;
+  }
+
+  // Pre-compiled local blog images
+  if (src.includes('varmakalai-') || src.includes('womens-self-defence') || src.includes('varma-therapy-explained')) {
+    const blogThumb = getOptimizedBlogThumbnail(src);
+    if (blogThumb && format === 'webp') {
+      return blogThumb.webp;
+    }
+  }
+
+  // Remote images (Supabase, S3, external) or uncompressed uploads
+  if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/uploads/')) {
+    return `/api/v1/blogs/optimized-image?url=${encodeURIComponent(src)}&w=${width}${height ? `&h=${height}` : ''}&format=${format}`;
+  }
+
+  return src;
+}
+
+/**
+ * Generates responsive srcset strings for dynamic remote/uploaded images.
+ */
+export function buildResponsiveSrcSet(src: string, widths = [360, 480, 720, 1200], format: 'webp' | 'avif' | 'jpeg' = 'webp'): string {
+  if (!src) return '';
+  return widths
+    .map(w => {
+      const url = src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/uploads/')
+        ? `/api/v1/blogs/optimized-image?url=${encodeURIComponent(src)}&w=${w}&format=${format}`
+        : src;
+      return `${url} ${w}w`;
+    })
+    .join(', ');
+}
+
+/**
+ * Generates responsive srcset strings for static local assets.
  */
 export function buildSrcSet(baseName: string, widths: number[], format: 'avif' | 'webp' | 'jpg' | 'png'): string {
   return widths

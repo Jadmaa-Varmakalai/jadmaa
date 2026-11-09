@@ -8,6 +8,7 @@ export interface BlogPost {
   content: string;
   excerpt: string | null;
   thumbnailUrl: string | null;
+  insideImageUrl?: string | null;
   authorId: string;
   author?: {
     name: string;
@@ -156,6 +157,25 @@ export const blogApi = {
     blogSlugCache.clear();
     try { sessionStorage.removeItem('jadmaa_blogs_cache'); } catch (_) {}
     return res.data;
+  },
+  updateBlogThumbnail: async (
+    id: string, 
+    thumbnailUrl: string, 
+    options?: { insideOnly?: boolean; resetCrop?: boolean }
+  ): Promise<{ success: boolean; data: BlogPost; thumbnailUrl: string; insideImageUrl?: string }> => {
+    const res = await fetchApi(`/blogs/${encodeURIComponent(id)}/thumbnail`, {
+      method: 'PUT',
+      body: JSON.stringify({ 
+        thumbnailUrl, 
+        insideOnly: options?.insideOnly,
+        resetCrop: options?.resetCrop 
+      })
+    });
+    // Invalidate caches
+    memoryBlogsCache = null;
+    blogSlugCache.clear();
+    try { sessionStorage.removeItem('jadmaa_blogs_cache'); } catch (_) {}
+    return res;
   },
   deleteBlog: async (id: string): Promise<void> => {
     await fetchApi(`/blogs/${id}`, {

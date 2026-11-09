@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../../db.js';
 import { sendNewCourseSuggestionEmail } from '../../services/email/email.service.js';
 import { invalidateCoursesCache } from '../courses/course.controller.js';
+import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 import { isCourseAvailable, setCourseAvailability } from '../../services/courseAvailability.service.js';
 
 // Helper to resolve or create instructor record for the authenticated user
@@ -51,17 +52,38 @@ export const getInstructorDashboard = async (req: Request, res: Response) => {
     const user = (req as any).user;
     const instructor = await getOrCreateInstructorForUser(user);
 
-    const [coursesCount, publishedCoursesCount, draftCoursesCount, courses] = await Promise.all([
+    const [coursesCount, publishedCoursesCount, draftCoursesCount, coursesWithPayments] = await Promise.all([
       prisma.course.count({ where: { instructorId: instructor.id } }),
       prisma.course.count({ where: { instructorId: instructor.id, status: 'PUBLISHED' } }),
       prisma.course.count({ where: { instructorId: instructor.id, status: 'DRAFT' } }),
       prisma.course.findMany({
         where: { instructorId: instructor.id },
-        select: { id: true }
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          price: true,
+          status: true,
+          thumbnailUrl: true,
+          payments: {
+            where: { status: 'SUCCESS' },
+            select: {
+              id: true,
+              amount: true,
+              status: true,
+              paidAt: true,
+              createdAt: true,
+              user: {
+                select: { id: true, name: true, email: true }
+              }
+            },
+            orderBy: { createdAt: 'desc' }
+          }
+        }
       })
     ]);
 
-    const courseIds = courses.map(c => c.id);
+    const courseIds = coursesWithPayments.map(c => c.id);
 
     const [totalStudents, activeEnrollments] = await Promise.all([
       prisma.enrollment.groupBy({
@@ -73,6 +95,40 @@ export const getInstructorDashboard = async (req: Request, res: Response) => {
       })
     ]);
 
+    // Financial calculations based on admin-set commission rate
+    const instUser = await prisma.user.findUnique({
+      where: { id: instructor.userId },
+      select: { isAdmin: true, role: true }
+    });
+    const isPlatformAdmin = instUser?.isAdmin || instUser?.role === 'SUPER_ADMIN' || instUser?.role === 'ADMIN';
+    const commRate = isPlatformAdmin ? 0 : (typeof instructor.commissionRate === 'number' ? instructor.commissionRate : 20.0);
+    let totalGrossSales = 0;
+
+    const courseFinancials = coursesWithPayments.map((course: any) => {
+      const courseGross = course.payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      const commissionDeducted = isPlatformAdmin ? 0 : (courseGross * commRate) / 100;
+      const finalAmountToDeliver = isPlatformAdmin ? courseGross : (courseGross - commissionDeducted);
+      totalGrossSales += courseGross;
+
+      return {
+        id: course.id,
+        title: course.title,
+        slug: course.slug,
+        truePrice: course.price,
+        status: course.status,
+        thumbnailUrl: course.thumbnailUrl,
+        paidStudentsCount: course.payments.length,
+        totalSales: courseGross,
+        commissionRate: commRate,
+        commissionDeducted,
+        finalAmountToDeliver,
+        payments: course.payments
+      };
+    });
+
+    const totalCommissionDeducted = isPlatformAdmin ? 0 : (totalGrossSales * commRate) / 100;
+    const finalAmountDue = isPlatformAdmin ? totalGrossSales : (totalGrossSales - totalCommissionDeducted);
+
     res.json({
       success: true,
       data: {
@@ -81,11 +137,61 @@ export const getInstructorDashboard = async (req: Request, res: Response) => {
         publishedCoursesCount,
         draftCoursesCount,
         totalStudents,
-        activeEnrollments
+        activeEnrollments,
+        financials: {
+          isPlatformAdmin,
+          totalGrossSales,
+          commissionRate: commRate,
+          totalCommissionDeducted,
+          finalAmountDue,
+          courses: courseFinancials
+        }
       }
     });
   } catch (err: any) {
     console.error('getInstructorDashboard error:', err);
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+/**
+ * Allows an instructor to voluntarily withdraw / resign from their instructor post
+ */
+export const withdrawInstructorRole = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+      return res.status(403).json({ success: false, error: { message: 'Admin accounts cannot withdraw from instructor role' } });
+    }
+
+    const instructor = await prisma.instructor.findUnique({
+      where: { userId: user.id }
+    });
+
+    if (!instructor) {
+      return res.status(404).json({ success: false, error: { message: 'Instructor profile not found' } });
+    }
+
+    // Demote role to STUDENT
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { role: 'STUDENT' }
+    });
+
+    // Mark instructor profile inactive
+    await prisma.instructor.update({
+      where: { id: instructor.id },
+      data: { isActive: false }
+    });
+
+    invalidateUserCache(user.id);
+
+    res.json({
+      success: true,
+      message: 'You have successfully resigned from your instructor post. Your account is now in student mode.'
+    });
+  } catch (err: any) {
+    console.error('withdrawInstructorRole error:', err);
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
 };

@@ -313,7 +313,7 @@ export const CourseDetails: React.FC = () => {
               {isOnline ? (
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
                   <Video className="w-3.5 h-3.5" />
-                  Recorded Online LMS Course
+                  Recorded Online Course
                 </span>
               ) : (
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#B12B2B]/10 text-[#B12B2B] border border-[#B12B2B]/20 flex items-center gap-1.5">
@@ -651,7 +651,7 @@ export const CourseDetails: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Branch Training Action vs Online LMS Enrollment Action */}
+                {/* Branch Training Action vs Online Enrollment Action */}
                 {!isOnline ? (
                   <div className="space-y-3">
                     <Link
@@ -723,7 +723,7 @@ export const CourseDetails: React.FC = () => {
                   </div>
                 )}
 
-                {/* Course Quick Facts (Mirrors tutor-card-footer / Tutor LMS course highlights) */}
+                {/* Course Quick Facts (Mirrors course highlights) */}
                 <div className="space-y-3.5 pt-2 border-t border-[#EFECE6] text-sm text-[#475569]">
                   <div className="flex items-center justify-between">
                     <span className="flex items-center space-x-2 text-[#706B65]">

@@ -35,6 +35,7 @@ export const LearnCourse: React.FC = () => {
   const [progressPercent, setProgressPercent] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [loadingCompletes, setLoadingCompletes] = useState<Record<string, boolean>>({});
+  const [mobileCurriculumOpen, setMobileCurriculumOpen] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -166,7 +167,7 @@ export const LearnCourse: React.FC = () => {
 
   return (
     <>
-      <SEO title={`${activeLessonTitle} | ${course.title} | JADMAA LMS`} />
+      <SEO title={`${activeLessonTitle} | ${course.title} | JADMAA`} />
       
       {/* Top Header */}
       <div className="bg-white border-b border-gray-200 text-gray-900 py-3 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-sm">
@@ -196,11 +197,11 @@ export const LearnCourse: React.FC = () => {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col">
           
-          {/* Video Player */}
+          {/* Sticky Video Player Container on Mobile */}
           {(() => {
             const cleanVideoId = extractYouTubeVideoId(activeVideoId);
             return (
-              <div className="w-full bg-black aspect-video relative flex-shrink-0">
+              <div className="w-full bg-black aspect-video relative flex-shrink-0 sticky top-[53px] lg:static z-30 shadow-md">
                 {cleanVideoId ? (
                   <iframe 
                     src={`https://www.youtube.com/embed/${cleanVideoId}?rel=0&modestbranding=1`}
@@ -219,23 +220,78 @@ export const LearnCourse: React.FC = () => {
             );
           })()}
 
+          {/* Mobile Curriculum Toggle (< 1024px) */}
+          <div className="lg:hidden bg-white border-b border-gray-200">
+            <button
+              onClick={() => setMobileCurriculumOpen(!mobileCurriculumOpen)}
+              className="w-full px-4 py-3 flex items-center justify-between text-left font-bold text-xs sm:text-sm text-[#2B2521] hover:bg-gray-50 transition min-h-[44px] cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <PlayCircle className="w-4 h-4 text-[#B12B2B]" />
+                <span>Lessons & Curriculum ({course.modules?.reduce((acc: number, m: any) => acc + (m.lessons?.length || 0), 0)} total)</span>
+              </div>
+              <span className="text-xs text-[#B12B2B] font-semibold">
+                {mobileCurriculumOpen ? 'Hide Lessons ▲' : 'Browse Lessons ▼'}
+              </span>
+            </button>
+
+            {/* Mobile Expandable Curriculum Drawer */}
+            {mobileCurriculumOpen && (
+              <div className="max-h-72 overflow-y-auto border-t border-gray-100 divide-y divide-gray-100 bg-[#FAF6F0]">
+                {course.modules.map((m: any, mIndex: number) => (
+                  <div key={m.id}>
+                    <div className="px-4 py-2 bg-gray-100/70 font-bold text-xs text-gray-700">
+                      Module {mIndex + 1}: {m.title}
+                    </div>
+                    {m.lessons.map((l: any) => {
+                      const isCompleted = completedLessons[l.id];
+                      const isActive = l.id === activeLessonId;
+                      return (
+                        <button
+                          key={l.id}
+                          onClick={() => {
+                            setActiveLessonId(l.id);
+                            setMobileCurriculumOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-2.5 flex items-center gap-2.5 text-xs transition min-h-[44px] ${
+                            isActive ? 'bg-red-50 border-l-4 border-jadmaa-red font-bold text-jadmaa-red' : 'hover:bg-white text-gray-700'
+                          }`}
+                        >
+                          {isCompleted ? (
+                            <CheckCircle className="w-4 h-4 text-green-500 shrink-0" />
+                          ) : isActive ? (
+                            <PlayCircle className="w-4 h-4 text-jadmaa-red shrink-0" />
+                          ) : (
+                            <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
+                          )}
+                          <span className="truncate flex-1">{l.title}</span>
+                          <span className="text-[10px] text-gray-400 shrink-0">{l.duration}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Lesson Details & Controls */}
-          <div className="p-6 bg-white border-b border-gray-200 flex-shrink-0">
-            <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+          <div className="p-4 sm:p-6 bg-white border-b border-gray-200 flex-shrink-0">
+            <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-start justify-between gap-4 sm:gap-6">
               <div>
-                <p className="text-sm font-semibold text-gray-500 mb-1">{activeModuleTitle}</p>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{activeLessonTitle}</h2>
-                <p className="text-sm text-gray-500 mt-1">Instructor: {course.instructor.name}</p>
+                <p className="text-xs sm:text-sm font-semibold text-gray-500 mb-1">{activeModuleTitle}</p>
+                <h2 className="text-lg sm:text-2xl font-bold text-gray-900">{activeLessonTitle}</h2>
+                <p className="text-xs sm:text-sm text-gray-500 mt-1">Instructor: {course.instructor?.name || 'JADMAA Master'}</p>
               </div>
               
-              <div className="flex items-center gap-3 self-start sm:self-center shrink-0">
+              <div className="flex items-center gap-3 self-stretch sm:self-center shrink-0">
                 <button
                   onClick={() => toggleComplete(activeLessonId)}
                   disabled={isCurrentCompleting}
-                  className={`px-5 py-2.5 rounded text-sm font-bold flex items-center gap-2 transition ${
+                  className={`w-full sm:w-auto px-5 py-2.5 min-h-[44px] rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs ${
                     isCurrentCompleted 
                       ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-                      : 'bg-jadmaa-red text-white hover:bg-red-800'
+                      : 'bg-[#B12B2B] text-white hover:bg-[#8F2020]'
                   } ${isCurrentCompleting ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
                   {isCurrentCompleting ? (
@@ -250,19 +306,21 @@ export const LearnCourse: React.FC = () => {
           </div>
           
           {/* Bottom Navigation */}
-          <div className="bg-gray-50 p-6 flex-grow flex flex-col justify-end pb-10">
-             <div className="max-w-4xl w-full mx-auto flex items-center justify-between pt-6 border-t border-gray-200">
+          <div className="bg-gray-50 p-4 sm:p-6 flex-grow flex flex-col justify-end pb-8">
+             <div className="max-w-4xl w-full mx-auto flex items-center justify-between gap-3 pt-4 border-t border-gray-200">
                <button 
                  onClick={goToPrevLesson}
                  disabled={!prevLessonId}
-                 className={`flex items-center gap-2 text-sm font-bold ${prevLessonId ? 'text-gray-900 hover:text-jadmaa-red' : 'text-gray-300 cursor-not-allowed'}`}
+                 className={`flex items-center gap-1.5 min-h-[44px] px-3 py-2 rounded-xl text-xs sm:text-sm font-bold transition ${
+                   prevLessonId ? 'text-gray-900 hover:bg-gray-200 cursor-pointer' : 'text-gray-300 cursor-not-allowed'
+                 }`}
                >
-                 <ArrowLeft className="w-4 h-4" /> Previous Lesson
+                 <ArrowLeft className="w-4 h-4" /> <span>Previous</span>
                </button>
                
                {progressPercent === 100 ? (
-                  <Link to="/certificates" className="px-6 py-2 bg-green-600 text-white font-bold text-sm rounded shadow hover:bg-green-700 transition flex items-center gap-2">
-                    <Award className="w-4 h-4" /> View Certificate
+                  <Link to="/certificates" className="px-5 py-2.5 min-h-[44px] bg-green-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow hover:bg-green-700 transition flex items-center gap-2">
+                    <Award className="w-4 h-4" /> <span>View Certificate</span>
                   </Link>
                ) : (
                   <button 
@@ -271,9 +329,11 @@ export const LearnCourse: React.FC = () => {
                       goToNextLesson();
                     }}
                     disabled={!nextLessonId}
-                    className={`flex items-center gap-2 text-sm font-bold ${nextLessonId ? 'text-gray-900 hover:text-jadmaa-red' : 'text-gray-300 cursor-not-allowed'}`}
+                    className={`flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition shadow-xs ${
+                      nextLessonId ? 'bg-[#2B2521] text-white hover:bg-[#B12B2B] cursor-pointer' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
                   >
-                    Next Lesson <ArrowRight className="w-4 h-4" />
+                    <span>Next Lesson</span> <ArrowRight className="w-4 h-4" />
                   </button>
                )}
              </div>
@@ -281,8 +341,8 @@ export const LearnCourse: React.FC = () => {
 
         </div>
 
-        {/* Sidebar / Course Content */}
-        <div className="w-full lg:w-[350px] xl:w-[400px] bg-white border-l border-gray-200 flex flex-col h-[calc(100vh-60px)] lg:sticky top-[60px] overflow-hidden">
+        {/* Desktop Sidebar / Course Content (>= 1024px) */}
+        <div className="hidden lg:flex w-[350px] xl:w-[400px] bg-white border-l border-gray-200 flex-col h-[calc(100vh-60px)] sticky top-[60px] overflow-hidden">
           <div className="p-4 border-b border-gray-200 bg-gray-50">
             <h3 className="font-bold text-gray-900">Course Content</h3>
           </div>
@@ -300,7 +360,7 @@ export const LearnCourse: React.FC = () => {
                       <button
                         key={l.id}
                         onClick={() => setActiveLessonId(l.id)}
-                        className={`text-left px-4 py-3 flex gap-3 text-sm transition ${
+                        className={`text-left px-4 py-3 flex gap-3 text-sm transition cursor-pointer ${
                           isActive ? 'bg-red-50 border-l-4 border-jadmaa-red' : 'hover:bg-gray-50 border-l-4 border-transparent'
                         }`}
                       >

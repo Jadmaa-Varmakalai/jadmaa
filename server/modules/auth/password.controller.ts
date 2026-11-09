@@ -66,16 +66,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
         }
       });
 
-      let frontendUrl = process.env.FRONTEND_URL;
-      if (frontendUrl && (frontendUrl.includes('frontend_url=') || frontendUrl === '/')) {
-        frontendUrl = '';
-      }
-      if (!frontendUrl) {
-        frontendUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL 
-          ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
-          : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:5173');
-      }
-
+      const frontendUrl = (process.env.FRONTEND_URL || process.env.APP_URL || 'https://jadmaa.com').replace(/\/+$/, '');
       const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}&id=${user.id}`;
 
       const result = await sendPasswordResetEmail(user.email, resetUrl, user.name);

@@ -58,6 +58,37 @@ export const sendPasswordChangedEmail = async (email: string, name: string) => {
   }
 };
 
+export const sendSessionReverifyOtpEmail = async (email: string, otp: string, name: string): Promise<{ success: boolean; reason?: string }> => {
+  try {
+    const subject = `${otp} is your JADMAA verification code`;
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; padding: 24px; color: #2B2521;">
+        <div style="text-align: center; margin-bottom: 24px;">
+          <h2 style="color: #B12B2B; margin-top: 0; font-weight: 800;">JADMAA VARMAKALAI</h2>
+          <p style="font-size: 14px; color: #666;">Academy of Ancient Tamil Martial Science</p>
+        </div>
+        <p>Hello ${name || 'Practitioner'},</p>
+        <p>Your previous session has expired or requires security verification. Please use the one-time verification code below to confirm your login:</p>
+        <div style="text-align: center; margin: 28px 0;">
+          <span style="display: inline-block; padding: 14px 28px; background-color: #FAF6F0; border: 2px dashed #B12B2B; color: #B12B2B; font-weight: 800; font-size: 28px; letter-spacing: 6px; border-radius: 8px;">
+            ${otp}
+          </span>
+        </div>
+        <p style="font-size: 13px; color: #666;">This verification code is valid for <strong>10 minutes</strong>. Never share this code with anyone.</p>
+        <p style="font-size: 13px; color: #666;">If you did not initiate this login request, please reset your password immediately at <a href="https://jadmaa.com/forgot-password" style="color: #B12B2B;">jadmaa.com</a>.</p>
+        <hr style="border: 0; border-top: 1px solid #eaeaea; margin: 20px 0;" />
+        <p style="color: #999; font-size: 11px; text-align: center;">JADMAA Varmakalai • Ancient Power. Modern Training.</p>
+      </div>
+    `;
+
+    const result = await BrevoService.sendTransactionalEmail(email, subject, htmlContent);
+    return result;
+  } catch (error: any) {
+    console.error('Error sending session reverify OTP email:', error);
+    return { success: false, reason: error.message };
+  }
+};
+
 /**
  * Suggest a newly added/published course to all active students
  */
@@ -86,7 +117,7 @@ export const sendNewCourseSuggestionEmail = async (courseId: string) => {
 
     console.log(`[EmailService] Sending suggestion emails for course "${course.title}" to ${students.length} students...`);
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://jadmaa.com';
     const courseUrl = `${frontendUrl}/courses/${course.slug}`;
 
     for (const student of students) {

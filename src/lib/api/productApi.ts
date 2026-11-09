@@ -30,6 +30,11 @@ export interface Product {
   stockQuantity: number;
   lowStockThreshold: number;
   isActive: boolean;
+  isDigital?: boolean;
+  downloadUrl?: string | null;
+  fileType?: 'rar' | 'zip' | 'pdf' | string | null;
+  fileSize?: string | null;
+  fileName?: string | null;
   createdAt: string;
   updatedAt: string;
   stockStatus: StockStatus;
@@ -225,5 +230,92 @@ export const productApi = {
         items: Array<Product & { isOutOfStock: boolean; severity: 'CRITICAL' | 'WARNING' }>;
       };
     }>('/products/admin/inventory/low-stock-alerts');
+  },
+
+  // Digital Delivery & Access
+  checkAccess: async (id: string) => {
+    return fetchApi<{
+      success: boolean;
+      data: {
+        hasAccess: boolean;
+        isAdmin?: boolean;
+        isDigital: boolean;
+        fileName?: string;
+        fileType?: string;
+        fileSize?: string;
+        downloadUrl?: string;
+      };
+    }>(`/products/${id}/check-access`);
+  },
+
+  getDownloadUrl: (id: string) => {
+    return `/api/v1/products/${id}/download`;
+  },
+
+  uploadEbookFile: async (file: File) => {
+    const token = localStorage.getItem('jadmaa_token');
+    const cleanFilename = encodeURIComponent(file.name);
+    const sizeStr = file.size >= 1024 * 1024 * 1024
+      ? `${(file.size / (1024 * 1024 * 1024)).toFixed(2)} GB`
+      : `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+
+    // For files up to 15MB, send via base64 with fetchApi (handles token refresh & auth seamlessly)
+    if (file.size <= 15 * 1024 * 1024) {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      return fetchApi<{
+        success: boolean;
+        data: {
+          fileUrl: string;
+          fileName: string;
+          fileSize: string;
+          fileType: string;
+        };
+      }>('/products/admin/upload-file', {
+        method: 'POST',
+        body: JSON.stringify({
+          fileData: base64,
+          filename: file.name,
+          fileSize: sizeStr,
+        }),
+      });
+    }
+
+    // For large files (15MB to 1GB+), use streaming fetch with Bearer token
+    const res = await fetch(`/api/v1/products/admin/upload-file?filename=${cleanFilename}`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'x-filename': cleanFilename,
+        'Content-Type': 'application/octet-stream',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: file,
+    });
+
+    if (!res.ok) {
+      let errMsg = `Upload failed with status ${res.status}`;
+      try {
+        const errJson = await res.json();
+        errMsg = errJson.error?.message || errJson.message || errMsg;
+      } catch {}
+      throw new Error(errMsg);
+    }
+
+    return (await res.json()) as {
+      success: boolean;
+      data: {
+        fileUrl: string;
+        fileName: string;
+        fileSize: string;
+        fileType: string;
+      };
+      error?: { message: string };
+    };
   },
 };

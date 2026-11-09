@@ -82,7 +82,13 @@ export function getDefaultBenefits(category?: string): string[] {
   }
 }
 
-export function resolveCtaConfig(offer: Partial<PublicOfferDetails & CourseOfferItem>): {
+export function resolveCtaConfig(offer: {
+  category?: string;
+  ctaText?: string | null;
+  ctaType?: string | null;
+  secondaryCtaText?: string | null;
+  [key: string]: any;
+}): {
   primaryText: string;
   primaryAction: string;
   secondaryText: string;
@@ -186,6 +192,7 @@ export function adaptOfferToCampaignData(offer: PublicOfferDetails | CourseOffer
     heroImage,
     mobileHeroImage: offer.mobileImageUrl || undefined,
     imagePosition: (offer as any).imagePosition || 'center',
+    imageFit: (offer as any).imageFit || 'cover',
     imageTagline: (offer as any).imageTagline || defaultTagline,
     discountType,
     discountValue,

@@ -16,6 +16,11 @@ export interface OrderItem {
     name: string;
     sku: string;
     stockQuantity: number;
+    isDigital?: boolean;
+    fileType?: string | null;
+    fileSize?: string | null;
+    fileName?: string | null;
+    downloadUrl?: string | null;
   };
 }
 

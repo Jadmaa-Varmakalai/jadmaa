@@ -164,8 +164,10 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
     const offerData = offer as any;
     const computedStatus = computeOfferStatus(offer);
 
-    // If disabled or draft, do NOT expose content (404)
-    if (computedStatus === 'DISABLED' || computedStatus === 'DRAFT' || computedStatus === 'ARCHIVED') {
+    const isPreview = req.query.preview === 'true';
+
+    // If disabled or draft, do NOT expose content to public unless preview mode is requested
+    if (!isPreview && (computedStatus === 'DISABLED' || computedStatus === 'DRAFT' || computedStatus === 'ARCHIVED')) {
       return res.status(404).json({ success: false, error: { message: 'Offer unavailable' } });
     }
 
@@ -212,6 +214,7 @@ export const getOfferBySlug = async (req: Request, res: Response) => {
         eyebrow: (offer as any).eyebrow || null,
         headline: (offer as any).headline || null,
         imagePosition: (offer as any).imagePosition || 'center',
+        imageFit: (offer as any).imageFit || 'cover',
         imageTagline: (offer as any).imageTagline || null,
         benefits: Array.isArray((offer as any).benefits) ? (offer as any).benefits : [],
         termsAndConditions: offer.termsAndConditions,
@@ -432,7 +435,7 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
       receipt,
       notes: {
         offerId: offer.id,
-        courseId: offer.courseId,
+        courseId: offer.courseId || '',
         offerTitle: offer.title.substring(0, 40),
         userId: user.id,
         userEmail: user.email || '',
@@ -444,7 +447,7 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
     const payment = await prisma.payment.create({
       data: {
         userId: user.id,
-        courseId: offer.courseId,
+        courseId: offer.courseId || null,
         offerId: offer.id,
         gateway: 'RAZORPAY',
         merchantOrderId: rzpOrder.id,
@@ -492,10 +495,10 @@ export const initiateOfferBooking = async (req: Request, res: Response) => {
           slug: offer.slug,
           offerPrice: offer.offerPrice
         },
-        course: {
+        course: offer.course ? {
           id: offer.course.id,
           title: offer.course.title
-        },
+        } : null,
         prefill: {
           name: dbUser?.name || '',
           email: dbUser?.email || '',

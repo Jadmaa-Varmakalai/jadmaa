@@ -3,28 +3,24 @@ import { Link } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { productApi } from '../../lib/api/productApi';
-import type { Product, ProductCategory } from '../../lib/api/productApi';
+import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
-import { useSettings } from '../../context/SettingsContext';
 import { EditableText } from '../../components/common/EditableText';
 import {
-  Search,
   SlidersHorizontal,
   ShoppingBag,
   Check,
   AlertCircle,
-  Sparkles,
-  ArrowRight,
   Package,
   Plus,
   Trash2,
   Edit2,
+  BookOpen,
 } from 'lucide-react';
 
 export const Products: React.FC = () => {
   const { user } = useAuth();
-  const { isEditing } = useSettings();
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,57 +149,38 @@ export const Products: React.FC = () => {
       <section className="py-10 bg-[#FAF6F0] min-h-screen text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
-          {/* Controls: Search, Category Pills, Filter & Sort */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-gray-100 space-y-4">
-            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
-              
-              {/* Search Bar */}
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          {/* Controls: Filter & Sort */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-xs font-semibold text-gray-500 self-start sm:self-auto">
+              Showing {products.length} product{products.length === 1 ? '' : 's'}
+            </span>
+
+            {/* Sort & In-Stock Filter */}
+            <div className="flex items-center gap-3 flex-wrap self-end sm:self-auto">
+              <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 cursor-pointer select-none bg-gray-50 px-3 py-2 rounded-xl border border-gray-200/80 hover:bg-gray-100 transition">
                 <input
-                  type="text"
-                  placeholder="Search products by name, SKU, or keyword..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-jadmaa-red/20 focus:border-jadmaa-red transition"
+                  type="checkbox"
+                  checked={inStockOnly}
+                  onChange={(e) => setInStockOnly(e.target.checked)}
+                  className="w-4 h-4 text-jadmaa-red rounded focus:ring-jadmaa-red border-gray-300"
                 />
-                {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 hover:text-gray-600"
-                  >
-                    Clear
-                  </button>
-                )}
-              </div>
+                <span>In Stock Only</span>
+              </label>
 
-              {/* Sort & In-Stock Filter */}
-              <div className="flex items-center gap-3 flex-wrap">
-                <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 cursor-pointer select-none bg-gray-50 px-3 py-2 rounded-xl border border-gray-200/80 hover:bg-gray-100 transition">
-                  <input
-                    type="checkbox"
-                    checked={inStockOnly}
-                    onChange={(e) => setInStockOnly(e.target.checked)}
-                    className="w-4 h-4 text-jadmaa-red rounded focus:ring-jadmaa-red border-gray-300"
-                  />
-                  <span>In Stock Only</span>
-                </label>
-
-                <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200/80">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-xs text-gray-500 font-medium">Sort:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="text-xs font-bold text-gray-800 bg-transparent focus:outline-none cursor-pointer"
-                  >
-                    <option value="featured">Featured</option>
-                    <option value="newest">Newest First</option>
-                    <option value="price_asc">Price: Low to High</option>
-                    <option value="price_desc">Price: High to Low</option>
-                    <option value="name_asc">Name: A to Z</option>
-                  </select>
-                </div>
+              <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-200/80">
+                <SlidersHorizontal className="w-3.5 h-3.5 text-gray-500" />
+                <span className="text-xs text-gray-500 font-medium">Sort:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="text-xs font-bold text-gray-800 bg-transparent focus:outline-none cursor-pointer"
+                >
+                  <option value="featured">Featured</option>
+                  <option value="newest">Newest First</option>
+                  <option value="price_asc">Price: Low to High</option>
+                  <option value="price_desc">Price: High to Low</option>
+                  <option value="name_asc">Name: A to Z</option>
+                </select>
               </div>
             </div>
           </div>
@@ -290,7 +267,12 @@ export const Products: React.FC = () => {
 
                       {/* Stock Status Badge */}
                       <div className="absolute top-3 right-3 z-10">
-                        {isOutOfStock ? (
+                        {product.isDigital ? (
+                          <span className="bg-amber-600/95 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1">
+                            <BookOpen className="w-3 h-3" />
+                            <span>eBook ({product.fileType?.toUpperCase() || 'RAR'})</span>
+                          </span>
+                        ) : isOutOfStock ? (
                           <span className="bg-red-600/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs">
                             Out of Stock
                           </span>
@@ -313,9 +295,14 @@ export const Products: React.FC = () => {
                           </h3>
                         </Link>
 
-                        {/* Stock Quantity Display */}
+                        {/* Stock Quantity / Digital Delivery Display */}
                         <div>
-                          {isOutOfStock ? (
+                          {product.isDigital ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200/60">
+                              <BookOpen className="w-3.5 h-3.5 text-amber-700" />
+                              <span>Instant Download • {product.fileSize || '1.0 GB Archive'}</span>
+                            </span>
+                          ) : isOutOfStock ? (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-md border border-red-200/60">
                               <AlertCircle className="w-3.5 h-3.5 text-red-600" />
                               <span>Out of stock</span>

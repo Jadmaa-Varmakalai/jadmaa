@@ -15,7 +15,7 @@ export const defaultCmsContent: Record<string, string> = {
   'site.header.nav.contact.label': 'Contact',
   'site.header.nav.contact.visible': 'true',
   
-  'site.header.cta.label': 'Student LMS',
+  'site.header.cta.label': 'Student Portal',
   'site.header.cta.enabled': 'true',
   'site.header.cta.link': '/dashboard',
 
@@ -98,7 +98,7 @@ export const defaultCmsContent: Record<string, string> = {
   'home.testimonials.title': 'What Our Students Say',
 
   // --- COURSES PAGE ---
-  'courses.hero.eyebrow': 'Academy Curriculum',
+  'courses.hero.eyebrow': 'Our Curriculum',
   'courses.hero.title': 'Explore All Courses',
   'courses.hero.description': 'Choose from authentic Varmakalai pressure point training, self-defence programs, children\'s fitness, and Siddha energy healing therapies.',
   'courses.empty.title': 'No courses match your criteria',

@@ -44,7 +44,7 @@ export const CertificatesPage: React.FC = () => {
 
   return (
     <>
-      <SEO title="My Certificates | JADMAA LMS" />
+      <SEO title="My Certificates | JADMAA" />
       
       <section className="bg-white border-b border-gray-200 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

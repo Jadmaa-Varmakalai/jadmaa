@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { blogApi } from "../../lib/api/blogApi";
+import { useSearchParams } from 'react-router-dom';
+import { blogApi, cleanSlug } from "../../lib/api/blogApi";
 import type { BlogPost } from '../../lib/api/blogApi';
 import { Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ImageUpload } from '../../components/common/ImageUpload';
 
 export const BlogManager: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const editId = searchParams.get('edit');
+
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,6 +36,25 @@ export const BlogManager: React.FC = () => {
   useEffect(() => {
     fetchBlogs();
   }, []);
+
+  useEffect(() => {
+    if (editId) {
+      if (blogs.length > 0) {
+        const target = blogs.find(b => b.id === editId || b.slug === editId);
+        if (target) {
+          setCurrentBlog(target);
+          setIsEditing(true);
+        }
+      } else if (!loading) {
+        blogApi.getBlogBySlug(editId).then(b => {
+          if (b) {
+            setCurrentBlog(b);
+            setIsEditing(true);
+          }
+        }).catch(() => {});
+      }
+    }
+  }, [editId, blogs, loading]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();

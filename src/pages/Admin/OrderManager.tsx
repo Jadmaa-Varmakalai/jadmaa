@@ -239,76 +239,131 @@ export const OrderManager: React.FC = () => {
             <p className="text-xs text-gray-400 mt-1">Orders placed by customers will appear here.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-gray-50/80 border-b border-gray-100 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
-                  <th className="py-3 px-4">Order #</th>
-                  <th className="py-3 px-4">Date</th>
-                  <th className="py-3 px-4">Customer Details</th>
-                  <th className="py-3 px-4">Items</th>
-                  <th className="py-3 px-4">Total Amount</th>
-                  <th className="py-3 px-4">Payment</th>
-                  <th className="py-3 px-4">Order Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {orders.map((o) => (
-                  <tr key={o.id} className="hover:bg-gray-50/60 transition">
-                    <td className="py-3 px-4 font-mono font-extrabold text-gray-900">
-                      {o.orderNumber}
-                    </td>
-
-                    <td className="py-3 px-4 text-gray-500 whitespace-nowrap">
-                      {new Date(o.createdAt).toLocaleDateString('en-IN', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-gray-900">{o.customerName}</div>
-                      <div className="text-[11px] text-gray-400 truncate max-w-xs">{o.user?.email}</div>
-                      <div className="text-[10px] text-gray-500 font-mono">{o.customerPhone}</div>
-                    </td>
-
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-gray-800">
-                        {o.items?.length || 0} product(s)
+          <div>
+            {/* Mobile Stacked Orders Cards (< 768px) */}
+            <div className="md:hidden divide-y divide-gray-100 p-3 space-y-3">
+              {orders.map((o) => (
+                <div key={o.id} className="bg-white rounded-2xl p-4 border border-[#E8DDD0] shadow-xs space-y-3">
+                  {/* Card Header: Order Number + Status Badges */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <span className="font-mono font-extrabold text-sm text-gray-900 block">
+                        {o.orderNumber}
                       </span>
-                    </td>
+                      <span className="text-[11px] text-gray-500">
+                        {new Date(o.createdAt).toLocaleDateString('en-IN', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      {getOrderStatusBadge(o.orderStatus)}
+                      {getPaymentBadge(o.paymentStatus)}
+                    </div>
+                  </div>
 
-                    <td className="py-3 px-4 font-extrabold text-jadmaa-charcoal">
-                      ₹{o.totalAmount.toLocaleString('en-IN')}
-                    </td>
+                  {/* Customer & Product Info */}
+                  <div className="bg-gray-50/70 p-3 rounded-xl border border-gray-100 space-y-1 text-xs">
+                    <p className="font-bold text-gray-900">{o.customerName}</p>
+                    <p className="text-[11px] text-gray-500 font-mono">{o.customerPhone}</p>
+                    <p className="text-[11px] text-gray-500">{o.items?.length || 0} product(s)</p>
+                  </div>
 
-                    <td className="py-3 px-4">{getPaymentBadge(o.paymentStatus)}</td>
+                  {/* Footer: Total Amount & Action */}
+                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-gray-400 block">Total</span>
+                      <span className="font-extrabold text-base text-jadmaa-charcoal">
+                        ₹{o.totalAmount.toLocaleString('en-IN')}
+                      </span>
+                    </div>
 
-                    <td className="py-3 px-4">{getOrderStatusBadge(o.orderStatus)}</td>
+                    <button
+                      onClick={() => openOrderDetails(o.id)}
+                      className="px-4 py-2 min-h-[44px] bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold text-xs rounded-xl transition inline-flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Manage Order</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        onClick={() => openOrderDetails(o.id)}
-                        className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Manage</span>
-                      </button>
-                    </td>
+            {/* Desktop Table (>= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-gray-50/80 border-b border-gray-100 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="py-3 px-4">Order #</th>
+                    <th className="py-3 px-4">Date</th>
+                    <th className="py-3 px-4">Customer Details</th>
+                    <th className="py-3 px-4">Items</th>
+                    <th className="py-3 px-4">Total Amount</th>
+                    <th className="py-3 px-4">Payment</th>
+                    <th className="py-3 px-4">Order Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {orders.map((o) => (
+                    <tr key={o.id} className="hover:bg-gray-50/60 transition">
+                      <td className="py-3 px-4 font-mono font-extrabold text-gray-900">
+                        {o.orderNumber}
+                      </td>
+
+                      <td className="py-3 px-4 text-gray-500 whitespace-nowrap">
+                        {new Date(o.createdAt).toLocaleDateString('en-IN', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-gray-900">{o.customerName}</div>
+                        <div className="text-[11px] text-gray-400 truncate max-w-xs">{o.user?.email}</div>
+                        <div className="text-[10px] text-gray-500 font-mono">{o.customerPhone}</div>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <span className="font-semibold text-gray-800">
+                          {o.items?.length || 0} product(s)
+                        </span>
+                      </td>
+
+                      <td className="py-3 px-4 font-extrabold text-jadmaa-charcoal">
+                        ₹{o.totalAmount.toLocaleString('en-IN')}
+                      </td>
+
+                      <td className="py-3 px-4">{getPaymentBadge(o.paymentStatus)}</td>
+
+                      <td className="py-3 px-4">{getOrderStatusBadge(o.orderStatus)}</td>
+
+                      <td className="py-3 px-4 text-right">
+                        <button
+                          onClick={() => openOrderDetails(o.id)}
+                          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 font-bold rounded-lg transition inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Manage</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Order Details & Status Manager Modal */}
+      {/* Order Details & Status Manager Modal (Responsive Bottom Sheet on Mobile) */}
       {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 w-full max-w-3xl overflow-hidden my-8 max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-xl border border-gray-100 w-full max-w-3xl overflow-hidden max-h-[92dvh] sm:max-h-[90vh] flex flex-col">
             
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-jadmaa-cream/50">

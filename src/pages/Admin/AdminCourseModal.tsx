@@ -249,7 +249,7 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
             value={formData.thumbnailUrl}
             onChange={(url) => setFormData({...formData, thumbnailUrl: url})}
             aspectRatio="video"
-            helperText="Upload thumbnail from your device or paste an image URL"
+            helperText="Upload thumbnail from your device or drag & drop for PC"
           />
 
           {/* YouTube Video Link Field (Available in both Create & Edit mode) */}

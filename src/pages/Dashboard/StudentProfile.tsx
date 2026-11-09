@@ -105,7 +105,7 @@ export const StudentProfile: React.FC = () => {
 
   return (
     <>
-      <SEO title="My Profile | JADMAA LMS" />
+      <SEO title="My Profile | JADMAA" />
       
       <section className="bg-white border-b border-gray-200 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -169,7 +169,7 @@ export const StudentProfile: React.FC = () => {
                   value={avatarUrl}
                   onChange={setAvatarUrl}
                   aspectRatio="square"
-                  helperText="Upload a photo from your device or paste an image URL"
+                  helperText="Upload a photo from your device or drag & drop for PC"
                 />
                 <div className="pt-2">
                   <button type="submit" disabled={updateLoading} className="px-5 py-2.5 bg-gray-900 text-white font-semibold rounded text-sm hover:bg-gray-800 transition disabled:opacity-50">

@@ -23,6 +23,10 @@ router.post('/instructors/applications/reject', authenticate, requireAdmin, admi
 router.get('/instructors/:id', authenticate, requireAdmin, adminController.getInstructorById);
 router.patch('/instructors/:id', authenticate, requireAdmin, adminController.updateInstructor);
 router.patch('/instructors/:id/status', authenticate, requireAdmin, adminController.updateInstructorStatus);
+router.patch('/instructors/:id/commission', authenticate, requireAdmin, adminController.updateInstructorCommission);
+router.get('/instructors/:id/financials', authenticate, requireAdmin, adminController.getInstructorFinancials);
+router.delete('/instructors/:id', authenticate, requireAdmin, adminController.removeInstructor);
+router.post('/instructors/:id/remove', authenticate, requireAdmin, adminController.removeInstructor);
 
 // Courses
 router.get('/courses', authenticate, requireAdmin, adminController.getCourses);

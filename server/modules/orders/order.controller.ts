@@ -32,20 +32,6 @@ export const createOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: { message: 'Cart items are required' } });
     }
 
-    if (!shippingAddress || typeof shippingAddress !== 'string' || shippingAddress.trim().length < 5) {
-      return res.status(400).json({ success: false, error: { message: 'Please provide a valid delivery address' } });
-    }
-
-    const cleanPincode = (shippingPincode || '').toString().trim();
-    if (!/^\d{6}$/.test(cleanPincode)) {
-      return res.status(400).json({ success: false, error: { message: 'Please provide a valid 6-digit delivery pincode' } });
-    }
-
-    const finalPhone = (customerPhone || user.phone || '').trim();
-    if (!finalPhone) {
-      return res.status(400).json({ success: false, error: { message: 'Contact phone number is required for shipping' } });
-    }
-
     // Extract product IDs and requested quantities
     const productRequests = new Map<string, number>();
     for (const item of items) {
@@ -77,6 +63,32 @@ export const createOrder = async (req: Request, res: Response) => {
       });
     }
 
+    const hasPhysicalItems = dbProducts.some((p) => !p.isDigital);
+
+    // If there are physical items, validate shipping details
+    if (hasPhysicalItems) {
+      if (!shippingAddress || typeof shippingAddress !== 'string' || shippingAddress.trim().length < 5) {
+        return res.status(400).json({ success: false, error: { message: 'Please provide a valid delivery address' } });
+      }
+
+      const cleanPincode = (shippingPincode || '').toString().trim();
+      if (!/^\d{6}$/.test(cleanPincode)) {
+        return res.status(400).json({ success: false, error: { message: 'Please provide a valid 6-digit delivery pincode' } });
+      }
+    }
+
+    const finalAddress = hasPhysicalItems
+      ? shippingAddress.trim()
+      : (shippingAddress && shippingAddress.trim().length >= 3 ? shippingAddress.trim() : 'Instant Digital Delivery (eBook Download)');
+    const finalPincode = hasPhysicalItems
+      ? (shippingPincode || '').toString().trim()
+      : ((shippingPincode || '').toString().trim() || '000000');
+
+    const finalPhone = (customerPhone || user.phone || '').trim();
+    if (!finalPhone && hasPhysicalItems) {
+      return res.status(400).json({ success: false, error: { message: 'Contact phone number is required for shipping' } });
+    }
+
     // Verify stock availability and compute authoritative amounts
     let subtotal = 0;
     const orderItemSnapshots: any[] = [];
@@ -84,7 +96,8 @@ export const createOrder = async (req: Request, res: Response) => {
     for (const product of dbProducts) {
       const requestedQty = productRequests.get(product.id) || 0;
 
-      if (product.stockQuantity < requestedQty) {
+      // Only physical items require stock checking
+      if (!product.isDigital && product.stockQuantity < requestedQty) {
         return res.status(400).json({
           success: false,
           error: {
@@ -109,8 +122,8 @@ export const createOrder = async (req: Request, res: Response) => {
     }
 
     subtotal = Math.round(subtotal * 100) / 100;
-    // Free shipping above ₹999, else flat ₹50
-    const shippingCharge = subtotal >= 999 ? 0 : 50;
+    // Free shipping if purely digital or subtotal >= ₹999, else flat ₹50
+    const shippingCharge = !hasPhysicalItems ? 0 : (subtotal >= 999 ? 0 : 50);
     const discountAmount = 0;
     const totalAmount = Math.round((subtotal + shippingCharge - discountAmount) * 100) / 100;
 
@@ -139,10 +152,10 @@ export const createOrder = async (req: Request, res: Response) => {
         shippingCharge,
         discountAmount,
         totalAmount,
-        shippingAddress: shippingAddress.trim(),
-        shippingPincode: cleanPincode,
+        shippingAddress: finalAddress,
+        shippingPincode: finalPincode,
         customerName: user.name || 'Valued Customer',
-        customerPhone: finalPhone,
+        customerPhone: finalPhone || user.phone || '9999999999',
         paymentMethod: 'RAZORPAY',
         paymentStatus: 'PENDING',
         merchantOrderId: rzpOrder.id,
@@ -397,7 +410,20 @@ export const getUserOrders = async (req: Request, res: Response) => {
       where: { userId: user.id },
       orderBy: { createdAt: 'desc' },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                isDigital: true,
+                fileType: true,
+                fileSize: true,
+                fileName: true,
+                downloadUrl: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -414,7 +440,7 @@ export const getUserOrders = async (req: Request, res: Response) => {
 export const getUserOrderById = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const order = await prisma.order.findFirst({
       where: {
@@ -422,7 +448,20 @@ export const getUserOrderById = async (req: Request, res: Response) => {
         userId: user.id,
       },
       include: {
-        items: true,
+        items: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                isDigital: true,
+                fileType: true,
+                fileSize: true,
+                fileName: true,
+                downloadUrl: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -508,7 +547,7 @@ export const adminGetOrders = async (req: Request, res: Response) => {
  */
 export const adminGetOrderById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const order = await prisma.order.findFirst({
       where: {
@@ -546,10 +585,10 @@ export const adminGetOrderById = async (req: Request, res: Response) => {
 export const adminUpdateOrderStatus = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { id } = req.params;
+    const id = String(req.params.id);
     const { orderStatus, trackingNumber, notes, paymentStatus } = req.body;
 
-    const order = await prisma.order.findUnique({
+    const order: any = await prisma.order.findUnique({
       where: { id },
       include: { items: true },
     });

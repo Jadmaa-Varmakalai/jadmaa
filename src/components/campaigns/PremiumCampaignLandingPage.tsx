@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowRight, Check, Clock } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowRight, Clock } from 'lucide-react';
 import './PremiumCampaignLandingPage.css';
 
 export interface CampaignLandingData {
@@ -14,6 +14,7 @@ export interface CampaignLandingData {
   heroImage: string;
   mobileHeroImage?: string;
   imagePosition?: string;
+  imageFit?: string;
   imageTagline?: string;
   discountType?: 'percentage' | 'fixed' | 'none';
   discountValue?: number;

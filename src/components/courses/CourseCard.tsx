@@ -10,7 +10,7 @@ export const isOnlineCourse = (course: Course): boolean => {
   if (course.slug === 'varmakalai-foundation-free-starter-course' || course.slug === '0-free-varma-foundation' || course.slug === 'varma-foundation') return true;
   if (course.isFree) return true;
   if (course.category?.toLowerCase().includes('online')) return true;
-  // Check if it has actual recorded video lessons in LMS
+  // Check if it has actual recorded video lessons
   if (course.modules && course.modules.some(m => m.lessons && m.lessons.some(l => (l as any).videoUrl || (l as any).youtubeVideoId))) {
     return true;
   }
@@ -60,7 +60,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
   const instructorName = isValidInstructor ? rawInstructor.trim() : 'JADMAA Instructor';
   const initial = instructorName.replace(/^(aasan\s*[-–—:]*\s*|master\s*[-–—:]*\s*|dr\.?\s*|mr\.?\s*)/i, '').trim().charAt(0).toUpperCase() || 'J';
 
-  // Training type: recorded online LMS vs offline branch training
+  // Training type: recorded online vs offline branch training
   const isOnline = isOnlineCourse(course);
 
   // Safe fallback thumbnail
@@ -98,7 +98,7 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
           {isOnline ? (
             <span className="px-2.5 py-1 text-xs font-bold bg-emerald-700/95 backdrop-blur-md text-white rounded-lg shadow-sm flex items-center gap-1">
               <Video className="w-3 h-3" />
-              Recorded Online LMS
+              Recorded Online
             </span>
           ) : (
             <span className="px-2.5 py-1 text-xs font-bold bg-[#8F2020]/95 backdrop-blur-md text-white rounded-lg shadow-sm flex items-center gap-1">

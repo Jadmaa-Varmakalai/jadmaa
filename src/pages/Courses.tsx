@@ -73,7 +73,7 @@ export const Courses: React.FC = () => {
     <>
       <SEO 
         title="Courses & Training Programs | JADMAA Varmakalai Academy"
-        description="Explore JADMAA recorded online LMS courses and in-person branch training across Thanjavur, Kumbakonam, and Ariyalur."
+        description="Explore JADMAA recorded online courses and in-person branch training across Thanjavur, Kumbakonam, and Ariyalur."
       />
 
       {/* Page Header */}
@@ -82,7 +82,7 @@ export const Courses: React.FC = () => {
           <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
             <EditableText
               settingKey="courses.hero.eyebrow"
-              defaultText="Academy Curriculum & Training"
+              defaultText="Our Curriculum & Training"
             />
           </span>
           <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-jadmaa-charcoal">
@@ -94,7 +94,7 @@ export const Courses: React.FC = () => {
           <p className="text-base md:text-lg text-jadmaa-textMuted max-w-3xl leading-relaxed">
             <EditableText
               settingKey="courses.hero.description"
-              defaultText="Recorded online LMS courses for self-paced video learning, and in-person academy classes across our branches in Thanjavur, Kumbakonam, and Ariyalur."
+              defaultText="Recorded online courses for self-paced video learning, and in-person academy classes across our branches in Thanjavur, Kumbakonam, and Ariyalur."
               multiline
             />
           </p>
@@ -127,7 +127,7 @@ export const Courses: React.FC = () => {
               }`}
             >
               <Video className="w-4 h-4" />
-              <span>Recorded Online LMS</span>
+              <span>Recorded Online</span>
             </button>
             <button
               onClick={() => setTrainingFilter('branch')}
@@ -231,7 +231,7 @@ export const Courses: React.FC = () => {
             /* ALL PROGRAMS VIEW: Clearly Separated Sections */
             <div className="space-y-16">
               
-              {/* 1. Recorded Online LMS Section */}
+              {/* 1. Recorded Online Courses Section */}
               {onlineCourses.length > 0 && (
                 <div className="space-y-6">
                   <div className="border-b border-[#E8DDD0] pb-4">
@@ -240,7 +240,7 @@ export const Courses: React.FC = () => {
                       <span>Recorded Video Learning</span>
                     </div>
                     <h2 className="font-heading font-bold text-2xl sm:text-3xl text-[#1F2937] mt-1">
-                      Recorded Online LMS Courses
+                      Recorded Online Courses
                     </h2>
                     <p className="text-sm sm:text-base text-[#4B5563] mt-1 max-w-3xl">
                       Learn self-paced with recorded video lessons, progress tracking, and verifiable digital certification. Accessible through our online student learning portal.
@@ -289,11 +289,11 @@ export const Courses: React.FC = () => {
             <div className="space-y-6">
               <div className="border-b border-[#E8DDD0] pb-4" data-aos="fade-up">
                 <h2 className="font-heading font-bold text-2xl sm:text-3xl text-[#1F2937]">
-                  {trainingFilter === 'online' ? 'Recorded Online LMS Courses' : 'In-Person Branch Training'}
+                  {trainingFilter === 'online' ? 'Recorded Online Courses' : 'In-Person Branch Training'}
                 </h2>
                 <p className="text-sm sm:text-base text-[#4B5563] mt-1">
                   {trainingFilter === 'online'
-                    ? 'Courses accessible via our self-paced recorded video LMS with progress tracking and certification.'
+                    ? 'Courses accessible via our self-paced recorded video learning with progress tracking and certification.'
                     : 'Authentic academy training conducted in-person at our Thanjavur, Kumbakonam, and Ariyalur branches.'}
                 </p>
               </div>

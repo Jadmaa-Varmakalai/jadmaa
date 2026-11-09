@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Award, AlertCircle, Loader2 } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, Award, AlertCircle, Loader2, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../lib/api/authApi';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, verifySessionOtp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +21,33 @@ export const Login: React.FC = () => {
   const [applyAsInstructor, setApplyAsInstructor] = useState(false);
   const [instructorWarning, setInstructorWarning] = useState<string | null>(null);
   const [checkingInstructor, setCheckingInstructor] = useState(false);
+
+  // Re-authentication OTP verification states
+  const [showOtpScreen, setShowOtpScreen] = useState(false);
+  const [otpCode, setOtpCode] = useState('');
+  const [otpMessage, setOtpMessage] = useState<string | null>(null);
+  const [resendingOtp, setResendingOtp] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setTimeout(() => setResendCooldown((prev) => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCooldown]);
+
+  const handleDestinationRedirect = (loggedInUser: any) => {
+    if (returnTo && typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('/login') && !returnTo.startsWith('/register')) {
+      navigate(returnTo);
+    } else if (loggedInUser.role === 'ADMIN' || loggedInUser.role === 'SUPER_ADMIN') {
+      navigate('/admin');
+    } else if (loggedInUser.role === 'INSTRUCTOR') {
+      navigate('/instructor');
+    } else {
+      navigate('/student');
+    }
+  };
 
   const handleApplyInstructorToggle = async (checked: boolean) => {
     setApplyAsInstructor(checked);
@@ -44,6 +71,7 @@ export const Login: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
+    setResendSuccess(null);
 
     if (!email) {
       setErrorMessage("Please enter your email address.");
@@ -76,16 +104,17 @@ export const Login: React.FC = () => {
     
     try {
       setLoading(true);
-      const user = await login(email, password);
-      if (returnTo && typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('/login') && !returnTo.startsWith('/register')) {
-        navigate(returnTo);
-      } else if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-        navigate('/admin');
-      } else if (user.role === 'INSTRUCTOR') {
-        navigate('/instructor');
-      } else {
-        navigate('/student');
+      const result: any = await login(email, password);
+      
+      // If user session expired, switch to OTP re-verification screen
+      if (result && result.requireOtp) {
+        setShowOtpScreen(true);
+        setOtpMessage(result.message || 'Your previous session expired. A 6-digit verification code has been sent to your email.');
+        setResendCooldown(60);
+        return;
       }
+
+      handleDestinationRedirect(result);
     } catch (error: any) {
       setErrorMessage(error?.message || "Login failed. Please check your credentials.");
     } finally {
@@ -93,10 +122,48 @@ export const Login: React.FC = () => {
     }
   };
 
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage(null);
+    setResendSuccess(null);
+
+    const cleanCode = otpCode.trim();
+    if (!cleanCode || cleanCode.length !== 6) {
+      setErrorMessage("Please enter the complete 6-digit verification code.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const user = await verifySessionOtp(email.trim(), cleanCode);
+      handleDestinationRedirect(user);
+    } catch (error: any) {
+      setErrorMessage(error?.message || "Verification failed. Please check the code and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (resendCooldown > 0) return;
+    setErrorMessage(null);
+    setResendSuccess(null);
+    try {
+      setResendingOtp(true);
+      const res = await authApi.resendSessionOtp(email.trim());
+      setResendSuccess(res.message || "A new verification code has been sent to your email.");
+      setResendCooldown(60);
+    } catch (error: any) {
+      setErrorMessage(error?.message || "Failed to resend code. Please try again.");
+    } finally {
+      setResendingOtp(false);
+    }
+  };
+
   return (
     <>
       <SEO 
-        title="Login | JADMAA Varmakalai"
+        title={showOtpScreen ? "Verify Login | JADMAA Varmakalai" : "Login | JADMAA Varmakalai"}
         description="Login to your JADMAA student or instructor portal."
       />
       <section className="min-h-[75vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-[#FAF6F0]">
@@ -105,10 +172,12 @@ export const Login: React.FC = () => {
           <div className="text-center space-y-2">
             <ResponsiveImage src="/images/logo-1.png" alt="JADMAA Logo" width={64} height={64} priority={true} aspectRatio="1/1" className="h-14 sm:h-16 w-auto mx-auto object-contain" />
             <h1 className="font-heading font-extrabold text-2xl text-[#2B2521]">
-              Login to JADMAA
+              {showOtpScreen ? 'Security Verification' : 'Login to JADMAA'}
             </h1>
             <p className="text-xs text-[#5C5148]">
-              Enter your credentials to access your portal.
+              {showOtpScreen 
+                ? 'Enter the 6-digit code sent to your email to verify your session.'
+                : 'Enter your credentials to access your portal.'}
             </p>
           </div>
 
@@ -116,154 +185,243 @@ export const Login: React.FC = () => {
             <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 flex items-start space-x-2.5 animate-fadeIn">
               <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
               <div className="space-y-0.5">
-                <p className="font-bold">Login Notice</p>
+                <p className="font-bold">Notice</p>
                 <p className="text-[11px] leading-relaxed">{errorMessage}</p>
               </div>
             </div>
           )}
 
-          {instructorWarning && (
-            <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-start space-x-2.5 animate-fadeIn">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-bold">Already an Instructor!</p>
-                <p className="text-[11px] leading-relaxed">{instructorWarning}</p>
+          {resendSuccess && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-xl text-xs text-green-800 flex items-start space-x-2.5 animate-fadeIn">
+              <ShieldCheck className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-bold">Code Sent</p>
+                <p className="text-[11px] leading-relaxed">{resendSuccess}</p>
               </div>
             </div>
           )}
 
-          <form onSubmit={handleLoginSubmit} className="space-y-4">
-            
-            <div className="space-y-1">
-              <label className="text-xs font-bold text-[#2B2521]">Email Address</label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
-                <input
-                  type="email"
-                  required
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (instructorWarning) setInstructorWarning(null);
-                  }}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#E8DDD0] text-xs text-[#2B2521] focus:border-[#B12B2B] focus:ring-1 focus:ring-[#B12B2B] outline-none"
-                />
-              </div>
-            </div>
-
-            {!applyAsInstructor && (
-              <div className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#2B2521]">Password</label>
-                  <Link to="/forgot-password" className="text-xs font-semibold text-[#B12B2B] hover:underline">
-                    Forgot Password?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required={!applyAsInstructor}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[#E8DDD0] text-xs text-[#2B2521] focus:border-[#B12B2B] focus:ring-1 focus:ring-[#B12B2B] outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3.5 top-3 text-gray-400 hover:text-[#2B2521]"
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Apply as Instructor Section */}
-            <div className="p-3 bg-[#FAF6F0] rounded-xl border border-[#E8DDD0] space-y-2">
-              <label className="flex items-start space-x-2.5 cursor-pointer">
-                <input
-                  type="checkbox"
-                  id="applyAsInstructor"
-                  checked={applyAsInstructor}
-                  onChange={(e) => handleApplyInstructorToggle(e.target.checked)}
-                  className="mt-0.5 rounded border-gray-300 text-[#B12B2B] focus:ring-[#B12B2B]"
-                />
-                <div className="text-xs">
-                  <span className="font-bold text-[#2B2521] flex items-center space-x-1">
-                    <Award className="w-3.5 h-3.5 text-[#B12B2B]" />
-                    <span>Apply as an Instructor</span>
-                  </span>
-                  <p className="text-[11px] text-[#5C5148] mt-0.5">
-                    Want to join JADMAA as an instructor? Check this to register your instructor profile.
+          {/* ── OTP Verification Screen ─────────────────────────────── */}
+          {showOtpScreen ? (
+            <form onSubmit={handleOtpSubmit} className="space-y-5">
+              <div className="p-3.5 bg-[#FAF6F0] rounded-xl border border-[#E8DDD0] text-center space-y-1">
+                <p className="text-xs text-[#2B2521] font-semibold">
+                  Verification code sent to:
+                </p>
+                <p className="text-xs font-mono font-bold text-[#B12B2B]">
+                  {email}
+                </p>
+                {otpMessage && (
+                  <p className="text-[11px] text-[#5C5148] mt-1">
+                    {otpMessage}
                   </p>
-                </div>
-              </label>
-
-              {applyAsInstructor && (
-                <div className="pt-2 border-t border-[#E8DDD0] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-                  <span className="text-[#5C5148] text-[11px]">
-                    {checkingInstructor ? 'Checking credentials...' : 'Register your instructor candidate account:'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => navigate(`/register?instructor=true${email ? `&email=${encodeURIComponent(email)}` : ''}`)}
-                    className="px-3 py-1 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-xs rounded transition-colors"
-                  >
-                    Register Instructor Account →
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {!applyAsInstructor && (
-              <div className="flex items-center space-x-2 pt-1">
-                <input
-                  type="checkbox"
-                  id="remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-gray-300 text-[#B12B2B] focus:ring-[#B12B2B]"
-                />
-                <label htmlFor="remember" className="text-xs text-[#5C5148] cursor-pointer">
-                  Remember me
-                </label>
+                )}
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={loading || checkingInstructor}
-              className="w-full py-3 px-4 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-sm rounded-lg shadow transition-all flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Logging in...</span>
-                </>
-              ) : applyAsInstructor ? (
-                <>
-                  <Award className="w-4 h-4" />
-                  <span>Register as Instructor</span>
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-4 h-4" />
-                  <span>Login</span>
-                </>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-[#2B2521]">6-Digit Verification Code</label>
+                <input
+                  type="text"
+                  maxLength={6}
+                  inputMode="numeric"
+                  autoFocus
+                  required
+                  placeholder="123456"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full py-3 px-4 text-center font-mono font-bold text-xl tracking-[0.4em] rounded-lg border border-[#E8DDD0] text-[#2B2521] focus:border-[#B12B2B] focus:ring-1 focus:ring-[#B12B2B] outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || otpCode.trim().length !== 6}
+                className="w-full py-3 px-4 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-sm rounded-lg shadow transition-all flex items-center justify-center space-x-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Verifying Code...</span>
+                  </>
+                ) : (
+                  <>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Verify &amp; Continue</span>
+                  </>
+                )}
+              </button>
+
+              <div className="flex items-center justify-between pt-2 border-t border-[#E8DDD0] text-xs text-[#5C5148]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowOtpScreen(false);
+                    setOtpCode('');
+                    setErrorMessage(null);
+                  }}
+                  className="text-xs text-[#5C5148] hover:text-[#2B2521] underline"
+                >
+                  ← Back to Login
+                </button>
+
+                <button
+                  type="button"
+                  disabled={resendingOtp || resendCooldown > 0}
+                  onClick={handleResendOtp}
+                  className="text-xs font-bold text-[#B12B2B] hover:underline disabled:opacity-50 disabled:no-underline inline-flex items-center space-x-1"
+                >
+                  {resendingOtp && <RefreshCw className="w-3 h-3 animate-spin mr-1" />}
+                  <span>{resendCooldown > 0 ? `Resend code (${resendCooldown}s)` : 'Resend code'}</span>
+                </button>
+              </div>
+            </form>
+          ) : (
+            /* ── Standard Login Form ──────────────────────────────── */
+            <>
+              {instructorWarning && (
+                <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-900 flex items-start space-x-2.5 animate-fadeIn">
+                  <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-bold">Already an Instructor!</p>
+                    <p className="text-[11px] leading-relaxed">{instructorWarning}</p>
+                  </div>
+                </div>
               )}
-            </button>
-          </form>
 
-          <div className="text-center pt-2 text-xs text-[#5C5148] border-t border-[#E8DDD0]">
-            <span>Don't have an account? </span>
-            <Link to="/register" className="font-bold text-[#B12B2B] hover:underline inline-flex items-center space-x-1">
-              <span>Register Here</span>
-              <ArrowRight className="w-3 h-3" />
-            </Link>
-          </div>
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-[#2B2521]">Email Address</label>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+                    <input
+                      type="email"
+                      required
+                      placeholder="name@example.com"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        if (instructorWarning) setInstructorWarning(null);
+                      }}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-[#E8DDD0] text-xs text-[#2B2521] focus:border-[#B12B2B] focus:ring-1 focus:ring-[#B12B2B] outline-none"
+                    />
+                  </div>
+                </div>
+
+                {!applyAsInstructor && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-[#2B2521]">Password</label>
+                      <Link to="/forgot-password" className="text-xs font-semibold text-[#B12B2B] hover:underline">
+                        Forgot Password?
+                      </Link>
+                    </div>
+                    <div className="relative">
+                      <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required={!applyAsInstructor}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-10 pr-10 py-2.5 rounded-lg border border-[#E8DDD0] text-xs text-[#2B2521] focus:border-[#B12B2B] focus:ring-1 focus:ring-[#B12B2B] outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3.5 top-3 text-gray-400 hover:text-[#2B2521]"
+                      >
+                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Apply as Instructor Section */}
+                <div className="p-3 bg-[#FAF6F0] rounded-xl border border-[#E8DDD0] space-y-2">
+                  <label className="flex items-start space-x-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="applyAsInstructor"
+                      checked={applyAsInstructor}
+                      onChange={(e) => handleApplyInstructorToggle(e.target.checked)}
+                      className="mt-0.5 rounded border-gray-300 text-[#B12B2B] focus:ring-[#B12B2B]"
+                    />
+                    <div className="text-xs">
+                      <span className="font-bold text-[#2B2521] flex items-center space-x-1">
+                        <Award className="w-3.5 h-3.5 text-[#B12B2B]" />
+                        <span>Apply as an Instructor</span>
+                      </span>
+                      <p className="text-[11px] text-[#5C5148] mt-0.5">
+                        Want to join JADMAA as an instructor? Check this to register your instructor profile.
+                      </p>
+                    </div>
+                  </label>
+
+                  {applyAsInstructor && (
+                    <div className="pt-2 border-t border-[#E8DDD0] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                      <span className="text-[#5C5148] text-[11px]">
+                        {checkingInstructor ? 'Checking credentials...' : 'Register your instructor candidate account:'}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/register?instructor=true${email ? `&email=${encodeURIComponent(email)}` : ''}`)}
+                        className="px-3 py-1 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-xs rounded transition-colors"
+                      >
+                        Register Instructor Account →
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {!applyAsInstructor && (
+                  <div className="flex items-center space-x-2 pt-1">
+                    <input
+                      type="checkbox"
+                      id="remember"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="rounded border-gray-300 text-[#B12B2B] focus:ring-[#B12B2B]"
+                    />
+                    <label htmlFor="remember" className="text-xs text-[#5C5148] cursor-pointer">
+                      Remember me
+                    </label>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || checkingInstructor}
+                  className="w-full py-3 px-4 bg-[#B12B2B] hover:bg-[#8C1E1E] text-white font-bold text-sm rounded-lg shadow transition-all flex items-center justify-center space-x-2 disabled:opacity-75 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Logging in...</span>
+                    </>
+                  ) : applyAsInstructor ? (
+                    <>
+                      <Award className="w-4 h-4" />
+                      <span>Register as Instructor</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogIn className="w-4 h-4" />
+                      <span>Login</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="text-center pt-2 text-xs text-[#5C5148] border-t border-[#E8DDD0]">
+                <span>Don't have an account? </span>
+                <Link to="/register" className="font-bold text-[#B12B2B] hover:underline inline-flex items-center space-x-1">
+                  <span>Register Here</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </>
+          )}
 
         </div>
       </section>

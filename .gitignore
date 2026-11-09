@@ -17,6 +17,7 @@ dist-ssr
 
 # Build artifacts and caches
 *.tsbuildinfo
+public/images/cache/
 
 
 .vscode/*

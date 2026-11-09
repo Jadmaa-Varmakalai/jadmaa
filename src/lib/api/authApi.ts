@@ -7,6 +7,18 @@ export const authApi = {
       body: JSON.stringify(credentials),
     });
   },
+  verifySessionOtp: async (data: { email: string; otp: string }) => {
+    return fetchApi('/auth/verify-session-otp', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+  resendSessionOtp: async (email: string) => {
+    return fetchApi('/auth/resend-session-otp', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
   register: async (data: any) => {
     return fetchApi('/auth/register', {
       method: 'POST',

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   Check,
   Loader2,
-  ShoppingBag
+  ShoppingBag,
+  Search
 } from 'lucide-react';
 import { mainNavItems } from '../../data/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -24,6 +25,7 @@ export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -31,6 +33,53 @@ export const Navbar: React.FC = () => {
   const [editPromptText, setEditPromptText] = useState('');
   const [discardWarningOpen, setDiscardWarningOpen] = useState(false);
   const [saveSuccessNotice, setSaveSuccessNotice] = useState(false);
+
+  // Searchbar overlay mode
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchInputValue, setSearchInputValue] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
+  // Close search overlay on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isSearchOpen) {
+        setIsSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isSearchOpen]);
+
+  // Helper to determine authenticated user destination
+  const getAuthenticatedDashboardRoute = () => {
+    if (!user) return '/login';
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+      return '/admin/overview';
+    }
+    if (user.role === 'INSTRUCTOR') {
+      return '/instructor/dashboard';
+    }
+    return '/student/dashboard';
+  };
+
+  const handleOpenSearch = () => {
+    setIsOpen(false); // Close mobile drawer if open
+    setIsSearchOpen(true);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchInputValue.trim()) {
+      setIsSearchOpen(false);
+      navigate(`/search?q=${encodeURIComponent(searchInputValue.trim())}`);
+    }
+  };
 
   const { 
     isEditing, 
@@ -231,11 +280,58 @@ export const Navbar: React.FC = () => {
     <header className={`sticky top-0 z-50 bg-[#FAF6F0] transition-shadow duration-200 border-b border-[#E8DDD0] ${
       scrolled ? 'shadow-sm py-2 sm:py-3' : 'py-2.5 sm:py-4'
     }`}>
+      {/* Full-Navbar Interactive Search Overlay with Smooth Slide-Down Animation */}
+      {isSearchOpen ? (
+        <div className="max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-10 xl:px-12 animate-search-slide-down">
+          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5 sm:gap-3 h-11 sm:h-12 bg-white/70 sm:bg-transparent rounded-2xl px-2 sm:px-0">
+            <div className="text-[#B12B2B] pl-1 shrink-0">
+              <Search className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
+            </div>
+
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchInputValue}
+              onChange={(e) => setSearchInputValue(e.target.value)}
+              placeholder="Search courses, products, training programs, articles... (Press Enter)"
+              className="flex-1 bg-transparent border-0 text-xs sm:text-base font-medium text-[#2B2521] placeholder-[#5C5148]/60 focus:outline-none min-w-0"
+            />
+
+            {searchInputValue && (
+              <button
+                type="button"
+                onClick={() => setSearchInputValue('')}
+                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition shrink-0"
+                title="Clear input"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+
+            <button
+              type="submit"
+              className="px-3.5 sm:px-5 py-1.5 sm:py-2 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs sm:text-sm font-bold rounded-xl transition shadow-xs cursor-pointer shrink-0"
+            >
+              Search
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(false)}
+              className="p-1.5 sm:p-2 rounded-xl text-[#5C5148] hover:text-[#2B2521] hover:bg-black/5 transition cursor-pointer shrink-0"
+              title="Close search (Esc)"
+              aria-label="Close search"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          </form>
+        </div>
+      ) : (
       <div className="max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-10 xl:px-12">
         <div className="flex items-center justify-between">
           
           {/* Logo & Brand Name */}
-          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group min-w-0 pr-2">
+          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group min-w-0 pr-1 sm:pr-2">
             <ResponsiveImage 
               src="/images/logo-1.png" 
               alt="JADMAA Varmakalai Logo" 
@@ -243,9 +339,9 @@ export const Navbar: React.FC = () => {
               width={48}
               height={48}
               aspectRatio="1/1"
-              className="h-[42px] sm:h-12 w-auto object-contain shrink-0"
+              className="h-[40px] sm:h-12 w-auto object-contain shrink-0"
             />
-            <span className="font-heading font-semibold text-[13px] sm:text-[18px] text-[#2B2521] tracking-[0.5px] leading-[1.3125rem] truncate">
+            <span className="font-heading font-bold text-[17px] min-[360px]:text-[18px] sm:text-[20px] text-[#2B2521] tracking-tight sm:tracking-[0.5px] leading-tight truncate">
               JADMAA <span className="text-[#B12B2B]">VARMAKALAI</span>
             </span>
           </Link>
@@ -271,204 +367,269 @@ export const Navbar: React.FC = () => {
               );
             })}
 
-            {/* Auth / Profile Links */}
-            {isLoggedIn ? (
-              <div ref={profileRef} className="relative ml-2">
-                <button
-                  onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center space-x-1.5 font-body text-[15px] font-medium text-[#2B2521] hover:text-[#B12B2B] transition px-3 py-2"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Profile</span>
-                  <ChevronDown className="w-4 h-4" />
-                </button>
-                
-                {profileOpen && (
-                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-4 z-50 animate-fade-in">
-                    <div className="mb-3 pb-3 border-b border-gray-100">
-                      <p className="text-sm font-bold text-gray-800 truncate">{user?.name}</p>
-                      <p className="text-xs text-gray-500 truncate">{user?.email}</p>
-                      <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-xs font-bold text-gray-600 rounded">
-                        {user?.role}
-                      </span>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <Link
-                        to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/student"}
-                        onClick={() => setProfileOpen(false)}
-                        className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
-                      >
-                        <LayoutDashboard className="w-4 h-4" />
-                        <span>Dashboard</span>
-                      </Link>
+            {/* Action Icons Trio: Search | User Account | Shopping Bag */}
+            <div className="flex items-center space-x-1 lg:space-x-1.5 ml-2">
+              {/* 1. Search Icon Button */}
+              <button
+                onClick={handleOpenSearch}
+                className="p-1.5 lg:p-2 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
+                title="Search academy, courses, products"
+                aria-label="Open search bar"
+              >
+                <Search className="w-5 h-5 stroke-[1.75]" />
+              </button>
 
-                      {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") ? (
-                        <button
-                          onClick={() => {
-                            setProfileOpen(false);
-                            setEditPromptOpen(true);
-                          }}
-                          className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
-                        >
-                          <SettingsIcon className="w-4 h-4" />
-                          <span>Edit Website</span>
-                        </button>
-                      ) : (
+              {/* 2. User Account / Profile Icon */}
+              {isLoggedIn ? (
+                <div ref={profileRef} className="relative">
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="p-1.5 lg:p-2 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
+                    title={user?.name ? `Account: ${user.name}` : "User Account"}
+                    aria-label="User Account"
+                  >
+                    <User className="w-5 h-5 stroke-[1.75]" />
+                  </button>
+                  
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 p-4 z-50 animate-fade-in text-left">
+                      <div className="mb-3 pb-3 border-b border-gray-100">
+                        <p className="text-sm font-bold text-gray-800 truncate">{user?.name}</p>
+                        <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+                        <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-xs font-bold text-gray-600 rounded">
+                          {user?.role}
+                        </span>
+                      </div>
+                      
+                      <div className="space-y-1">
                         <Link
-                          to={user?.role === "INSTRUCTOR" ? "/instructor#settings" : "/student#settings"}
+                          to={getAuthenticatedDashboardRoute()}
                           onClick={() => setProfileOpen(false)}
                           className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
                         >
-                          <SettingsIcon className="w-4 h-4" />
-                          <span>Edit Profile</span>
+                          <LayoutDashboard className="w-4 h-4 stroke-[1.75]" />
+                          <span>Dashboard</span>
                         </Link>
-                      )}
-                      <button
-                        onClick={() => {
-                          setProfileOpen(false);
-                          logout();
-                        }}
-                        className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        <span>Logout</span>
-                      </button>
+
+                        {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") ? (
+                          <button
+                            onClick={() => {
+                              setProfileOpen(false);
+                              setEditPromptOpen(true);
+                            }}
+                            className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
+                          >
+                            <SettingsIcon className="w-4 h-4 stroke-[1.75]" />
+                            <span>Edit Website</span>
+                          </button>
+                        ) : (
+                          <Link
+                            to="/student/settings"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
+                          >
+                            <SettingsIcon className="w-4 h-4 stroke-[1.75]" />
+                            <span>Edit Profile</span>
+                          </Link>
+                        )}
+                        <button
+                          onClick={() => {
+                            setProfileOpen(false);
+                            logout();
+                          }}
+                          className="flex items-center space-x-2 w-full px-2 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-jadmaa-red rounded-lg transition"
+                        >
+                          <LogOut className="w-4 h-4 stroke-[1.75]" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center ml-3">
+                  )}
+                </div>
+              ) : (
                 <Link
                   to="/login"
-                  className="px-4 py-2 text-[14px] font-semibold text-white bg-[#B12B2B] hover:bg-[#8F2020] rounded-lg transition-colors tracking-wide"
+                  className="p-1.5 lg:p-2 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
+                  title="Sign In / Register"
+                  aria-label="Login"
                 >
-                  Login / Register
+                  <User className="w-5 h-5 stroke-[1.75]" />
                 </Link>
-              </div>
-            )}
+              )}
 
-            {/* Cart Button (Disabled for Admins) */}
-            {!isAdmin && (
-              <button
-                onClick={openCart}
-                className="relative p-2 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center ml-2"
-                title="Shopping Cart"
-                aria-label="Shopping Cart"
+              {/* 3. Shopping Bag Icon */}
+              <Link
+                to="/cart"
+                onClick={(e) => {
+                  if (openCart) {
+                    e.preventDefault();
+                    openCart();
+                  }
+                }}
+                className="relative p-1.5 lg:p-2 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
+                title="Shopping Bag"
+                aria-label="Shopping Bag"
               >
-                <ShoppingBag className="w-5 h-5" />
+                <ShoppingBag className="w-5 h-5 stroke-[1.75]" />
                 {totalItems > 0 && (
                   <span className="absolute -top-1 -right-1 bg-[#B12B2B] text-white text-[10px] font-extrabold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center shadow-sm">
                     {totalItems}
                   </span>
                 )}
-              </button>
-            )}
+              </Link>
+            </div>
           </nav>
 
-          {/* Mobile Actions: Cart + Login + Hamburger */}
-          <div className="flex items-center space-x-2 md:hidden shrink-0">
-            {!isAdmin && (
-              <button
-                onClick={openCart}
-                className="relative p-1.5 text-[#2B2521] hover:text-[#B12B2B] transition-colors cursor-pointer"
-                title="Shopping Cart"
-                aria-label="Shopping Cart"
-              >
-                <ShoppingBag className="w-5 h-5" />
-                {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#B12B2B] text-white text-[10px] font-extrabold min-w-[16px] h-[16px] px-0.5 rounded-full flex items-center justify-center">
-                    {totalItems}
-                  </span>
-                )}
-              </button>
-            )}
-            {isLoggedIn ? (
-              <Link
-                to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/student"}
-                className="px-3 py-1.5 text-[14px] font-semibold text-white bg-[#B12B2B] hover:bg-[#8F2020] rounded-lg transition-colors"
-              >
-                Profile
-              </Link>
-            ) : (
-              <Link
-                to="/login"
-                className="px-3 py-1.5 text-[14px] font-semibold text-white bg-[#B12B2B] hover:bg-[#8F2020] rounded-lg transition-colors leading-none inline-flex items-center justify-center"
-              >
-                Login
-              </Link>
-            )}
+          {/* Mobile Actions: Search + User + Shopping Bag + Hamburger */}
+          <div className="flex items-center space-x-0.5 min-[360px]:space-x-1 sm:space-x-1.5 md:hidden shrink-0">
+            {/* Mobile Search Button */}
+            <button
+              onClick={handleOpenSearch}
+              className="p-1.5 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
+              title="Search"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5 stroke-[1.75]" />
+            </button>
+
+            {/* Mobile User Profile Button */}
+            <Link
+              to={isLoggedIn ? getAuthenticatedDashboardRoute() : '/login'}
+              className="p-1.5 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
+              title={isLoggedIn ? "Dashboard" : "Login"}
+              aria-label="Account"
+            >
+              <User className="w-5 h-5 stroke-[1.75]" />
+            </Link>
+
+            {/* Mobile Shopping Bag Button */}
+            <Link
+              to="/cart"
+              onClick={(e) => {
+                if (openCart) {
+                  e.preventDefault();
+                  openCart();
+                }
+              }}
+              className="relative p-1.5 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
+              title="Shopping Bag"
+              aria-label="Shopping Bag"
+            >
+              <ShoppingBag className="w-5 h-5 stroke-[1.75]" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-[#B12B2B] text-white text-[10px] font-extrabold min-w-[16px] h-[16px] px-0.5 rounded-full flex items-center justify-center shadow-sm">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+
+            {/* Hamburger Toggle Button */}
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-1.5 rounded-lg text-[#2B2521] hover:text-[#B12B2B] flex items-center justify-center transition-colors"
+              className="p-2 min-h-[44px] min-w-[44px] rounded-lg text-[#2B2521] hover:text-[#B12B2B] flex items-center justify-center transition-colors cursor-pointer"
               aria-label="Toggle Menu"
             >
-              {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {isOpen ? <X className="w-6 h-6 stroke-[1.75]" /> : <Menu className="w-6 h-6 stroke-[1.75]" />}
             </button>
           </div>
 
         </div>
       </div>
+      )}
 
-      {/* Mobile Drawer */}
+      {/* Mobile Slide-Over Drawer with Darkened Backdrop */}
       {isOpen && (
-        <div className="md:hidden bg-[#FAF6F0] border-t border-[#E8DDD0] shadow-xl px-4 py-4 space-y-2 text-left animate-drawer">
-          {currentNavItems.map((item) => (
-            <Link
-              key={item.id}
-              to={item.href}
-              onClick={() => setIsOpen(false)}
-              className="block px-3 py-2 text-sm font-semibold text-[#5C5148] hover:text-[#B12B2B]"
-            >
-              {item.label}
-            </Link>
-          ))}
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-fade-in"
+            onClick={() => setIsOpen(false)}
+            aria-hidden="true"
+          />
 
-          <div className="pt-3 border-t border-[#E8DDD0] space-y-2">
-            {isLoggedIn ? (
-              <>
+          {/* Drawer Body */}
+          <div className="fixed top-0 bottom-0 right-0 w-[84vw] max-w-xs bg-[#FAF6F0] shadow-2xl z-50 flex flex-col overflow-y-auto max-h-[100dvh] pb-safe animate-drawer text-left">
+            {/* Drawer Header */}
+            <div className="h-16 px-5 border-b border-[#E8DDD0] flex items-center justify-between bg-white shrink-0">
+              <span className="font-heading font-extrabold text-base text-[#2B2521] tracking-wide">
+                JADMAA Academy
+              </span>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-2 min-h-[44px] min-w-[44px] text-[#5C5148] hover:text-[#B12B2B] rounded-lg flex items-center justify-center cursor-pointer"
+                aria-label="Close menu"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
+              {currentNavItems.map((item) => (
                 <Link
-                  to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "/admin" : user?.role === "INSTRUCTOR" ? "/instructor" : "/student"}
+                  key={item.id}
+                  to={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="block w-full text-center py-2 bg-[#B12B2B] text-white text-sm font-bold rounded"
+                  className="flex items-center min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#2B2521] hover:bg-white/80 hover:text-[#B12B2B] transition"
                 >
-                  My Profile
+                  {item.label}
                 </Link>
+              ))}
+            </div>
 
-                {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
+            {/* Quick Actions & Auth Footer */}
+            <div className="p-4 border-t border-[#E8DDD0] bg-white space-y-2 shrink-0">
+              {isLoggedIn ? (
+                <>
+                  <Link
+                    to={getAuthenticatedDashboardRoute()}
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center min-h-[44px] w-full py-2.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-sm font-bold rounded-xl transition shadow-xs"
+                  >
+                    Go to Portal Dashboard
+                  </Link>
+
+                  {(user?.role === "ADMIN" || user?.role === "SUPER_ADMIN") && (
+                    <button
+                      onClick={() => {
+                        setIsOpen(false);
+                        setEditPromptOpen(true);
+                      }}
+                      className="flex items-center justify-center gap-2 min-h-[44px] w-full py-2 border border-[#B12B2B] text-[#B12B2B] hover:bg-[#B12B2B]/5 text-sm font-bold rounded-xl transition cursor-pointer"
+                    >
+                      <SettingsIcon className="w-4 h-4" />
+                      <span>Edit Website</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setIsOpen(false);
-                      setEditPromptOpen(true);
+                      logout();
                     }}
-                    className="flex items-center justify-center space-x-2 w-full py-2 border border-[#B12B2B] text-[#B12B2B] hover:bg-[#B12B2B]/5 text-sm font-bold rounded transition"
+                    className="flex items-center justify-center min-h-[44px] w-full py-2 text-xs font-bold text-[#5C5148] hover:text-[#B12B2B] transition cursor-pointer"
                   >
-                    <SettingsIcon className="w-4 h-4" />
-                    <span>Edit Website</span>
+                    Sign Out ({user?.name || 'Account'})
                   </button>
-                )}
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    logout();
-                  }}
-                  className="block w-full text-center py-2 text-sm font-bold text-[#5C5148] hover:text-[#B12B2B]"
-                >
-                  Logout
-                </button>
-              </>
-            ) : (
-              <div className="flex space-x-2">
-                <Link
-                  to="/login"
-                  onClick={() => setIsOpen(false)}
-                  className="w-full text-center py-2 bg-[#B12B2B] text-white text-sm font-bold rounded"
-                >
-                  Login / Register
-                </Link>
-              </div>
-            )}
+                </>
+              ) : (
+                <div className="space-y-2">
+                  <Link
+                    to="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center min-h-[44px] w-full py-2.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-sm font-bold rounded-xl transition shadow-xs"
+                  >
+                    Login / Register
+                  </Link>
+                  <Link
+                    to="/contact"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center min-h-[44px] w-full py-2 text-xs font-bold text-[#5C5148] hover:text-[#B12B2B] transition"
+                  >
+                    Need Help? Contact Support
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

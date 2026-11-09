@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
-import { Save, Loader, Globe, Image as ImageIcon, AlignLeft, Type, Link as LinkIcon, ToggleLeft, Layout } from 'lucide-react';
+import { Save, Loader, Globe, Image as ImageIcon, AlignLeft, Type, Link as LinkIcon, ToggleLeft, Layout, Sparkles, ExternalLink, X } from 'lucide-react';
 import { defaultCmsContent } from '../../lib/cms/defaultContent';
 import { ImageUpload } from '../../components/common/ImageUpload';
 
@@ -29,6 +29,19 @@ export const SettingsEditor: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('header');
+  const [editPromptOpen, setEditPromptOpen] = useState(false);
+  const [editPromptText, setEditPromptText] = useState('');
+
+  const handleEditWebsiteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editPromptText.toLowerCase() === 'edit website') {
+      setEditPromptOpen(false);
+      sessionStorage.setItem('jadmaa_edit_mode', 'true');
+      window.location.href = '/?edit=true';
+    } else {
+      alert('Incorrect confirmation text. Please type "edit website".');
+    }
+  };
 
   const cmsSchema: CmsTab[] = [
     {
@@ -273,9 +286,28 @@ export const SettingsEditor: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-heading font-extrabold text-gray-900">Website Content Editor</h2>
-        <p className="text-sm text-gray-500 mt-1">Manage public website content, headings, and visibility. These changes apply immediately to the public marketing site.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-2xs">
+        <div>
+          <span className="text-xs font-bold text-jadmaa-red uppercase tracking-wider">CMS & Visual Editing</span>
+          <h2 className="text-2xl font-heading font-extrabold text-gray-900 mt-0.5">Edit Website & CMS Settings</h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-1 max-w-xl">
+            Update site content, header navigation, hero banners, and footers directly, or launch the interactive live visual editor.
+          </p>
+        </div>
+
+        {/* Advanced Edit Website Button */}
+        <button
+          onClick={() => {
+            setEditPromptText('');
+            setEditPromptOpen(true);
+          }}
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-jadmaa-red to-[#8C1E1E] hover:from-[#8C1E1E] hover:to-[#6E1717] text-white text-xs sm:text-sm font-bold rounded-xl shadow-sm hover:shadow transition transform hover:scale-[1.02] cursor-pointer shrink-0"
+          title="Launch Live Visual In-Place Editor on the public site"
+        >
+          <Sparkles className="w-4 h-4 text-amber-300" />
+          <span>Launch Live Visual Edit</span>
+          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+        </button>
       </div>
       
       <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -339,8 +371,7 @@ export const SettingsEditor: React.FC = () => {
                             <ImageUpload
                               value={settings[field.key] || ''}
                               onChange={(url) => setSettings({ ...settings, [field.key]: url })}
-                              placeholder="https://example.com/image.jpg"
-                              helperText="Upload image from your device or paste an image URL"
+                              helperText="Upload image from your device or drag and drop for PC"
                             />
                           ) : field.type === 'textarea' ? (
                             <textarea
@@ -378,6 +409,67 @@ export const SettingsEditor: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Advanced Edit Website Confirmation Modal */}
+      {editPromptOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-2xl relative text-left border border-gray-100">
+            <button
+              onClick={() => setEditPromptOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 rounded-xl bg-red-50 text-jadmaa-red flex items-center justify-center shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-heading font-bold text-gray-900 leading-tight">Enable Live Visual Editor</h3>
+                <span className="text-[10px] font-bold text-jadmaa-red uppercase tracking-wider">Advanced Edit Mode</span>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-gray-600 mb-4 leading-relaxed">
+              This will launch the public website in <strong>Interactive Edit Mode</strong>. You will be able to click directly on any text across the website and edit it live in place with an active top toolbar.
+            </p>
+
+            <form onSubmit={handleEditWebsiteSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Type <span className="font-mono bg-red-50 text-jadmaa-red px-1.5 py-0.5 rounded border border-red-200">edit website</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  value={editPromptText}
+                  onChange={(e) => setEditPromptText(e.target.value)}
+                  className="w-full px-3.5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:border-jadmaa-red focus:ring-2 focus:ring-jadmaa-red/20 text-xs sm:text-sm"
+                  placeholder="edit website"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setEditPromptOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-semibold transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editPromptText.toLowerCase() !== 'edit website'}
+                  className="px-5 py-2 bg-jadmaa-red hover:bg-[#8C1E1E] text-white text-xs font-bold rounded-xl transition shadow-sm disabled:opacity-40 cursor-pointer"
+                >
+                  Enter Visual Edit Mode
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

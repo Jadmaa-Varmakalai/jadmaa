@@ -5,7 +5,8 @@ import { authApi } from '../lib/api/authApi';
 interface AuthContextType {
   user: User | null;
   isLoggedIn: boolean;
-  login: (email: string, password?: string) => Promise<User>;
+  login: (email: string, password?: string) => Promise<any>;
+  verifySessionOtp: (email: string, otp: string) => Promise<User>;
   register: (name: string, email: string, phone: string, password?: string, extraOptions?: any) => Promise<User>;
   logout: () => Promise<void>;
   loading: boolean;
@@ -65,6 +66,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = async (email: string, password?: string) => {
     try {
       const res = await authApi.login({ email, password: password || 'defaultpass123' });
+      if (res.requireOtp) {
+        return { requireOtp: true, email: res.email || email, message: res.message };
+      }
       if (res.success && res.data) {
         localStorage.setItem('jadmaa_token', res.data.token);
         if (res.data.refreshToken) {
@@ -83,7 +87,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(res.error?.message || 'Login failed');
       }
     } catch (err: any) {
-      
+      throw err;
+    }
+  };
+
+  const verifySessionOtp = async (email: string, otp: string) => {
+    try {
+      const res = await authApi.verifySessionOtp({ email, otp });
+      if (res.success && res.data) {
+        localStorage.setItem('jadmaa_token', res.data.token);
+        if (res.data.refreshToken) {
+          localStorage.setItem('jadmaa_refresh_token', res.data.refreshToken);
+        }
+        const loggedInUser = res.data.user;
+        try {
+          localStorage.setItem('jadmaa_user', JSON.stringify(loggedInUser));
+        } catch (_) {}
+        setUser(loggedInUser);
+        return loggedInUser;
+      } else {
+        throw new Error(res.error?.message || 'Verification failed');
+      }
+    } catch (err: any) {
       throw err;
     }
   };
@@ -126,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: !!user, login, verifySessionOtp, register, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );

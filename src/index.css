@@ -19,6 +19,7 @@
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
   }
   body {
     font-family: 'Poppins', sans-serif;
@@ -29,7 +30,7 @@
     background-color: #FAF6F0;
     margin: 0;
     padding: 0;
-    overflow-x: clip;
+    overflow-x: hidden;
     letter-spacing: -0.01em;
   }
   p {
@@ -70,6 +71,31 @@
   }
   input, textarea, select {
     transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+}
+
+/* Safe area padding utilities for mobile notch / home indicator */
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+}
+.pt-safe {
+  padding-top: max(8px, env(safe-area-inset-top, 8px));
+}
+.mb-safe {
+  margin-bottom: max(12px, env(safe-area-inset-bottom, 12px));
+}
+
+/* Ensure inputs on mobile have min 16px font to prevent iOS Safari auto-zooming */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }
 
@@ -362,20 +388,18 @@ html {
   animation: progressFill 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* 2. Silky Page Route Cross-Dissolve */
+/* 2. Silky Page Route Cross-Dissolve (Opacity only to prevent transform containing block traps) */
 @keyframes routeCrossFade {
   0% {
-    opacity: 0.88;
-    transform: translateY(3px);
+    opacity: 0.92;
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
 .route-fade {
-  animation: routeCrossFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: routeCrossFade 0.15s ease-out both;
 }
 
 /* 3. Tactile Card Hover & Smooth Elevation */
@@ -728,3 +752,25 @@ a[role="button"]:active {
 .jadmaa-article-content a:hover {
   color: #8F2020;
 }
+
+/* Smooth Slide-Down Search Overlay Keyframes */
+@keyframes searchSlideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  60% {
+    opacity: 0.85;
+    transform: translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-search-slide-down {
+  animation: searchSlideDown 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+

@@ -41,6 +41,14 @@ export const adminApi = {
     method: 'POST',
     body: JSON.stringify({ userId })
   }),
+  updateInstructorCommission: (id: string, commissionRate: number) => fetchApi(`/admin/instructors/${id}/commission`, {
+    method: 'PATCH',
+    body: JSON.stringify({ commissionRate })
+  }),
+  getInstructorFinancials: (id: string) => fetchApi(`/admin/instructors/${id}/financials`),
+  removeInstructor: (id: string) => fetchApi(`/admin/instructors/${id}`, {
+    method: 'DELETE'
+  }),
   
   // Courses
   getCourses: (params = {}) => {

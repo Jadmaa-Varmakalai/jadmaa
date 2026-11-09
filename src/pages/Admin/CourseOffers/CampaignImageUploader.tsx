@@ -82,8 +82,6 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
   const [uploadProgress, setUploadProgress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
-  const [showUrlInput, setShowUrlInput] = useState(false);
-  const [manualUrl, setManualUrl] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -188,14 +186,6 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-  };
-
-  const handleManualUrlApply = () => {
-    if (!manualUrl.trim()) return;
-    onChange(manualUrl.trim());
-    setManualUrl('');
-    setShowUrlInput(false);
-    setError(null);
   };
 
   // Determine container aspect ratio class
@@ -341,7 +331,7 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
               </div>
               <div>
                 <p className="text-xs font-bold text-gray-800">
-                  <span className="text-red-700 hover:underline">Click to browse 16:9 photo</span> or drag &amp; drop
+                  <span className="text-red-700 hover:underline">Upload from device</span> or drag &amp; drop for PC
                 </p>
                 <p className="text-[11px] text-gray-500 mt-0.5">
                   JPEG, PNG, WebP, AVIF up to 10MB
@@ -382,39 +372,9 @@ export const CampaignImageUploader: React.FC<CampaignImageUploaderProps> = ({
           <button
             type="button"
             onClick={() => setError(null)}
-            className="text-red-500 hover:text-red-800"
+            className="text-red-500 hover:text-red-800 cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      )}
-
-      {/* Manual URL toggle fallback */}
-      <div className="flex items-center justify-between pt-0.5">
-        <button
-          type="button"
-          onClick={() => setShowUrlInput(!showUrlInput)}
-          className="text-[11px] font-semibold text-gray-500 hover:text-gray-800 underline transition cursor-pointer"
-        >
-          {showUrlInput ? 'Hide manual URL input' : 'Or paste direct image URL'}
-        </button>
-      </div>
-
-      {showUrlInput && (
-        <div className="flex items-center gap-2 mt-1.5 p-2 rounded-lg bg-gray-100 border border-gray-200">
-          <input
-            type="text"
-            value={manualUrl}
-            onChange={(e) => setManualUrl(e.target.value)}
-            placeholder="https://... or /images/..."
-            className="flex-1 px-3 py-1.5 rounded-md bg-white border border-gray-300 text-xs font-mono focus:outline-none focus:border-red-600"
-          />
-          <button
-            type="button"
-            onClick={handleManualUrlApply}
-            className="px-3 py-1.5 rounded-md bg-gray-900 text-white font-bold text-xs hover:bg-black transition cursor-pointer"
-          >
-            Apply
           </button>
         </div>
       )}

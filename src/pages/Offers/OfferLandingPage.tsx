@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { offerApi } from '../../lib/api/offerApi';
 import type { PublicOfferDetails } from '../../lib/api/offerApi';
@@ -9,13 +9,18 @@ import {
   PremiumCampaignLandingPage,
   adaptOfferToCampaignData,
 } from '../../components/campaigns';
+import { CampaignHeroSection } from '../../components/offers/CampaignHeroSection';
+import { CampaignProofBar } from '../../components/offers/CampaignProofBar';
+import { CampaignClaimModal } from '../../components/offers/CampaignClaimModal';
 import {
   AlertTriangle, Check, Copy, X, Send,
-  BookOpen, ChevronDown, ChevronUp, Play
+  BookOpen, ChevronDown, ChevronUp, Play, Eye
 } from 'lucide-react';
 
 export const OfferLandingPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get('preview') === 'true';
   const navigate = useNavigate();
   const { user, isLoggedIn } = useAuth();
 
@@ -25,6 +30,7 @@ export const OfferLandingPage: React.FC = () => {
   const [, setPaymentStep] = useState<'IDLE' | 'PROCESSING' | 'VERIFYING' | 'SUCCESS' | 'FAILED'>('IDLE');
   const [copied, setCopied] = useState(false);
   const [openModuleIndex, setOpenModuleIndex] = useState<number | null>(0);
+  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
   // Enquiry / Registration Form modal state
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
@@ -44,7 +50,7 @@ export const OfferLandingPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await offerApi.getOfferBySlug(slug);
+        const res = await offerApi.getOfferBySlug(slug, isPreview);
         if (res.success && res.data) {
           setOffer(res.data);
           if (res.data.category === 'ONLINE_COURSE') {
@@ -62,7 +68,7 @@ export const OfferLandingPage: React.FC = () => {
       }
     };
     fetchOffer();
-  }, [slug]);
+  }, [slug, isPreview]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -306,20 +312,66 @@ export const OfferLandingPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Admin Preview Mode Banner */}
+        {isPreview && (
+          <div className="bg-[#1C1614] border-b border-amber-500/50 px-4 py-2.5 text-center text-amber-300 text-xs font-bold flex items-center justify-center gap-2 shadow-sm">
+            <Eye className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>Admin Preview Mode — Viewing dynamic template rendering for "{offer.title}". This page is active for administrative review.</span>
+          </div>
+        )}
+
         {/* Expired Campaign Announcement Bar */}
-        {isExpired && (
+        {isExpired && !isPreview && (
           <div className="bg-amber-100 border-b border-amber-300 px-4 py-2 text-center text-amber-900 text-xs font-bold flex items-center justify-center gap-2">
             <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
             <span>This promotional campaign has concluded. Special promotional registrations are now closed.</span>
           </div>
         )}
 
-        {/* MASTER REUSABLE PREMIUM CAMPAIGN LANDING PAGE */}
-        <PremiumCampaignLandingPage
-          campaign={campaignData}
-          onPrimaryAction={handlePrimaryAction}
-          onSecondaryAction={handleSecondaryAction}
-        />
+        {/* MASTER REUSABLE PREMIUM CAMPAIGN TEMPLATE (Dark Luxury Default or Classic Cream Fallback) */}
+        {(offer as any).theme === 'classic-cream' ? (
+          <PremiumCampaignLandingPage
+            campaign={campaignData}
+            onPrimaryAction={handlePrimaryAction}
+            onSecondaryAction={handleSecondaryAction}
+          />
+        ) : (
+          <>
+            <CampaignHeroSection
+              campaign={{
+                id: offer.id,
+                category: offer.category,
+                badgeText: (offer as any).eyebrow || (offer.category === 'VARMA_TREATMENT' ? 'SPECIAL TREATMENT OFFER' : 'LIMITED TIME OFFER'),
+                discountPercentage: (offer.discountPercent && offer.discountPercent > 0)
+                  ? offer.discountPercent
+                  : (offer.originalPrice && offer.offerPrice && offer.originalPrice > offer.offerPrice)
+                  ? Math.round(((offer.originalPrice - offer.offerPrice) / offer.originalPrice) * 100)
+                  : 0,
+                headline: (offer as any).headline || offer.title,
+                subheadline: offer.shortDescription || offer.description,
+                expiryDate: offer.expiresAt || undefined,
+                ctaText: offer.ctaText || (offer.category === 'VARMA_TREATMENT' ? 'Book Treatment Session' : 'Claim Offer Now'),
+                originalPrice: offer.originalPrice,
+                promotionalPrice: offer.offerPrice,
+                heroImage: campaignData.heroImage,
+                imageFit: (offer as any).imageFit || 'cover',
+                imagePosition: (offer as any).imagePosition || 'center',
+                themePreset: 'dark-luxury',
+              }}
+              onClaim={handlePrimaryAction}
+              onBrowseMore={handleSecondaryAction}
+            />
+
+            <CampaignProofBar
+              stats={{
+                bookingLimit: offer.bookingLimit,
+                currentBookings: offer.currentBookings,
+                category: offer.category,
+                benefits: offer.benefits,
+              }}
+            />
+          </>
+        )}
 
         {/* ONLINE COURSE CURRICULUM PREVIEW (Optional Accordion if tied to a course) */}
         {offer.category === 'ONLINE_COURSE' && offer.course && offer.course.modules && offer.course.modules.length > 0 && (
@@ -555,6 +607,22 @@ export const OfferLandingPage: React.FC = () => {
             </div>
           </div>
         )}
+        {/* Dynamic Dark Luxury Campaign Claim Modal */}
+        <CampaignClaimModal
+          isOpen={isClaimModalOpen}
+          onClose={() => setIsClaimModalOpen(false)}
+          couponCode={(offer as any).couponCode || (offer as any).targetAudience || 'VARMA50'}
+          discountText={campaignData.discountType === 'percentage' && campaignData.discountValue ? `${campaignData.discountValue}% OFF` : '50% OFF'}
+          headline={offer.title}
+          ctaText={offer.ctaText || 'Apply & Proceed to Checkout'}
+          isEnquiryOnly={offer.pricingType === 'ENQUIRY_ONLY' || offer.category !== 'ONLINE_COURSE'}
+          onProceedToCheckout={handleCourseBooking}
+          onSubmitEnquiry={async (data) => {
+            const res = await offerApi.submitOfferEnquiry(offer.slug, data);
+            if (!res.success) throw new Error(res.error?.message || 'Failed to submit registration');
+          }}
+          defaultBranch={enquiryBranch}
+        />
       </div>
     </>
   );

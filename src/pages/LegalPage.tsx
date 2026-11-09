@@ -22,7 +22,7 @@ export const LegalPage: React.FC = () => {
 
   const descriptions = {
     privacy: 'Learn how JADMAA Varmakalai collects, protects, and manages your personal information.',
-    terms: 'Review terms of service, enrollment policies, and usage conditions for JADMAA LMS and Academy programs.',
+    terms: 'Review terms of service, enrollment policies, and usage conditions for JADMAA training and Academy programs.',
     refund: 'Understand the cancellation, refund, and fee policies for JADMAA courses and online training programs.',
   };
 
@@ -80,7 +80,7 @@ export const LegalPage: React.FC = () => {
                   <section className="space-y-3">
                     <h2 className="font-heading font-bold text-lg sm:text-xl text-[#2B2521]">2. How We Use Your Information</h2>
                     <p>
-                      We utilize your information solely to deliver your LMS course curriculum, manage certificate issuances, communicate class schedules, provide student support, and verify attendance at in-person training branches in Thanjavur, Kumbakonam, and Ariyalur. We do not sell or lease your personal information to third parties.
+                      We utilize your information solely to deliver your online course curriculum, manage certificate issuances, communicate class schedules, provide student support, and verify attendance at in-person training branches in Thanjavur, Kumbakonam, and Ariyalur. We do not sell or lease your personal information to third parties.
                     </p>
                   </section>
 
@@ -135,7 +135,7 @@ export const LegalPage: React.FC = () => {
               {type === 'refund' && (
                 <>
                   <section className="space-y-3">
-                    <h2 className="font-heading font-bold text-lg sm:text-xl text-[#2B2521]">1. Online Digital LMS Courses</h2>
+                    <h2 className="font-heading font-bold text-lg sm:text-xl text-[#2B2521]">1. Online Digital Courses</h2>
                     <p>
                       Due to the immediate access granted to proprietary recorded video lessons, digital course fees are non-refundable once enrollment has been unlocked and course content accessed. If you experience technical access issues, our support team will resolve them promptly.
                     </p>

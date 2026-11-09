@@ -2,28 +2,29 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { BlogPost } from '../../lib/api/blogApi';
 import { format } from 'date-fns';
-import { ResponsiveImage } from './ResponsiveImage';
 
 interface BlogCardProps {
   blog: BlogPost;
   isAdmin?: boolean;
+  priority?: boolean;
   onEdit?: (blog: BlogPost) => void;
   onDelete?: (blog: BlogPost) => void;
 }
 
 /**
- * BlogCard — Unified JADMAA LMS Blog Card Component.
+ * BlogCard — Unified JADMAA Blog Card Component.
  *
  * Upper visual section (Split 50/50):
  *   LEFT  (50%) — Cream-colored panel displaying the thumbnail
  *                 (object-fit: cover, clean cropping, zero distortion).
  *   RIGHT (50%) — Original white background containing:
- *                 1. Blog topic/title at the top (clean, readable, auto-wrapping)
+ *                 1. Blog title at the top (clean, readable, up to 50 characters, auto-wrapping)
  *                 2. Fixed JADMAA logo below (reduced ~20-25%, centered)
  *                 3. Fixed "JADMAA VARMAKALAI" branding beneath the logo
+ *                 4. Tagline "Ancient Power. Modern Training." below branding
  *
  * Lower content section:
- *   - Red blog title link
+ *   - Red blog title link (up to 50 chars)
  *   - Publication date & author
  *   - Short description / excerpt
  *   - "Read More →" link
@@ -42,8 +43,23 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
     }
   })();
 
-  const displayTitle = (blog.title || "").slice(0, 50);
-  const displayTopic = (blog.topic || displayTitle).slice(0, 50);
+  // Allow up to 50 characters for blog title safely
+  const rawTitle = (blog.title || '').trim();
+  const displayTitle = (() => {
+    if (rawTitle.length <= 50) return rawTitle;
+    if (typeof Intl !== 'undefined' && (Intl as any).Segmenter) {
+      try {
+        const segmenter = new (Intl as any).Segmenter('ta', { granularity: 'grapheme' });
+        const graphemes = Array.from(segmenter.segment(rawTitle), (s: any) => s.segment);
+        if (graphemes.length <= 50) return rawTitle;
+        return graphemes.slice(0, 50).join('').trim();
+      } catch (_) {
+        // Fallback if segmenter fails
+      }
+    }
+    return rawTitle.slice(0, 50).trim();
+  })();
+  const displayTopic = displayTitle;
 
   return (
     <article className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group relative">
@@ -55,43 +71,49 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDel
       >
         {/* LEFT — Thumbnail Artwork (Cream Background) */}
         <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
-          <ResponsiveImage
+          <img
             src={blog.thumbnailUrl || fallbackThumbnail}
             alt={blog.title}
-            width={300}
-            height={200}
-            aspectRatio="3/2"
-            sizes="(max-width: 640px) 50vw, 300px"
             className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
+            loading="lazy"
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              if (img.src !== fallbackThumbnail) {
+                img.src = fallbackThumbnail;
+              }
+            }}
           />
         </div>
 
-        {/* RIGHT — Blog Topic/Title at Top + Fixed Smaller Logo + Brand Text */}
-        <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3.5 py-3.5 sm:px-4 sm:py-4 text-center overflow-hidden border-l border-[#E8DDD0]">
-          {/* 1. Blog topic/title at the top */}
+        {/* RIGHT — Blog Title at Top + Fixed Logo + Brand Text + Tagline */}
+        <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3 py-3 sm:px-3.5 sm:py-3.5 text-center overflow-hidden border-l border-[#E8DDD0]">
+          {/* 1. Blog title at the top (allowed 50 chars, up to 3 lines) */}
           <div className="w-full flex items-start justify-center pt-0.5">
-            <p className="text-[#2B2521] text-[12px] sm:text-[13px] font-bold leading-[1.35] line-clamp-3 text-center">
+            <p className="text-[#2B2521] text-[12px] sm:text-[13px] font-bold leading-[1.3] line-clamp-3 text-center">
               {displayTopic}
             </p>
           </div>
 
-          {/* 2 & 3. Smaller fixed JADMAA logo (reduced 20-25%) + branding below */}
+          {/* 2 & 3. Smaller fixed JADMAA logo + branding + tagline below */}
           <div className="flex flex-col items-center justify-center my-auto pt-1 pb-0.5">
-            <ResponsiveImage
+            <img
               src={logoSrc}
               alt="JADMAA Varmakalai"
-              width={76}
-              height={76}
-              aspectRatio="1/1"
-              className="h-[68px] sm:h-[76px] w-auto max-w-[85%] object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-[52px] sm:h-[58px] w-auto max-w-[85%] object-contain transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
             />
             <div className="mt-1.5 text-center leading-none">
-              <span className="text-[#2B2521] text-[9.5px] sm:text-[10px] font-extrabold tracking-[0.14em] uppercase">
-                JADMAA{' '}
-              </span>
-              <span className="text-[#B12B2B] text-[9.5px] sm:text-[10px] font-bold tracking-[0.14em] uppercase">
-                VARMAKALAI
-              </span>
+              <div>
+                <span className="text-[#2B2521] text-[9.5px] sm:text-[10px] font-extrabold tracking-[0.14em] uppercase">
+                  JADMAA{' '}
+                </span>
+                <span className="text-[#B12B2B] text-[9.5px] sm:text-[10px] font-bold tracking-[0.14em] uppercase">
+                  VARMAKALAI
+                </span>
+              </div>
+              <p className="mt-1 text-[#5C5148] text-[7.5px] sm:text-[8px] font-semibold tracking-[0.06em] uppercase">
+                Ancient Power. Modern Training.
+              </p>
             </div>
           </div>
         </div>

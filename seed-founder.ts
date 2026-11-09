@@ -5,7 +5,7 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
-  const adminEmail = 'admin@jadmaa.com';
+  const adminEmail = 'info@jadmaa.com';
   let adminUser = await prisma.user.findUnique({ where: { email: adminEmail } });
   
   if (!adminUser) {

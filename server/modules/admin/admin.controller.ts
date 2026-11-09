@@ -188,13 +188,60 @@ export const getInstructors = async (req: Request, res: Response) => {
     const [items, total] = await Promise.all([
       prisma.instructor.findMany({
         where, skip, take: limit,
-        include: { user: { select: { email: true, name: true, isAdmin: true } } },
+        include: {
+          user: { select: { email: true, name: true, isAdmin: true, role: true } },
+          courses: {
+            select: {
+              id: true,
+              title: true,
+              price: true,
+              status: true,
+              payments: {
+                where: { status: 'SUCCESS' },
+                select: { amount: true }
+              }
+            }
+          }
+        },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.instructor.count({ where })
     ]);
 
-    res.json({ success: true, data: { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } } });
+    // Map items with commission deal and financial metrics
+    const enriched = items.map((inst: any) => {
+      let totalSales = 0;
+      let totalTransactions = 0;
+      inst.courses?.forEach((c: any) => {
+        c.payments?.forEach((p: any) => {
+          totalSales += p.amount || 0;
+          totalTransactions += 1;
+        });
+      });
+      const isPlatformAdmin = inst.user?.isAdmin || inst.user?.role === 'SUPER_ADMIN' || inst.user?.role === 'ADMIN' || inst.displayName?.toLowerCase().includes('bojagarajan');
+      const commRate = isPlatformAdmin ? 0 : (typeof inst.commissionRate === 'number' ? inst.commissionRate : 20.0);
+      const adminCommission = isPlatformAdmin ? 0 : (totalSales * commRate) / 100;
+      const instructorPayout = isPlatformAdmin ? totalSales : (totalSales - adminCommission);
+
+      const sanitizedUser = inst.user ? {
+        ...inst.user,
+        email: isPlatformAdmin ? null : inst.user.email
+      } : inst.user;
+
+      return {
+        ...inst,
+        user: sanitizedUser,
+        isPlatformAdmin,
+        commissionRate: commRate,
+        coursesCount: inst.courses?.length || 0,
+        totalTransactions,
+        totalSales,
+        adminCommission,
+        instructorPayout,
+      };
+    });
+
+    res.json({ success: true, data: { items: enriched, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
@@ -292,6 +339,186 @@ export const updateInstructorStatus = async (req: Request, res: Response) => {
 };
 
 /**
+ * Update the commission percentage deal for an instructor
+ */
+export const updateInstructorCommission = async (req: Request, res: Response) => {
+  try {
+    const instructorId = req.params.id as string;
+    const { commissionRate } = req.body;
+
+    const rate = Number(commissionRate);
+    if (isNaN(rate) || rate < 0 || rate > 100) {
+      return res.status(400).json({ success: false, error: { message: 'Commission percentage must be between 0 and 100' } });
+    }
+
+    const existingInstructor = await prisma.instructor.findUnique({
+      where: { id: instructorId },
+      include: { user: { select: { isAdmin: true, role: true } } }
+    });
+    if (!existingInstructor) {
+      return res.status(404).json({ success: false, error: { message: 'Instructor not found' } });
+    }
+    if (existingInstructor.user?.isAdmin || existingInstructor.user?.role === 'SUPER_ADMIN' || existingInstructor.user?.role === 'ADMIN') {
+      return res.status(400).json({ success: false, error: { message: 'Commission cannot be configured for Platform Admin/Owner.' } });
+    }
+
+    const instructor = await prisma.instructor.update({
+      where: { id: instructorId },
+      data: { commissionRate: rate },
+      include: { user: { select: { email: true, name: true } } }
+    });
+
+    await logAdminAction((req as any).user.id, 'UPDATE_INSTRUCTOR_COMMISSION', 'Instructor', instructor.id, { commissionRate: rate }, req);
+
+    res.json({ success: true, data: instructor, message: `Commission deal successfully set to ${rate}%.` });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+/**
+ * Get detailed courses & payment breakdown for an instructor (with Admin commission & Instructor payout)
+ */
+export const getInstructorFinancials = async (req: Request, res: Response) => {
+  try {
+    const instructorId = req.params.id as string;
+    const instructor = await prisma.instructor.findUnique({
+      where: { id: instructorId },
+      include: {
+        user: { select: { id: true, name: true, email: true, phone: true } },
+        courses: {
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+            price: true,
+            status: true,
+            thumbnailUrl: true,
+            createdAt: true,
+            payments: {
+              where: { status: 'SUCCESS' },
+              select: {
+                id: true,
+                amount: true,
+                status: true,
+                paidAt: true,
+                createdAt: true,
+                user: {
+                  select: { id: true, name: true, email: true }
+                }
+              },
+              orderBy: { createdAt: 'desc' }
+            }
+          }
+        }
+      }
+    });
+
+    if (!instructor) {
+      return res.status(404).json({ success: false, error: { message: 'Instructor not found' } });
+    }
+
+    const inst = instructor as any;
+    const isPlatformAdmin = inst.user?.isAdmin || inst.user?.role === 'SUPER_ADMIN' || inst.user?.role === 'ADMIN';
+    const commRate = isPlatformAdmin ? 0 : (typeof inst.commissionRate === 'number' ? inst.commissionRate : 20.0);
+    let totalGrossRevenue = 0;
+    let totalPaidEnrollees = 0;
+
+    const coursesFinancials = (inst.courses || []).map((course: any) => {
+      const courseSales = (course.payments || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      const adminCut = isPlatformAdmin ? 0 : (courseSales * commRate) / 100;
+      const instructorCut = isPlatformAdmin ? courseSales : (courseSales - adminCut);
+      totalGrossRevenue += courseSales;
+      totalPaidEnrollees += (course.payments || []).length;
+
+      return {
+        id: course.id,
+        title: course.title,
+        slug: course.slug,
+        truePrice: course.price,
+        status: course.status,
+        totalSales: courseSales,
+        paidStudentsCount: (course.payments || []).length,
+        commissionRate: commRate,
+        adminCommission: adminCut,
+        instructorPayout: instructorCut,
+        payments: course.payments
+      };
+    });
+
+    const totalAdminCommission = isPlatformAdmin ? 0 : (totalGrossRevenue * commRate) / 100;
+    const totalInstructorPayout = isPlatformAdmin ? totalGrossRevenue : (totalGrossRevenue - totalAdminCommission);
+
+    res.json({
+      success: true,
+      data: {
+        instructor: {
+          id: inst.id,
+          displayName: inst.displayName,
+          email: inst.user?.email,
+          phone: inst.user?.phone,
+          title: inst.title,
+          commissionRate: commRate,
+          isPlatformAdmin
+        },
+        summary: {
+          isPlatformAdmin,
+          totalCourses: (inst.courses || []).length,
+          totalPaidEnrollees,
+          totalGrossRevenue,
+          commissionRate: commRate,
+          totalAdminCommission,
+          totalInstructorPayout
+        },
+        courses: coursesFinancials
+      }
+    });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+/**
+ * Remove an instructor (demote back to student role)
+ */
+export const removeInstructor = async (req: Request, res: Response) => {
+  try {
+    const instructorId = req.params.id as string;
+    const instructor = await prisma.instructor.findUnique({
+      where: { id: instructorId },
+      include: { user: true }
+    });
+
+    if (!instructor) {
+      return res.status(404).json({ success: false, error: { message: 'Instructor not found' } });
+    }
+
+    if (instructor.user?.isAdmin || instructor.user?.role === 'SUPER_ADMIN') {
+      return res.status(403).json({ success: false, error: { message: 'Cannot demote an Admin or Super Admin account' } });
+    }
+
+    // Demote user role back to STUDENT
+    await prisma.user.update({
+      where: { id: instructor.userId },
+      data: { role: 'STUDENT' }
+    });
+
+    // Mark instructor record inactive
+    await prisma.instructor.update({
+      where: { id: instructorId },
+      data: { isActive: false }
+    });
+
+    invalidateUserCache(instructor.userId);
+    await logAdminAction((req as any).user.id, 'REMOVE_INSTRUCTOR', 'Instructor', instructor.id, { email: instructor.user.email }, req);
+
+    res.json({ success: true, message: `Successfully removed ${instructor.displayName} as instructor. User has returned to Student access.` });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
+  }
+};
+
+/**
  * List pending/processed instructor applications
  */
 export const getInstructorApplications = async (req: Request, res: Response) => {
@@ -303,13 +530,21 @@ export const getInstructorApplications = async (req: Request, res: Response) => 
       orderBy: { updatedAt: 'desc' }
     });
 
-    const applications = settings.map((s) => {
-      try {
-        return { key: s.key, ...JSON.parse(s.value) };
-      } catch (_) {
-        return { key: s.key, raw: s.value };
-      }
-    });
+    // In SQL LIKE queries, '_' is a single-character wildcard so 'instructor_app_%'
+    // can unintentionally match 'instructor_approved_notice_%'.
+    // Ensure exact JS prefix check and validate application schema.
+    const applications = settings
+      .filter((s) => s.key.startsWith('instructor_app_'))
+      .map((s) => {
+        try {
+          const parsed = JSON.parse(s.value);
+          if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return null;
+          return { key: s.key, ...parsed };
+        } catch (_) {
+          return null;
+        }
+      })
+      .filter((app): app is any => Boolean(app && app.userId && (app.name || app.email)));
 
     res.json({ success: true, data: applications });
   } catch (err: any) {

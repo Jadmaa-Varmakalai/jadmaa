@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { productApi } from '../../lib/api/productApi';
 import type { ProductCategory } from '../../lib/api/productApi';
 import { uploadApi } from '../../lib/api/uploadApi';
+import { ImageUpload } from '../../components/common/ImageUpload';
 import {
   Tag,
   Plus,
@@ -190,88 +191,149 @@ export const CategoryManager: React.FC = () => {
             <p className="text-xs text-gray-400 mt-1">Create your first product category to begin.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-gray-50/80 border-b border-gray-100 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
-                  <th className="py-3.5 px-4">Category</th>
-                  <th className="py-3.5 px-4">Slug</th>
-                  <th className="py-3.5 px-4">Description</th>
-                  <th className="py-3.5 px-4">Products Attached</th>
-                  <th className="py-3.5 px-4">Visibility</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {categories.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50/60 transition">
-                    <td className="py-3.5 px-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0">
-                          {c.image ? (
-                            <img src={c.image} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <Tag className="w-5 h-5 m-auto text-gray-300" />
-                          )}
-                        </div>
-                        <span className="font-bold text-gray-900">{c.name}</span>
+          <div>
+            {/* Mobile Stacked Cards (< 768px) */}
+            <div className="md:hidden divide-y divide-gray-100 p-3 space-y-3">
+              {categories.map((c) => (
+                <div key={c.id} className="bg-white rounded-2xl p-4 border border-[#E8DDD0] shadow-xs space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 overflow-hidden shrink-0">
+                        {c.image ? (
+                          <img src={c.image} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <Tag className="w-5 h-5 m-auto text-gray-300" />
+                        )}
                       </div>
-                    </td>
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-sm text-[#2B2521] truncate">{c.name}</h4>
+                        <span className="font-mono text-[10px] text-gray-400">/{c.slug}</span>
+                      </div>
+                    </div>
+                    <span
+                      className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                        c.isActive
+                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          : 'bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      {c.isActive ? 'Visible' : 'Hidden'}
+                    </span>
+                  </div>
 
-                    <td className="py-3.5 px-4 font-mono text-gray-500">/{c.slug}</td>
+                  <p className="text-xs text-[#5C5148] line-clamp-2">
+                    {c.description || 'No description provided.'}
+                  </p>
 
-                    <td className="py-3.5 px-4 text-gray-600 max-w-xs truncate">
-                      {c.description || '—'}
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span className="bg-gray-100 text-gray-700 font-bold px-2 py-0.5 rounded-full text-[11px]">
-                        {c._count?.products || 0} product(s)
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                          c.isActive
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : 'bg-gray-100 text-gray-500'
-                        }`}
+                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <span className="bg-gray-100 text-gray-700 font-bold px-2 py-0.5 rounded-full text-[11px]">
+                      {c._count?.products || 0} product(s)
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openEditModal(c)}
+                        className="px-3 py-1.5 min-h-[44px] text-xs font-bold text-[#2B2521] hover:text-[#B12B2B] bg-gray-50 hover:bg-gray-100 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
                       >
-                        {c.isActive ? 'Visible' : 'Hidden'}
-                      </span>
-                    </td>
+                        <Edit2 className="w-3.5 h-3.5" />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(c)}
+                        className="px-3 py-1.5 min-h-[44px] text-xs font-bold text-red-600 bg-red-50/60 hover:bg-red-100 rounded-xl transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => openEditModal(c)}
-                          className="p-1.5 text-gray-500 hover:text-jadmaa-red hover:bg-gray-100 rounded-lg transition cursor-pointer"
-                          title="Edit Category"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCategory(c)}
-                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
-                          title="Delete Category"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </td>
+            {/* Desktop Table (>= 768px) */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="bg-gray-50/80 border-b border-gray-100 text-gray-500 font-bold uppercase tracking-wider text-[10px]">
+                    <th className="py-3.5 px-4">Category</th>
+                    <th className="py-3.5 px-4">Slug</th>
+                    <th className="py-3.5 px-4">Description</th>
+                    <th className="py-3.5 px-4">Products Attached</th>
+                    <th className="py-3.5 px-4">Visibility</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {categories.map((c) => (
+                    <tr key={c.id} className="hover:bg-gray-50/60 transition">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0">
+                            {c.image ? (
+                              <img src={c.image} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Tag className="w-5 h-5 m-auto text-gray-300" />
+                            )}
+                          </div>
+                          <span className="font-bold text-gray-900">{c.name}</span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 font-mono text-gray-500">/{c.slug}</td>
+
+                      <td className="py-3.5 px-4 text-gray-600 max-w-xs truncate">
+                        {c.description || '—'}
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span className="bg-gray-100 text-gray-700 font-bold px-2 py-0.5 rounded-full text-[11px]">
+                          {c._count?.products || 0} product(s)
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            c.isActive
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-gray-100 text-gray-500'
+                          }`}
+                        >
+                          {c.isActive ? 'Visible' : 'Hidden'}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => openEditModal(c)}
+                            className="p-1.5 text-gray-500 hover:text-jadmaa-red hover:bg-gray-100 rounded-lg transition cursor-pointer"
+                            title="Edit Category"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(c)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition cursor-pointer"
+                            title="Delete Category"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>
 
       {/* Add / Edit Category Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl shadow-xl border border-gray-100 w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-t-3xl sm:rounded-3xl shadow-xl border border-gray-100 w-full max-w-md overflow-hidden max-h-[92dvh] sm:max-h-[90vh] flex flex-col">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-jadmaa-cream/50">
               <h3 className="font-heading font-extrabold text-base text-gray-900">
                 {editingCategory ? 'Edit Category' : 'Add New Category'}
@@ -336,32 +398,13 @@ export const CategoryManager: React.FC = () => {
               </div>
 
               <div>
-                <label className="block font-bold text-gray-700 mb-1">Category Image</label>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={image}
-                    onChange={(e) => setImage(e.target.value)}
-                    placeholder="Image URL (https://...)"
-                    className="flex-1 p-2 bg-gray-50 border border-gray-200 rounded-xl text-xs"
-                  />
-                  <label className="px-3 py-2 bg-jadmaa-cream hover:bg-amber-100/70 border border-amber-200 text-amber-900 font-bold rounded-xl cursor-pointer flex items-center gap-1">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>{uploadingImage ? '...' : 'Upload'}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageFileUpload}
-                      className="hidden"
-                      disabled={uploadingImage}
-                    />
-                  </label>
-                </div>
-                {image && (
-                  <div className="mt-2 w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
-                    <img src={image} alt="preview" className="w-full h-full object-cover" />
-                  </div>
-                )}
+                <ImageUpload
+                  label="Category Image"
+                  value={image}
+                  onChange={(url) => setImage(url)}
+                  aspectRatio="square"
+                  helperText="Upload a square icon or photo for this category (device or drag & drop)."
+                />
               </div>
 
               <div className="flex items-center gap-2 pt-1">

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { orderApi } from '../../lib/api/orderApi';
 import type { Order } from '../../lib/api/orderApi';
+import { productApi } from '../../lib/api/productApi';
 import { Link } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -10,8 +11,9 @@ import {
   Truck,
   XCircle,
   MapPin,
-  ExternalLink,
   ArrowRight,
+  Download,
+  BookOpen,
 } from 'lucide-react';
 
 export const StudentOrders: React.FC = () => {
@@ -172,16 +174,39 @@ export const StudentOrders: React.FC = () => {
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-gray-900 truncate">{item.productName}</p>
-                      <p className="text-[11px] text-gray-400 font-mono">SKU: {item.sku}</p>
+                      <p className="font-bold text-gray-900 truncate flex items-center gap-1.5">
+                        <span>{item.productName}</span>
+                        {item.product?.isDigital && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-200">
+                            <BookOpen className="w-2.5 h-2.5" />
+                            <span>eBook (.{item.product.fileType || 'RAR'})</span>
+                          </span>
+                        )}
+                      </p>
+                      <p className="text-[11px] text-gray-400 font-mono">
+                        {item.product?.fileName || `SKU: ${item.sku}`} {item.product?.fileSize ? `• ${item.product.fileSize}` : ''}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="text-right flex-shrink-0">
-                    <span className="font-bold text-gray-900">₹{item.lineTotal.toLocaleString('en-IN')}</span>
-                    <span className="text-[10px] text-gray-400 block">
-                      ₹{item.unitPrice} × {item.quantity}
-                    </span>
+                  <div className="flex items-center gap-3 flex-shrink-0">
+                    {item.product?.isDigital && (order.paymentStatus === 'SUCCESS' || order.orderStatus === 'CONFIRMED') && (
+                      <a
+                        href={productApi.getDownloadUrl(item.product.id)}
+                        download={item.product.fileName || 'Rare_Siddhar_Varma_20_Books_Collection.rar'}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+                        title="Download eBook"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download</span>
+                      </a>
+                    )}
+                    <div className="text-right flex-shrink-0">
+                      <span className="font-bold text-gray-900">₹{item.lineTotal.toLocaleString('en-IN')}</span>
+                      <span className="text-[10px] text-gray-400 block">
+                        ₹{item.unitPrice} × {item.quantity}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Phone, Mail, ChevronUp } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
+import { ResponsiveImage } from '../common/ResponsiveImage';
 
 export const Footer: React.FC = () => {
   const { settings } = useSettings();

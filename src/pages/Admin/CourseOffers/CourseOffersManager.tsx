@@ -6,8 +6,8 @@ import { OfferBookingsTable } from './OfferBookingsTable';
 import { PopupSettingsModal } from './PopupSettingsModal';
 import {
   Sparkles, Plus, Copy, Check, ExternalLink, Edit3, Trash2,
-  CopyPlus, Settings, Clock, Tag, TrendingUp, Users, CheckCircle,
-  AlertCircle, Eye, Calendar, ArrowRight, MapPin, Search
+  CopyPlus, Settings, Clock, Tag, TrendingUp, Users,
+  Eye, MapPin, Search
 } from 'lucide-react';
 
 const CATEGORY_FILTERS = [
@@ -533,6 +533,17 @@ export const CourseOffersManager: React.FC = () => {
                           {offer.isEnabled ? 'ON' : 'OFF'}
                         </span>
                       </div>
+
+                      <a
+                        href={`/offers/${offer.slug}?preview=true`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
+                        title="Preview Campaign in new tab"
+                      >
+                        <Eye className="w-3.5 h-3.5 text-amber-700" />
+                        <span>Preview</span>
+                      </a>
 
                       <button
                         onClick={() => {

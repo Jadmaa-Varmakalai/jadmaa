@@ -18,4 +18,7 @@ router.delete('/courses/:id', authenticate, requireInstructor, instructorControl
 router.get('/students', authenticate, requireInstructor, instructorController.getInstructorStudents);
 router.patch('/students/:id/status', authenticate, requireInstructor, instructorController.updateInstructorStudentStatus);
 
+// Instructor Self-Service: Withdraw from Instructor Post
+router.post('/withdraw', authenticate, requireInstructor, instructorController.withdrawInstructorRole);
+
 export default router;

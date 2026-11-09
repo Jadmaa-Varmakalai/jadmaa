@@ -6,7 +6,7 @@ import { ImageUpload } from '../../components/common/ImageUpload';
 interface InstructorCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  course: any;
+  course?: any;
   onSuccess: () => void;
 }
 
@@ -265,7 +265,7 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
             value={formData.thumbnailUrl || ''}
             onChange={(url) => setFormData({ ...formData, thumbnailUrl: url })}
             aspectRatio="video"
-            helperText="Upload a high quality course banner or paste an image URL"
+            helperText="Upload a high quality course banner from device or drag & drop for PC"
           />
 
           {/* YouTube Video Link Field */}
@@ -295,7 +295,7 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-sm"
             />
             <p className="text-[11px] text-gray-500">
-              Students who enroll in this course will watch this video lesson in the LMS player.
+              Students who enroll in this course will watch this video lesson in the course player.
             </p>
           </div>
 

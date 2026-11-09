@@ -4,6 +4,7 @@ import { SEO } from '../../components/common/SEO';
 import { PlayCircle, Award, BookOpen, Search, CheckCircle } from 'lucide-react';
 import { progressApi } from '../../lib/api/progressApi';
 import { useAuth } from '../../context/AuthContext';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 
 export const MyCourses: React.FC = () => {
   const { isLoggedIn } = useAuth();
@@ -67,7 +68,7 @@ export const MyCourses: React.FC = () => {
 
   return (
     <>
-      <SEO title="My Courses | JADMAA LMS" />
+      <SEO title="My Courses | JADMAA" />
       
       <section className="bg-white border-b border-gray-200 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">

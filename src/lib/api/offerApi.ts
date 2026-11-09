@@ -26,6 +26,7 @@ export interface CourseOfferItem {
   eyebrow?: string;
   headline?: string;
   imagePosition?: string;
+  imageFit?: string;
   imageTagline?: string;
   benefits?: string[];
   courseId?: string | null;
@@ -119,6 +120,7 @@ export interface PublicOfferDetails {
   eyebrow?: string;
   headline?: string;
   imagePosition?: string;
+  imageFit?: string;
   imageTagline?: string;
   benefits?: string[];
   termsAndConditions?: string;
@@ -172,8 +174,8 @@ export const offerApi = {
     return fetchApi('/offers/active-popup');
   },
 
-  getOfferBySlug: async (slug: string) => {
-    return fetchApi(`/offers/${slug}`);
+  getOfferBySlug: async (slug: string, preview = false) => {
+    return fetchApi(`/offers/${slug}${preview ? '?preview=true' : ''}`);
   },
 
   submitOfferEnquiry: async (slug: string, payload: {

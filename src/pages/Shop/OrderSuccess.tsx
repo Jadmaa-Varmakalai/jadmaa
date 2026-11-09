@@ -3,15 +3,16 @@ import { useParams, Link } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { orderApi } from '../../lib/api/orderApi';
 import type { Order } from '../../lib/api/orderApi';
+import { productApi } from '../../lib/api/productApi';
 import {
   CheckCircle,
   Package,
-  Truck,
   MapPin,
   ArrowRight,
   ShoppingBag,
-  ExternalLink,
   ShieldCheck,
+  Download,
+  BookOpen,
 } from 'lucide-react';
 
 export const OrderSuccess: React.FC = () => {
@@ -38,6 +39,14 @@ export const OrderSuccess: React.FC = () => {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="bg-[#FAF6F0] min-h-screen py-20 flex items-center justify-center">
+        <div className="w-8 h-8 border-3 border-jadmaa-red/30 border-t-jadmaa-red rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -88,6 +97,61 @@ export const OrderSuccess: React.FC = () => {
                 <span className="font-extrabold text-blue-700">CONFIRMED</span>
               </div>
             </div>
+
+            {/* Digital Downloads Section (Instant Access) */}
+            {order?.items?.some((item) => item.product?.isDigital) && (
+              <div className="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                    <Download className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-heading font-extrabold text-sm text-emerald-950">
+                      Your Digital Downloads are Ready!
+                    </h3>
+                    <p className="text-[11px] text-emerald-800">
+                      Your purchase is verified. Download your complete eBook files directly below.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  {order.items
+                    .filter((item) => item.product?.isDigital)
+                    .map((item) => {
+                      const prod = item.product!;
+                      return (
+                        <div
+                          key={item.id}
+                          className="bg-white p-4 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-gray-900 text-xs">{item.productName}</span>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-amber-100 text-amber-900 border border-amber-200">
+                                <BookOpen className="w-3 h-3 text-amber-800" />
+                                <span>.{prod.fileType || 'RAR'}</span>
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-gray-500">
+                              {prod.fileName || 'eBook Collection Archive'} {prod.fileSize ? `• ${prod.fileSize}` : ''}
+                            </p>
+                          </div>
+
+                          <a
+                            href={productApi.getDownloadUrl(prod.id)}
+                            download={prod.fileName || 'Rare_Siddhar_Varma_20_Books_Collection.rar'}
+                            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-xs cursor-pointer self-start sm:self-auto"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download eBook</span>
+                          </a>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
 
             {/* Ordered Items */}
             {order?.items && order.items.length > 0 && (

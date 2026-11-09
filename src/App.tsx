@@ -17,20 +17,50 @@ import { useAuth } from './context/AuthContext';
 
 const AppContent: React.FC = () => {
   const location = useLocation();
-  const isLearnPlayer = location.pathname.startsWith('/learn/');
   const { isLoggedIn } = useAuth();
+
+  // Determine if current route is part of the authenticated portal application shell
+  const isAppRoute = 
+    location.pathname.startsWith('/student') ||
+    location.pathname.startsWith('/instructor') ||
+    location.pathname.startsWith('/admin');
+
+  // Video learning player is also a specialized view
+  const isLearnPlayer = location.pathname.startsWith('/learn/');
+
+  // Suppress public marketing chrome (Navbar, Footer, popups) for app routes and learning player
+  const showPublicChrome = !isAppRoute && !isLearnPlayer;
+
+  if (!showPublicChrome) {
+    return (
+      <div className="h-screen w-screen overflow-hidden bg-[#FAF6F0] text-[#2B2521]">
+        <SEOManager />
+        <AppRoutes />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FAF6F0] text-[#2B2521]">
       <SEOManager />
       <ScrollObserver />
-      {!isLearnPlayer && <Navbar />}
+      
+      {/* Public Marketing Header */}
+      <Navbar />
+      
       <CartDrawer />
+      
       <main key={location.pathname} className="flex-grow route-fade">
         <AppRoutes />
       </main>
-      {!isLearnPlayer && <Footer />}
+
+      {/* Public Marketing Footer */}
+      <Footer />
+
+      {/* WhatsApp Support Button - only shown on public website for visitors */}
       {!isLoggedIn && <WhatsAppButton />}
+
+      {/* Promotional Campaign Popup - only shown on public marketing pages */}
       <OfferPopup />
     </div>
   );

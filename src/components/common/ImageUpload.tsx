@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, Link as LinkIcon, X, Loader2, AlertTriangle } from 'lucide-react';
+import { UploadCloud, X, Loader2, AlertTriangle, Crop } from 'lucide-react';
 import { uploadApi } from '../../lib/api/uploadApi';
+import { ImageCropModal } from './ImageCropModal';
 
 export interface RequiredRatio {
   width: number;
@@ -25,7 +26,6 @@ interface ImageUploadProps {
  */
 const compressImage = (file: File, maxDimension = 1600, quality = 0.85): Promise<string> => {
   return new Promise((resolve, reject) => {
-    // If it's an SVG, don't rasterize it to canvas
     if (file.type === 'image/svg+xml') {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
@@ -77,17 +77,16 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   label,
   value,
   onChange,
-  placeholder = 'https://example.com/image.jpg',
   helperText,
   className = '',
   aspectRatio = 'auto',
   requiredRatio,
 }) => {
-  const [activeTab, setActiveTab] = useState<'device' | 'url'>('device');
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ratioWarning, setRatioWarning] = useState<string | null>(null);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileProcess = async (file: File) => {
@@ -99,34 +98,45 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     setIsProcessing(true);
 
     try {
-      // Check dimensions if requiredRatio is set
+      // Check aspect ratio if required
       if (requiredRatio) {
-        await new Promise<void>((resolve) => {
-          const testImg = new Image();
-          testImg.onload = () => {
-            const w = testImg.width;
-            const h = testImg.height;
-            const target = requiredRatio.width / requiredRatio.height;
-            const actual = w / h;
-            if (Math.abs(actual - target) > 0.08) {
-              setRatioWarning(`Uploaded image is ${w}×${h} (${actual.toFixed(2)}:1). Blog thumbnails require a fixed ${requiredRatio.label} ratio to avoid being cropped. Please upload an image with ${requiredRatio.label} proportion for best appearance.`);
-            } else {
-              setRatioWarning(null);
-            }
-            resolve();
-          };
-          testImg.onerror = () => resolve();
-          testImg.src = URL.createObjectURL(file);
-        });
+        const objectUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          const w = img.width;
+          const h = img.height;
+          const target = requiredRatio.width / requiredRatio.height;
+          const actual = w / h;
+          if (Math.abs(actual - target) > 0.08) {
+            setRatioWarning(
+              `Uploaded image is ${w}×${h} (${actual.toFixed(2)}:1). Required is ${requiredRatio.label} (${target.toFixed(2)}:1). You can crop it below to fit.`
+            );
+          } else {
+            setRatioWarning(null);
+          }
+          URL.revokeObjectURL(objectUrl);
+        };
+        img.src = objectUrl;
       }
 
-      const compressedDataUrl = await compressImage(file);
-      // Attempt backend upload to store file in public/uploads/
-      const finalUrl = await uploadApi.uploadImage(compressedDataUrl, file.name);
-      onChange(finalUrl);
+      // Try uploading to server
+      try {
+        const uploadRes = await uploadApi.uploadImage(file);
+        if (uploadRes && uploadRes.url) {
+          onChange(uploadRes.url);
+          setIsProcessing(false);
+          return;
+        }
+      } catch (uploadErr) {
+        console.warn('Backend upload failed, falling back to compressed local preview:', uploadErr);
+      }
+
+      // Fallback: client-side compression
+      const compressed = await compressImage(file);
+      onChange(compressed);
     } catch (err: any) {
-      console.error('Image processing failed:', err);
-      setError('Failed to process image. Please try again.');
+      console.error('Image compression failed:', err);
+      setError('Failed to process image. Please try a different file.');
     } finally {
       setIsProcessing(false);
     }
@@ -136,10 +146,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       handleFileProcess(file);
-    }
-    // reset input so the same file can be selected again if needed
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
     }
   };
 
@@ -164,6 +170,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   const handleClear = () => {
     onChange('');
     setError(null);
+    setRatioWarning(null);
   };
 
   const aspectClass = 
@@ -179,108 +186,46 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         </label>
       )}
 
-      {/* Mode Switch Tabs */}
-      <div className="flex items-center space-x-1 p-1 bg-gray-100 rounded-lg w-fit border border-gray-200">
-        <button
-          type="button"
-          onClick={() => setActiveTab('device')}
-          className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-            activeTab === 'device'
-              ? 'bg-white text-jadmaa-red shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <UploadCloud className="w-3.5 h-3.5" />
-          <span>Upload from Device</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('url')}
-          className={`flex items-center space-x-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-            activeTab === 'url'
-              ? 'bg-white text-jadmaa-red shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          <LinkIcon className="w-3.5 h-3.5" />
-          <span>Image URL</span>
-        </button>
-      </div>
+      {/* Hidden file input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
 
-      {/* Upload From Device View */}
-      {activeTab === 'device' && (
-        <div>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/*"
-            className="hidden"
-          />
-
-          <div
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onClick={() => !isProcessing && fileInputRef.current?.click()}
-            className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center ${
-              isDragging
-                ? 'border-jadmaa-red bg-red-50/50 scale-[1.01]'
-                : 'border-gray-300 hover:border-jadmaa-red/70 hover:bg-gray-50/70 bg-white'
-            } ${isProcessing ? 'opacity-60 cursor-wait' : ''}`}
-          >
-            {isProcessing ? (
-              <div className="flex flex-col items-center py-2 space-y-2">
-                <Loader2 className="w-8 h-8 text-jadmaa-red animate-spin" />
-                <p className="text-xs font-semibold text-gray-700">Optimizing & Uploading Image...</p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center py-1 space-y-1.5">
-                <div className="w-10 h-10 rounded-full bg-red-50 text-jadmaa-red flex items-center justify-center mb-1">
-                  <UploadCloud className="w-5 h-5" />
-                </div>
-                <div className="text-xs font-semibold text-gray-800">
-                  <span className="text-jadmaa-red hover:underline">Click to browse</span> or drag and drop image here
-                </div>
-                <p className="text-[11px] text-gray-500">
-                  Supports PNG, JPG, WEBP, GIF, SVG (up to 15MB)
-                </p>
-              </div>
-            )}
+      {/* Upload From Device / Drag & Drop View */}
+      <div
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onClick={() => !isProcessing && fileInputRef.current?.click()}
+        className={`border-2 border-dashed rounded-xl p-5 text-center cursor-pointer transition-all duration-200 flex flex-col items-center justify-center ${
+          isDragging
+            ? 'border-[#B12B2B] bg-red-50/50 scale-[1.01]'
+            : 'border-gray-300 hover:border-[#B12B2B]/70 hover:bg-gray-50/70 bg-white'
+        } ${isProcessing ? 'opacity-60 cursor-wait' : ''}`}
+      >
+        {isProcessing ? (
+          <div className="flex flex-col items-center py-2 space-y-2">
+            <Loader2 className="w-8 h-8 text-[#B12B2B] animate-spin" />
+            <p className="text-xs font-semibold text-gray-700">Optimizing & Uploading Image...</p>
           </div>
-        </div>
-      )}
-
-      {/* URL Input View */}
-      {activeTab === 'url' && (
-        <div className="relative">
-          <input
-            type="url"
-            value={value}
-            onChange={(e) => {
-              const url = e.target.value;
-              onChange(url);
-              if (requiredRatio && url) {
-                const img = new Image();
-                img.onload = () => {
-                  const w = img.width;
-                  const h = img.height;
-                  const target = requiredRatio.width / requiredRatio.height;
-                  const actual = w / h;
-                  if (Math.abs(actual - target) > 0.08) {
-                    setRatioWarning(`Image from URL is ${w}×${h} (${actual.toFixed(2)}:1). Blog thumbnails require a fixed ${requiredRatio.label} ratio to avoid being cropped. Please upload in ${requiredRatio.label} proportion.`);
-                  } else {
-                    setRatioWarning(null);
-                  }
-                };
-                img.src = url;
-              }
-            }}
-            placeholder={placeholder}
-            className="w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-jadmaa-red focus:ring-1 focus:ring-jadmaa-red bg-white"
-          />
-        </div>
-      )}
+        ) : (
+          <div className="flex flex-col items-center py-1 space-y-1.5">
+            <div className="w-10 h-10 rounded-full bg-red-50 text-[#B12B2B] flex items-center justify-center mb-1">
+              <UploadCloud className="w-5 h-5" />
+            </div>
+            <div className="text-xs font-semibold text-gray-800">
+              <span className="text-[#B12B2B] hover:underline font-bold">Upload from device</span> or drag and drop image here
+            </div>
+            <p className="text-[11px] text-gray-500">
+              Supports PNG, JPG, WEBP, GIF, SVG from your device
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Error Message */}
       {error && (
@@ -291,9 +236,19 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       {ratioWarning && (
         <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs flex items-start space-x-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <div className="space-y-1 text-left">
+          <div className="space-y-1.5 text-left flex-1">
             <span className="font-bold">Image Aspect Ratio Alert:</span>
             <p>{ratioWarning}</p>
+            {value && (
+              <button
+                type="button"
+                onClick={() => setIsCropModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#B12B2B] hover:bg-[#8F2020] text-white rounded-lg text-xs font-bold transition shadow-2xs cursor-pointer mt-1"
+              >
+                <Crop className="w-3.5 h-3.5" />
+                <span>Adjust / Crop Image to Fit</span>
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -314,23 +269,54 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
           <div className="flex-1 min-w-0 pr-8">
             <p className="text-xs font-semibold text-gray-800 truncate">
-              {value.startsWith('data:') ? 'Image selected from device' : value}
+              {value.startsWith('data:') ? 'Image uploaded from device' : value}
             </p>
-            <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1 mt-0.5">
-              <span>✓ Image loaded</span>
-              {value.startsWith('/uploads/') && <span className="text-gray-400 font-normal">(stored on server)</span>}
-            </p>
+            <div className="flex flex-wrap items-center gap-2 mt-1">
+              <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
+                <span>✓ Ready</span>
+              </p>
+              <button
+                type="button"
+                onClick={() => setIsCropModalOpen(true)}
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-white hover:bg-[#FAF6F0] border border-[#B12B2B] text-[#B12B2B] rounded text-[11px] font-bold transition cursor-pointer"
+                title="Crop or adjust framing to fit container"
+              >
+                <Crop className="w-3 h-3" />
+                <span>Crop / Adjust Fit</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center gap-1 px-2 py-0.5 bg-white hover:bg-gray-100 border border-gray-300 text-gray-700 rounded text-[11px] font-semibold transition cursor-pointer"
+              >
+                Change Image
+              </button>
+            </div>
           </div>
 
           <button
             type="button"
             onClick={handleClear}
             title="Remove image"
-            className="absolute top-2.5 right-2.5 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+            className="absolute top-2.5 right-2.5 p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
+      )}
+
+      {/* Interactive Crop & Adjust Modal */}
+      {isCropModalOpen && value && (
+        <ImageCropModal
+          isOpen={isCropModalOpen}
+          imageUrl={value}
+          aspectRatioPreset={aspectRatio === 'video' ? '16:9' : aspectRatio === 'square' ? '1:1' : 'contain'}
+          onClose={() => setIsCropModalOpen(false)}
+          onSave={(croppedUrl) => {
+            onChange(croppedUrl);
+            setRatioWarning(null);
+          }}
+        />
       )}
 
       {helperText && (

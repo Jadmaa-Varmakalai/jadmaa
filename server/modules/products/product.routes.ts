@@ -15,6 +15,9 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  checkProductAccess,
+  downloadProductFile,
+  adminUploadEbookFile,
 } from './product.controller.js';
 import {
   getInventoryLogs,
@@ -29,6 +32,8 @@ const router = Router();
 // ==========================================
 router.get('/', getProducts);
 router.get('/detail/:slug', getProductBySlug);
+router.get('/:id/check-access', checkProductAccess);
+router.get('/:id/download', authenticate, downloadProductFile);
 
 router.get('/categories', getCategories);
 router.get('/categories/:slug', getCategoryBySlug);
@@ -41,6 +46,7 @@ router.get('/admin/:id', authenticate, requireAdmin, adminGetProductById);
 router.post('/admin', authenticate, requireAdmin, createProduct);
 router.put('/admin/:id', authenticate, requireAdmin, updateProduct);
 router.delete('/admin/:id', authenticate, requireAdmin, deleteProduct);
+router.post('/admin/upload-file', authenticate, requireAdmin, adminUploadEbookFile);
 
 router.post('/admin/categories', authenticate, requireAdmin, createCategory);
 router.put('/admin/categories/:id', authenticate, requireAdmin, updateCategory);

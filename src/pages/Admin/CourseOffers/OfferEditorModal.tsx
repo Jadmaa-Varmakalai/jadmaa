@@ -8,7 +8,7 @@ import { PremiumCampaignLandingPage } from '../../../components/campaigns';
 import {
   X, Sparkles, AlertCircle, Clock, Tag,
   Eye, Monitor, Smartphone, Palette, Calendar,
-  ShieldCheck, Globe
+  ShieldCheck, Globe, ExternalLink
 } from 'lucide-react';
 
 interface OfferEditorModalProps {
@@ -90,6 +90,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
   const [headline, setHeadline] = useState('');
   const [eyebrow, setEyebrow] = useState('');
   const [imagePosition, setImagePosition] = useState('center');
+  const [imageFit, setImageFit] = useState<'cover' | 'contain' | 'fill'>('cover');
   const [imageTagline, setImageTagline] = useState('');
   const [benefit1, setBenefit1] = useState('');
   const [benefit2, setBenefit2] = useState('');
@@ -158,6 +159,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       setHeadline(offer.headline || '');
       setEyebrow(offer.eyebrow || '');
       setImagePosition(offer.imagePosition || 'center');
+      setImageFit(((offer as any).imageFit as any) || 'cover');
       setImageTagline(offer.imageTagline || '');
       const bList = Array.isArray(offer.benefits) ? offer.benefits : [];
       setBenefit1(bList[0] || '');
@@ -385,6 +387,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
       headline: headline.trim() || null,
       eyebrow: eyebrow.trim() || null,
       imagePosition: imagePosition || 'center',
+      imageFit: imageFit || 'cover',
       imageTagline: imageTagline.trim() || null,
       benefits: [benefit1, benefit2, benefit3].map(b => b.trim()).filter(Boolean),
       termsAndConditions: termsAndConditions.trim() || null,
@@ -449,6 +452,19 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {slug && (
+                <a
+                  href={`/offers/${slug}?preview=true`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-semibold flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+                  title="Open live campaign preview route with ?preview=true"
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-amber-700" />
+                  <span>Preview Page</span>
+                </a>
+              )}
+
               <button
                 type="button"
                 onClick={() => setIsPreviewOpen(true)}
@@ -714,7 +730,7 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Campaign Eyebrow (Uppercase Label)
@@ -731,12 +747,28 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Cover Image Fit
+                    </label>
+                    <select
+                      value={imageFit}
+                      onChange={(e) => setImageFit(e.target.value as any)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-medium cursor-pointer"
+                    >
+                      <option value="cover">Cover (Fill &amp; Crop)</option>
+                      <option value="contain">Contain (Full Image + Blur Fit)</option>
+                      <option value="fill">Fill / Stretch</option>
+                    </select>
+                    <p className="text-[11px] text-gray-400 mt-1">Choose how the hero image fits the frame.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
                       Hero Photograph Focal Position
                     </label>
                     <select
                       value={imagePosition}
                       onChange={(e) => setImagePosition(e.target.value)}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-medium"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-medium cursor-pointer"
                     >
                       <option value="center">Center (Default)</option>
                       <option value="center top">Center Top (Portrait/Face)</option>
@@ -923,6 +955,8 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                     onChange={(e) => setTheme(e.target.value as any)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600"
                   >
+                    <option value="dark-luxury">Dark Luxury (Obsidian &amp; Gold Amber - New)</option>
+                    <option value="classic-cream">Classic Cream (Warm Ivory &amp; Red)</option>
                     <option value="light">Warm Ivory Surface (Standard)</option>
                   </select>
                 </div>

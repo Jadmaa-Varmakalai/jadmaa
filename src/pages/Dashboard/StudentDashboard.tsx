@@ -4,6 +4,7 @@ import { SEO } from '../../components/common/SEO';
 import { PlayCircle, Award, BookOpen } from 'lucide-react';
 import { progressApi } from '../../lib/api/progressApi';
 import { useAuth } from '../../context/AuthContext';
+import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 
 export const StudentDashboard: React.FC = () => {
   const { isLoggedIn } = useAuth();
@@ -62,7 +63,7 @@ export const StudentDashboard: React.FC = () => {
 
   return (
     <>
-      <SEO title="Student Dashboard | JADMAA LMS" />
+      <SEO title="Student Dashboard | JADMAA" />
       
       {/* Header */}
       <section className="bg-white border-b border-gray-200 pt-8 pb-10">

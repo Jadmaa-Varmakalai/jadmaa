@@ -92,13 +92,17 @@ export interface FAQItem {
   answer: string;
 }
 
+export type UserRole = 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' | 'SUPER_ADMIN';
+
 export interface User {
   id: string;
   name: string;
   email: string;
   phone?: string;
-  role: 'STUDENT' | 'INSTRUCTOR' | 'ADMIN' | 'SUPER_ADMIN';
+  role: UserRole;
+  isAdmin?: boolean;
   avatar?: string;
+  avatarUrl?: string;
   enrolledCourses: string[]; // course IDs
   progress: Record<string, number>; // courseId -> percentage
 }

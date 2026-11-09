@@ -6,13 +6,14 @@ async function main() {
   
   // Create a default admin user
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@jadmaa.com' },
+    where: { email: 'info@jadmaa.com' },
     update: {},
     create: {
-      name: 'Admin',
-      email: 'admin@jadmaa.com',
+      name: 'Mr. Bojagarajan',
+      email: 'info@jadmaa.com',
       passwordHash: 'hashed_password',
-      role: 'ADMIN',
+      role: 'SUPER_ADMIN',
+      isAdmin: true
     }
   });
 
@@ -67,7 +68,8 @@ async function main() {
     });
 
     // 3. Create Modules & Lessons
-    for (const [mIndex, mm] of mc.modules.entries()) {
+    for (let mIndex = 0; mIndex < mc.modules.length; mIndex++) {
+      const mm = mc.modules[mIndex];
       const module = await prisma.courseModule.create({
         data: {
           courseId: course.id,
@@ -76,7 +78,8 @@ async function main() {
         }
       });
 
-      for (const [lIndex, ml] of mm.lessons.entries()) {
+      for (let lIndex = 0; lIndex < mm.lessons.length; lIndex++) {
+        const ml = mm.lessons[lIndex];
         const durationMatch = ml.duration.match(/(\d+)/);
         const durationMins = durationMatch ? parseInt(durationMatch[1], 10) : 0;
         

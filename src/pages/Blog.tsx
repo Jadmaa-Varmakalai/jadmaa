@@ -73,7 +73,7 @@ export const Blog: React.FC = () => {
             {canManageBlogs && (
               <div className="flex items-center gap-3 shrink-0">
                 <button
-                  onClick={() => navigate('/admin#blogs')}
+                  onClick={() => navigate('/admin/blogs')}
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-sm font-bold rounded-lg shadow-md transition-all hover:shadow-lg cursor-pointer"
                   title="Manage blog posts in Admin panel"
                 >
@@ -99,7 +99,8 @@ export const Blog: React.FC = () => {
                     <BlogCard 
                       blog={blog} 
                       isAdmin={canManageBlogs}
-                      onEdit={() => navigate('/admin#blogs')}
+                      priority={idx < 3}
+                      onEdit={(blogToEdit) => navigate(`/admin/blogs?edit=${blogToEdit.id}`)}
                       onDelete={handleDeletePost}
                     />
                   </div>
@@ -111,7 +112,7 @@ export const Blog: React.FC = () => {
                 <p className="text-[15px] text-[#7A6E65]">Check back soon for new insights and stories.</p>
                 {canManageBlogs && (
                   <button
-                    onClick={() => navigate('/admin#blogs')}
+                    onClick={() => navigate('/admin/blogs')}
                     className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-[#B12B2B] text-white text-xs font-bold rounded-lg hover:bg-[#8F2020] transition cursor-pointer"
                   >
                     Go to Manage Blogs

@@ -1,4 +1,6 @@
 import { Request, Response } from 'express';
+import fs from 'fs';
+import path from 'path';
 import { prisma } from '../../db.js';
 
 const slugify = (text: string) => {
@@ -130,7 +132,7 @@ export const getProducts = async (req: Request, res: Response) => {
  */
 export const getProductBySlug = async (req: Request, res: Response) => {
   try {
-    const { slug } = req.params;
+    const slug = String(req.params.slug);
 
     const product = await prisma.product.findFirst({
       where: {
@@ -276,7 +278,7 @@ export const adminGetProducts = async (req: Request, res: Response) => {
  */
 export const adminGetProductById = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
@@ -320,6 +322,11 @@ export const createProduct = async (req: Request, res: Response) => {
       stockQuantity = 0,
       lowStockThreshold = 5,
       isActive = true,
+      isDigital = false,
+      downloadUrl = null,
+      fileType = null,
+      fileSize = null,
+      fileName = null,
     } = req.body;
 
     if (!name || typeof name !== 'string' || !name.trim()) {
@@ -387,6 +394,11 @@ export const createProduct = async (req: Request, res: Response) => {
           stockQuantity: initialStock,
           lowStockThreshold: threshold,
           isActive: Boolean(isActive),
+          isDigital: Boolean(isDigital),
+          downloadUrl: downloadUrl ? downloadUrl.trim() : null,
+          fileType: fileType ? fileType.trim().toLowerCase() : null,
+          fileSize: fileSize ? fileSize.trim() : null,
+          fileName: fileName ? fileName.trim() : null,
         },
         include: {
           category: true,
@@ -423,7 +435,7 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
-    const { id } = req.params;
+    const id = String(req.params.id);
     const {
       name,
       slug,
@@ -436,6 +448,11 @@ export const updateProduct = async (req: Request, res: Response) => {
       stockQuantity,
       lowStockThreshold,
       isActive,
+      isDigital,
+      downloadUrl,
+      fileType,
+      fileSize,
+      fileName,
     } = req.body;
 
     const existing = await prisma.product.findUnique({
@@ -507,6 +524,11 @@ export const updateProduct = async (req: Request, res: Response) => {
           stockQuantity: stockUpdate !== undefined ? stockUpdate : undefined,
           lowStockThreshold: lowStockThreshold !== undefined ? Math.max(0, parseInt(lowStockThreshold, 10)) : undefined,
           isActive: isActive !== undefined ? Boolean(isActive) : undefined,
+          isDigital: isDigital !== undefined ? Boolean(isDigital) : undefined,
+          downloadUrl: downloadUrl !== undefined ? (downloadUrl ? downloadUrl.trim() : null) : undefined,
+          fileType: fileType !== undefined ? (fileType ? fileType.trim().toLowerCase() : null) : undefined,
+          fileSize: fileSize !== undefined ? (fileSize ? fileSize.trim() : null) : undefined,
+          fileName: fileName !== undefined ? (fileName ? fileName.trim() : null) : undefined,
         },
         include: {
           category: true,
@@ -526,7 +548,7 @@ export const updateProduct = async (req: Request, res: Response) => {
  */
 export const deleteProduct = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = String(req.params.id);
 
     const existing = await prisma.product.findUnique({
       where: { id },
@@ -556,5 +578,273 @@ export const deleteProduct = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('[Products:deleteProduct:Error]', err);
     return res.status(500).json({ success: false, error: { message: err?.message || 'Failed to delete product' } });
+  }
+};
+
+/**
+ * Check if the current user has access to download the digital product
+ */
+export const checkProductAccess = async (req: Request, res: Response) => {
+  try {
+    const id = String(req.params.id);
+    const user = (req as any).user;
+
+    const product = await prisma.product.findFirst({
+      where: {
+        OR: [{ id }, { slug: id }],
+      },
+      select: {
+        id: true,
+        name: true,
+        isDigital: true,
+        fileType: true,
+        fileSize: true,
+        fileName: true,
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ success: false, error: { message: 'Product not found' } });
+    }
+
+    if (!product.isDigital) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          hasAccess: false,
+          isDigital: false,
+        },
+      });
+    }
+
+    if (!user || !user.id) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          hasAccess: false,
+          isDigital: true,
+          fileName: product.fileName,
+          fileType: product.fileType,
+          fileSize: product.fileSize,
+        },
+      });
+    }
+
+    // Admins always have access
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
+      return res.status(200).json({
+        success: true,
+        data: {
+          hasAccess: true,
+          isAdmin: true,
+          isDigital: true,
+          fileName: product.fileName,
+          fileType: product.fileType,
+          fileSize: product.fileSize,
+        },
+      });
+    }
+
+    // Check if user has an order with SUCCESS paymentStatus containing this product
+    const orderItem = await prisma.orderItem.findFirst({
+      where: {
+        productId: product.id,
+        order: {
+          userId: user.id,
+          paymentStatus: 'SUCCESS',
+        },
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        hasAccess: Boolean(orderItem),
+        isDigital: true,
+        fileName: product.fileName,
+        fileType: product.fileType,
+        fileSize: product.fileSize,
+      },
+    });
+  } catch (err: any) {
+    console.error('[Products:checkProductAccess:Error]', err);
+    return res.status(500).json({ success: false, error: { message: err?.message || 'Failed to check access' } });
+  }
+};
+
+/**
+ * Download product file
+ */
+export const downloadProductFile = async (req: Request, res: Response) => {
+  try {
+    const id = String(req.params.id);
+    const user = (req as any).user;
+
+    if (!user || !user.id) {
+      return res.status(401).json({ success: false, error: { message: 'Authentication required to download this asset.' } });
+    }
+
+    const product = await prisma.product.findFirst({
+      where: {
+        OR: [{ id }, { slug: id }],
+      },
+    });
+
+    if (!product) {
+      return res.status(404).json({ success: false, error: { message: 'Product not found' } });
+    }
+
+    if (!product.isDigital) {
+      return res.status(400).json({ success: false, error: { message: 'This item is not a digital downloadable product.' } });
+    }
+
+    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+
+    if (!isAdmin) {
+      const orderItem = await prisma.orderItem.findFirst({
+        where: {
+          productId: product.id,
+          order: {
+            userId: user.id,
+            paymentStatus: 'SUCCESS',
+          },
+        },
+      });
+
+      if (!orderItem) {
+        return res.status(403).json({
+          success: false,
+          error: { message: 'You have not purchased this eBook yet. Please complete checkout to download.' },
+        });
+      }
+    }
+
+    if (!product.downloadUrl) {
+      return res.status(404).json({
+        success: false,
+        error: { message: 'The digital download file has not been uploaded yet. Please contact support.' },
+      });
+    }
+
+    const downloadTarget = product.downloadUrl.trim();
+
+    // If external URL (Google Drive, Cloud Storage, S3, Dropbox, etc.)
+    if (downloadTarget.startsWith('http://') || downloadTarget.startsWith('https://')) {
+      return res.redirect(downloadTarget);
+    }
+
+    // Local file delivery
+    const sanitizedRelative = downloadTarget.replace(/^\/+/, '');
+    const localFilePath = path.join(process.cwd(), 'public', sanitizedRelative);
+
+    if (fs.existsSync(localFilePath)) {
+      const exportName = product.fileName || path.basename(localFilePath);
+      return res.download(localFilePath, exportName);
+    }
+
+    return res.status(404).json({
+      success: false,
+      error: { message: 'File asset is currently unavailable on server. Please contact support.' },
+    });
+  } catch (err: any) {
+    console.error('[Products:downloadProductFile:Error]', err);
+    return res.status(500).json({ success: false, error: { message: err?.message || 'Download failed' } });
+  }
+};
+
+/**
+ * Admin: Upload eBook / digital file (.rar, .zip, .pdf)
+ */
+export const adminUploadEbookFile = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+      return res.status(403).json({ success: false, error: { message: 'Admin access required' } });
+    }
+
+    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'ebooks');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    // Check if JSON body with base64 data
+    if (req.body && req.body.fileData) {
+      const { fileData, filename, fileSize } = req.body;
+      const cleanName = (filename || `ebook_${Date.now()}.rar`).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const targetExt = path.extname(cleanName).toLowerCase().replace('.', '');
+      if (!['rar', 'zip', 'pdf'].includes(targetExt)) {
+        return res.status(400).json({ success: false, error: { message: 'Only .rar, .zip, and .pdf formats are permitted.' } });
+      }
+
+      const match = fileData.match(/^data:application\/([a-zA-Z0-9+.-]+);base64,(.+)$/) || fileData.match(/^data:[^;]+;base64,(.+)$/);
+      const base64Content = match ? match[match.length - 1] : fileData;
+      const fileBuffer = Buffer.from(base64Content, 'base64');
+      const finalFileName = `${Date.now()}_${cleanName}`;
+      const filePath = path.join(uploadsDir, finalFileName);
+      fs.writeFileSync(filePath, fileBuffer);
+
+      const sizeStr = fileSize || (fileBuffer.length > 1024 * 1024 * 1024
+        ? `${(fileBuffer.length / (1024 * 1024 * 1024)).toFixed(2)} GB`
+        : `${(fileBuffer.length / (1024 * 1024)).toFixed(2)} MB`);
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          fileUrl: `/uploads/ebooks/${finalFileName}`,
+          fileName: cleanName,
+          fileSize: sizeStr,
+          fileType: targetExt,
+        },
+      });
+    }
+
+    // Streaming body with x-filename header
+    const rawFileName = (req.headers['x-filename'] as string) || (req.query.filename as string);
+    if (rawFileName) {
+      const cleanName = decodeURIComponent(rawFileName).replace(/[^a-zA-Z0-9._-]/g, '_');
+      const targetExt = path.extname(cleanName).toLowerCase().replace('.', '');
+      if (!['rar', 'zip', 'pdf'].includes(targetExt)) {
+        return res.status(400).json({ success: false, error: { message: 'Only .rar, .zip, and .pdf formats are permitted.' } });
+      }
+
+      const finalFileName = `${Date.now()}_${cleanName}`;
+      const filePath = path.join(uploadsDir, finalFileName);
+      const writeStream = fs.createWriteStream(filePath);
+
+      let bytesReceived = 0;
+      req.on('data', (chunk) => {
+        bytesReceived += chunk.length;
+      });
+
+      req.pipe(writeStream);
+
+      writeStream.on('finish', () => {
+        const sizeStr = bytesReceived > 1024 * 1024 * 1024
+          ? `${(bytesReceived / (1024 * 1024 * 1024)).toFixed(2)} GB`
+          : `${(bytesReceived / (1024 * 1024)).toFixed(2)} MB`;
+
+        return res.status(200).json({
+          success: true,
+          data: {
+            fileUrl: `/uploads/ebooks/${finalFileName}`,
+            fileName: cleanName,
+            fileSize: sizeStr,
+            fileType: targetExt,
+          },
+        });
+      });
+
+      writeStream.on('error', (err) => {
+        console.error('[UploadEbook:StreamError]', err);
+        return res.status(500).json({ success: false, error: { message: 'File upload stream failed' } });
+      });
+
+      return;
+    }
+
+    return res.status(400).json({ success: false, error: { message: 'No file data or filename provided.' } });
+  } catch (err: any) {
+    console.error('[Products:adminUploadEbookFile:Error]', err);
+    return res.status(500).json({ success: false, error: { message: err?.message || 'Upload failed' } });
   }
 };

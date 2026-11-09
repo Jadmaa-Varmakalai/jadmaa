@@ -49,4 +49,8 @@ export const instructorApi = {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     }),
+  withdrawInstructor: () =>
+    fetchApi('/instructor/withdraw', {
+      method: 'POST',
+    }),
 };

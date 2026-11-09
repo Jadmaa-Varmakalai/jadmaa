@@ -9,18 +9,17 @@ import { useAuth } from '../../context/AuthContext';
 import {
   ShoppingBag,
   Check,
-  ShieldCheck,
-  Truck,
-  RotateCcw,
   Minus,
   Plus,
   ArrowLeft,
   ChevronRight,
   AlertCircle,
   PackageCheck,
-  Sliders,
   Trash2,
   Edit2,
+  Download,
+  BookOpen,
+  CheckCircle,
 } from 'lucide-react';
 
 export const ProductDetails: React.FC = () => {
@@ -35,6 +34,13 @@ export const ProductDetails: React.FC = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
+  const [downloadAccess, setDownloadAccess] = useState<{
+    hasAccess: boolean;
+    isDigital: boolean;
+    fileName?: string;
+    fileType?: string;
+    fileSize?: string;
+  } | null>(null);
 
   const handleDeleteProduct = async () => {
     if (!product) return;
@@ -70,6 +76,13 @@ export const ProductDetails: React.FC = () => {
         setProduct(res.data);
         setSelectedImageIndex(0);
         setQuantity(1);
+        if (res.data.isDigital) {
+          productApi.checkAccess(res.data.id).then((accessRes) => {
+            if (accessRes.success && accessRes.data) {
+              setDownloadAccess(accessRes.data);
+            }
+          }).catch(console.error);
+        }
       }
     } catch (err) {
       console.error('Failed to load product', err);
@@ -209,9 +222,27 @@ export const ProductDetails: React.FC = () => {
                     <span className="text-xs text-gray-500 font-medium">Inclusive of all taxes</span>
                   </div>
 
-                  {/* Stock Status Indicator */}
+                  {/* Stock Status Indicator or Digital eBook Badge */}
                   <div className="pt-2">
-                    {isOutOfStock ? (
+                    {product.isDigital ? (
+                      <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-amber-50 text-amber-900 rounded-xl text-xs font-bold border border-amber-200">
+                          <BookOpen className="w-4 h-4 text-amber-700" />
+                          <span>Digital eBook (Instant Download)</span>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2 text-[11px] text-gray-600">
+                          <span className="px-2 py-0.5 rounded-md bg-gray-100 font-mono font-bold text-gray-700 uppercase">
+                            .{product.fileType || 'RAR'} Format
+                          </span>
+                          {product.fileSize && (
+                            <span className="px-2 py-0.5 rounded-md bg-gray-100 font-semibold text-gray-700">
+                              {product.fileSize}
+                            </span>
+                          )}
+                          <span className="text-emerald-700 font-bold">✓ Direct Cloud Download</span>
+                        </div>
+                      </div>
+                    ) : isOutOfStock ? (
                       <div className="inline-flex items-center gap-2 px-3.5 py-2 bg-red-50 text-red-700 rounded-xl text-xs font-bold border border-red-200">
                         <AlertCircle className="w-4 h-4 text-red-600" />
                         <span>Currently Out of Stock</span>
@@ -235,6 +266,27 @@ export const ProductDetails: React.FC = () => {
 
                 {/* Purchasing Section */}
                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                  {/* Digital eBook Owned Download Banner */}
+                  {product.isDigital && downloadAccess?.hasAccess && (
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl space-y-2.5">
+                      <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs">
+                        <CheckCircle className="w-4 h-4 text-emerald-600" />
+                        <span>You own this eBook collection!</span>
+                      </div>
+                      <p className="text-[11px] text-emerald-700 leading-relaxed">
+                        Your purchase is verified. Click below to download your complete eBook collection.
+                      </p>
+                      <a
+                        href={productApi.getDownloadUrl(product.id)}
+                        download={product.fileName || 'Rare_Siddhar_Varma_20_Books_Collection.rar'}
+                        className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download eBook ({product.fileType?.toUpperCase() || 'RAR'}{product.fileSize ? ` • ${product.fileSize}` : ''})</span>
+                      </a>
+                    </div>
+                  )}
+
                   {isAdmin ? (
                     <div className="p-5 bg-gray-50 border border-gray-200 rounded-2xl space-y-3">
                       <div className="flex items-center gap-2 text-xs font-bold text-gray-700">

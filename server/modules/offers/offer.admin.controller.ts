@@ -62,6 +62,7 @@ export const getAdminOffers = async (req: Request, res: Response) => {
         eyebrow: offer.eyebrow || null,
         headline: offer.headline || null,
         imagePosition: offer.imagePosition || 'center',
+        imageFit: (offer as any).imageFit || 'cover',
         imageTagline: offer.imageTagline || null,
         benefits: offer.benefits || [],
         courseId: offer.courseId,
@@ -168,6 +169,7 @@ export const createOffer = async (req: Request, res: Response) => {
       eyebrow,
       headline,
       imagePosition = 'center',
+      imageFit = 'cover',
       imageTagline,
       benefits = [],
       termsAndConditions,
@@ -295,6 +297,7 @@ export const createOffer = async (req: Request, res: Response) => {
         eyebrow: eyebrow || null,
         headline: headline || null,
         imagePosition: imagePosition || 'center',
+        imageFit: imageFit || 'cover',
         imageTagline: imageTagline || null,
         benefits: Array.isArray(benefits) ? benefits : [],
         termsAndConditions: termsAndConditions || null,
@@ -362,6 +365,7 @@ export const updateOffer = async (req: Request, res: Response) => {
       eyebrow,
       headline,
       imagePosition = 'center',
+      imageFit = 'cover',
       imageTagline,
       benefits = [],
       termsAndConditions,
@@ -409,6 +413,7 @@ export const updateOffer = async (req: Request, res: Response) => {
     if (eyebrow !== undefined) updateData.eyebrow = eyebrow || null;
     if (headline !== undefined) updateData.headline = headline || null;
     if (imagePosition !== undefined) updateData.imagePosition = imagePosition || 'center';
+    if (imageFit !== undefined) updateData.imageFit = imageFit || 'cover';
     if (imageTagline !== undefined) updateData.imageTagline = imageTagline || null;
     if (benefits !== undefined) updateData.benefits = Array.isArray(benefits) ? benefits : [];
     if (termsAndConditions !== undefined) updateData.termsAndConditions = termsAndConditions || null;

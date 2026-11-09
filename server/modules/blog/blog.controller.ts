@@ -1,4 +1,8 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
+import path from 'path';
+import fs from 'fs';
+import sharp from 'sharp';
 import { prisma } from '../../db.js';
 import defaultBlogsData from '../../../src/data/jadmaa_blogs.js';
 
@@ -16,11 +20,122 @@ function formatBlogResponse(b: any) {
   if (match) {
     topic = topic || match[1];
   }
+
+  let insideImageUrl: string | null = (b as any).insideImageUrl || null;
+  const insideMatch = content.match(/<!--insideImage:(.*?)-->/);
+  if (insideMatch) {
+    insideImageUrl = insideMatch[1].trim();
+  }
+
+  // Graceful thumbnail fallback if empty
+  let thumbnailUrl = b.thumbnailUrl || '';
+  if (!thumbnailUrl || thumbnailUrl.trim() === '') {
+    const matchedDefault = defaultBlogs.find((d: any) => d.slug === b.slug || d.id === b.id);
+    if (matchedDefault?.thumbnailUrl) {
+      thumbnailUrl = matchedDefault.thumbnailUrl;
+    } else {
+      thumbnailUrl = '/images/course-basic.jpg';
+    }
+  }
+
   return {
     ...b,
-    topic: topic || b.topic
+    topic: topic || b.topic,
+    thumbnailUrl,
+    insideImageUrl
   };
 }
+
+/**
+ * High-performance on-demand image optimization and caching.
+ * Transforms remote and local images to modern responsive WebP/AVIF formats,
+ * resizes to exact device requirements, and caches them with 1-year immutable headers.
+ */
+export const getOptimizedImage = async (req: Request, res: Response) => {
+  try {
+    const rawUrl = (req.query.url as string || '').trim();
+    if (!rawUrl) {
+      return res.status(400).send('Missing image url');
+    }
+
+    const width = Math.min(1920, Math.max(80, parseInt(req.query.w as string, 10) || 600));
+    const height = req.query.h ? Math.min(1920, Math.max(80, parseInt(req.query.h as string, 10))) : undefined;
+    const format = (req.query.format as string || 'webp').toLowerCase();
+    const quality = Math.min(100, Math.max(40, parseInt(req.query.q as string, 10) || 80));
+
+    const targetFormat: 'webp' | 'avif' | 'jpeg' = format === 'avif' ? 'avif' : format === 'jpeg' || format === 'jpg' ? 'jpeg' : 'webp';
+
+    const cacheDir = path.join(process.cwd(), 'public', 'images', 'cache');
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true });
+    }
+
+    const hash = crypto
+      .createHash('sha256')
+      .update(`${rawUrl}__w${width}__h${height || 'auto'}__f${targetFormat}__q${quality}`)
+      .digest('hex')
+      .slice(0, 32);
+
+    const cachedFilePath = path.join(cacheDir, `${hash}.${targetFormat}`);
+
+    if (fs.existsSync(cachedFilePath)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      res.setHeader('Content-Type', `image/${targetFormat}`);
+      return res.sendFile(cachedFilePath);
+    }
+
+    let inputBuffer: Buffer;
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      const response = await fetch(rawUrl, {
+        headers: { 'User-Agent': 'JADMAA-ImageOptimizer/1.0' },
+        signal: AbortSignal.timeout(8000)
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
+      inputBuffer = Buffer.from(await response.arrayBuffer());
+    } else {
+      const cleanPath = rawUrl.replace(/^\//, '');
+      const localFilePath = path.join(process.cwd(), 'public', cleanPath);
+      if (!fs.existsSync(localFilePath)) {
+        throw new Error(`Local file not found: ${localFilePath}`);
+      }
+      inputBuffer = await fs.promises.readFile(localFilePath);
+    }
+
+    let pipeline = sharp(inputBuffer).resize(width, height, {
+      fit: 'cover',
+      withoutEnlargement: true
+    });
+
+    if (targetFormat === 'webp') {
+      pipeline = pipeline.webp({ quality, effort: 4 });
+    } else if (targetFormat === 'avif') {
+      pipeline = pipeline.avif({ quality, effort: 4 });
+    } else {
+      pipeline = pipeline.jpeg({ quality, progressive: true });
+    }
+
+    const outputBuffer = await pipeline.toBuffer();
+
+    fs.promises.writeFile(cachedFilePath, outputBuffer).catch((err) => {
+      console.warn('[ImageOptimizer] Cache write failed:', err.message);
+    });
+
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('Content-Type', `image/${targetFormat}`);
+    return res.send(outputBuffer);
+  } catch (err: any) {
+    console.warn('[ImageOptimizer] Error optimizing image:', err?.message);
+    const fallbackPath = path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
+    if (fs.existsSync(fallbackPath)) {
+      res.setHeader('Cache-Control', 'public, max-age=300');
+      res.setHeader('Content-Type', 'image/jpeg');
+      return res.sendFile(fallbackPath);
+    }
+    return res.status(500).send('Image optimization failed');
+  }
+};
 
 export const getBlogs = async (req: Request, res: Response) => {
   try {
@@ -235,6 +350,122 @@ export const updateBlog = async (req: Request, res: Response) => {
     res.json({ success: true, data: formatBlogResponse({ ...blog, topic }) });
   } catch (error: any) {
     res.status(400).json({ success: false, error: { message: error.message || 'Error updating blog' } });
+  }
+};
+
+export const updateBlogThumbnail = async (req: Request, res: Response) => {
+  try {
+    const idOrSlug = req.params.id as string;
+    const decoded = decodeURIComponent(idOrSlug).trim();
+    const unicodeSlug = cleanSlug(idOrSlug);
+    const { thumbnailUrl, insideOnly, resetCrop } = req.body;
+
+    if (!resetCrop && (!thumbnailUrl || typeof thumbnailUrl !== 'string')) {
+      return res.status(400).json({ success: false, error: { message: 'thumbnailUrl is required' } });
+    }
+
+    let finalThumbnailUrl = thumbnailUrl || '';
+
+    // If it's a base64 data URL from client cropper, save permanently as WebP
+    if (finalThumbnailUrl.startsWith('data:image/')) {
+      const match = finalThumbnailUrl.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+      if (match) {
+        const buffer = Buffer.from(match[2], 'base64');
+        const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const fileName = `blog_crop_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.webp`;
+        const filePath = path.join(uploadsDir, fileName);
+
+        await sharp(buffer)
+          .webp({ quality: 90, effort: 4 })
+          .toFile(filePath);
+
+        finalThumbnailUrl = `/uploads/${fileName}`;
+      }
+    }
+
+    // Find the blog post by id or slug
+    const conditions: any[] = [];
+    if (idOrSlug) conditions.push({ id: idOrSlug }, { slug: idOrSlug });
+    if (decoded && decoded !== idOrSlug) conditions.push({ id: decoded }, { slug: decoded });
+    if (unicodeSlug && unicodeSlug !== idOrSlug && unicodeSlug !== decoded) conditions.push({ slug: unicodeSlug });
+    const hyphenated = idOrSlug.replace(/\s+/g, '-').toLowerCase();
+    if (hyphenated !== idOrSlug) conditions.push({ slug: hyphenated });
+    const decodedHyphenated = decoded.replace(/\s+/g, '-').toLowerCase();
+    if (decodedHyphenated !== decoded) conditions.push({ slug: decodedHyphenated });
+
+    let existing = await prisma.blogPost.findFirst({
+      where: { OR: conditions }
+    });
+
+    if (!existing) {
+      const allPosts = await prisma.blogPost.findMany();
+      existing = allPosts.find((b: any) => 
+        b.id === idOrSlug ||
+        b.slug === idOrSlug ||
+        b.slug === decoded ||
+        b.slug === unicodeSlug ||
+        b.slug === hyphenated ||
+        cleanSlug(b.slug) === unicodeSlug ||
+        cleanSlug(b.title) === unicodeSlug
+      ) || null;
+    }
+
+    let updatedBlog;
+    if (existing) {
+      if (insideOnly) {
+        // Crop affects ONLY the inside blog image, NOT the blog card thumbnail
+        let newContent = (existing.content || '').replace(/<!--insideImage:.*?-->\s*/g, '');
+        if (!resetCrop && finalThumbnailUrl) {
+          newContent = `<!--insideImage:${finalThumbnailUrl}-->\n` + newContent;
+        }
+        updatedBlog = await prisma.blogPost.update({
+          where: { id: existing.id },
+          data: { content: newContent }
+        });
+      } else {
+        updatedBlog = await prisma.blogPost.update({
+          where: { id: existing.id },
+          data: { thumbnailUrl: finalThumbnailUrl }
+        });
+      }
+    } else {
+      const defaultMatch = defaultBlogs.find((b: any) =>
+        b.slug === idOrSlug || b.slug === decoded || b.id === idOrSlug
+      );
+      if (defaultMatch) {
+        let initialContent = defaultMatch.content || '';
+        if (insideOnly && finalThumbnailUrl && !resetCrop) {
+          initialContent = `<!--insideImage:${finalThumbnailUrl}-->\n` + initialContent;
+        }
+        updatedBlog = await prisma.blogPost.create({
+          data: {
+            title: defaultMatch.title || 'Untitled Article',
+            slug: defaultMatch.slug || idOrSlug,
+            content: initialContent,
+            excerpt: defaultMatch.excerpt || null,
+            thumbnailUrl: insideOnly ? (defaultMatch.thumbnailUrl || '/images/course-basic.jpg') : finalThumbnailUrl,
+            published: true,
+          }
+        });
+      } else {
+        return res.status(404).json({ success: false, error: { message: 'Blog post not found' } });
+      }
+    }
+
+    blogsCache = null;
+    blogsCacheTime = 0;
+
+    return res.json({
+      success: true,
+      data: formatBlogResponse(updatedBlog),
+      thumbnailUrl: finalThumbnailUrl,
+    });
+  } catch (error: any) {
+    console.error('Error in updateBlogThumbnail:', error);
+    return res.status(500).json({ success: false, error: { message: error.message || 'Error updating blog thumbnail' } });
   }
 };
 
