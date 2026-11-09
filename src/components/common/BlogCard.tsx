@@ -31,7 +31,7 @@ interface BlogCardProps {
  *   - "Read More →" link
  *   - Admin Action Toolbar (Edit / Delete) if isAdmin is true
  */
-export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, onEdit, onDelete }) => {
+export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = false, onEdit, onDelete }) => {
   const fallbackThumbnail = '/images/course-basic.jpg';
   const logoSrc = '/logo.png';
 

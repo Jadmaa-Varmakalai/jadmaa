@@ -520,6 +520,21 @@ export const updateBlogThumbnail = async (req: Request, res: Response) => {
         if (insideOnly && finalThumbnailUrl && !resetCrop) {
           initialContent = `<!--insideImage:${finalThumbnailUrl}-->\n` + initialContent;
         }
+
+        const authorId = (req as any).user?.userId || (req as any).user?.id;
+        let effectiveAuthorId = authorId;
+        if (!effectiveAuthorId) {
+          const adminUser = await prisma.user.findFirst({
+            where: { OR: [{ role: 'SUPER_ADMIN' }, { role: 'ADMIN' }] },
+            select: { id: true }
+          });
+          effectiveAuthorId = adminUser?.id;
+        }
+        if (!effectiveAuthorId) {
+          const anyUser = await prisma.user.findFirst({ select: { id: true } });
+          effectiveAuthorId = anyUser?.id;
+        }
+
         updatedBlog = await prisma.blogPost.create({
           data: {
             title: defaultMatch.title || 'Untitled Article',
@@ -528,6 +543,7 @@ export const updateBlogThumbnail = async (req: Request, res: Response) => {
             excerpt: defaultMatch.excerpt || null,
             thumbnailUrl: insideOnly ? (defaultMatch.thumbnailUrl || '/images/course-basic.jpg') : finalThumbnailUrl,
             published: true,
+            authorId: effectiveAuthorId || 'admin-system',
           }
         });
       } else {
