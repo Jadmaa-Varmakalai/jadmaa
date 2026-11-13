@@ -107,16 +107,16 @@ export const StudentProfile: React.FC = () => {
     <>
       <SEO title="My Profile | JADMAA" />
       
-      <section className="bg-white border-b border-gray-200 py-8">
+      <section className="bg-[#FAF6F0] border-b border-[#E8DDD0] py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading font-extrabold text-3xl text-gray-900">
+          <h1 className="font-heading font-extrabold text-3xl text-[#2B2521]">
             My Profile
           </h1>
-          <p className="text-gray-500 mt-2">Manage your account information and preferences.</p>
+          <p className="text-[#5C5148] mt-2">Manage your account information and preferences.</p>
         </div>
       </section>
 
-      <section className="py-12 bg-gray-50 min-h-[600px]">
+      <section className="py-12 bg-[#F2EDE4] min-h-[600px]">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
           <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-center sm:items-start gap-6">

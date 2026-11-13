@@ -46,16 +46,16 @@ export const CertificatesPage: React.FC = () => {
     <>
       <SEO title="My Certificates | JADMAA" />
       
-      <section className="bg-white border-b border-gray-200 py-8">
+      <section className="bg-[#FAF6F0] border-b border-[#E8DDD0] py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 className="font-heading font-extrabold text-3xl text-gray-900">
             My Certificates
           </h1>
-          <p className="text-gray-500 mt-2">View and download your earned Varmakalai credentials.</p>
+          <p className="text-[#5C5148] mt-2">View and download your earned Varmakalai credentials.</p>
         </div>
       </section>
 
-      <section className="py-12 bg-gray-50 min-h-[600px]">
+      <section className="py-12 bg-[#F2EDE4] min-h-[600px]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {certificates.length === 0 ? (

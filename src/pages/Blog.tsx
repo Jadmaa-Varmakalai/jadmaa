@@ -88,7 +88,7 @@ export const Blog: React.FC = () => {
         </section>
 
         {/* Blog Posts Grid Section */}
-        <section className="py-12 bg-white border-b border-jadmaa-border min-h-screen">
+        <section className="py-12 bg-[#F2EDE4] border-b border-jadmaa-border min-h-screen">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             {loading && blogs.length === 0 ? (
               <div className="text-center py-20 text-[#7A6E65]">Loading articles...</div>

@@ -70,7 +70,7 @@ export const MyCourses: React.FC = () => {
     <>
       <SEO title="My Courses | JADMAA" />
       
-      <section className="bg-white border-b border-gray-200 py-8">
+      <section className="bg-[#FAF6F0] border-b border-[#E8DDD0] py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <h1 className="font-heading font-extrabold text-3xl text-gray-900">
@@ -111,7 +111,7 @@ export const MyCourses: React.FC = () => {
         </div>
       </section>
 
-      <section className="py-8 bg-gray-50 min-h-screen">
+      <section className="py-8 bg-[#F2EDE4] min-h-screen">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           
           {enrolledList.length === 0 ? (

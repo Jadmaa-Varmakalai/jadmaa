@@ -137,7 +137,7 @@ export const Contact: React.FC = () => {
         </section>
 
         {/* Contact Info + Enquiry Form Grid */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
+        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               

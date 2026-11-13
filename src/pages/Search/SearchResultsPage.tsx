@@ -115,7 +115,7 @@ export const SearchResultsPage: React.FC = () => {
       />
 
       {/* Hero Search Header */}
-      <section className="bg-white border-b border-[#E8DDD0] py-8 sm:py-12">
+      <section className="bg-[#FAF6F0] border-b border-[#E8DDD0] py-8 sm:py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-2xl mx-auto mb-6">
             <span className="text-[11px] font-bold text-[#B12B2B] uppercase tracking-wider inline-flex items-center gap-1.5 mb-1.5">
@@ -187,7 +187,7 @@ export const SearchResultsPage: React.FC = () => {
 
       {/* Category Tabs & Filter Navigation - Clean Underline Tabs */}
       {queryParam && (
-        <section className="bg-white border-b border-[#E8DDD0] sticky top-16 z-20">
+        <section className="bg-[#F2EDE4] border-b border-[#E8DDD0] sticky top-16 z-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto no-scrollbar">
             <div className="flex space-x-6 sm:space-x-8 shrink-0">
               <button

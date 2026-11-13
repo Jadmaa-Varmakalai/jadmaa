@@ -146,7 +146,7 @@ export const Products: React.FC = () => {
       )}
 
       {/* Main Catalog Section */}
-      <section className="py-10 bg-[#FAF6F0] min-h-screen text-left">
+      <section className="py-10 bg-[#F2EDE4] min-h-screen text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
           {/* Controls: Filter & Sort */}
