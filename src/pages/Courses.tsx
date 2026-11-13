@@ -104,7 +104,7 @@ export const Courses: React.FC = () => {
       </section>
 
       {/* Course Catalog Content */}
-      <section className="py-12 bg-[#FCFAF7] border-b border-jadmaa-border min-h-screen">
+      <section className="py-12 bg-[#F2EDE4] border-b border-jadmaa-border min-h-screen">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
           {/* Top Format Selector (Online vs Branch) */}

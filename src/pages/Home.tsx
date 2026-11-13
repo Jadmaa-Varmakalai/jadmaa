@@ -364,7 +364,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 2. ABOUT JADMAA TEASER SECTION */}
-      <section className="py-14 lg:py-20 bg-white border-b border-[#EBE3D7] text-left overflow-hidden relative" data-aos="fade-up">
+      <section className="py-14 lg:py-20 bg-[#F2EDE4] border-b border-[#EBE3D7] text-left overflow-hidden relative" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             
@@ -474,7 +474,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 4. MARTIAL ARTS TRAINING AT JADMAA VARMAKALAI SECTION */}
-      <section className="py-12 sm:py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
+      <section className="py-12 sm:py-16 bg-[#F2EDE4] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-10 sm:space-y-12">
           
           {/* Top Row: Left Image & Right Section Content */}
@@ -626,7 +626,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 5. FEATURED COURSES SECTION */}
-      <section className="py-16 bg-white border-b border-[#E8DDD0] text-left" data-aos="fade-up">
+      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
@@ -740,7 +740,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 6. VARMA WELLNESS & TRADITIONAL THERAPY SECTION */}
-      <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
+      <section className="py-8 sm:py-12 bg-[#F2EDE4] border-b border-[#E8DDD0] text-left overflow-hidden" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
           
           <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]" data-aos="fade-up">
@@ -819,7 +819,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 8. BRANCH LOCATIONS SECTION */}
-      <section className="py-16 bg-white border-b border-[#E8DDD0] text-left" data-aos="fade-up">
+      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
           <div className="text-center max-w-2xl mx-auto space-y-2">
@@ -838,7 +838,7 @@ export const Home: React.FC = () => {
             {mockBranches.map((branch, idx) => (
               <div 
                 key={branch.id} 
-                className="bg-[#FAF6F0] rounded-lg border border-[#E8DDD0] p-5 space-y-3 hover-lift scroll-card-settle"
+                className="bg-white rounded-lg border border-[#E8DDD0] p-5 space-y-3 hover-lift scroll-card-settle shadow-xs"
                 data-aos="fade-up"
                 data-aos-delay={(idx + 1) * 100}
               >
@@ -857,7 +857,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* 9. TESTIMONIALS SECTION */}
-      <section className="py-16 bg-[#FAF6F0] border-b border-[#E8DDD0] text-left" data-aos="fade-up">
+      <section className="py-16 bg-[#F2EDE4] border-b border-[#E8DDD0] text-left" data-aos="fade-up">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4" data-aos="fade-up">
             <div className="text-left">

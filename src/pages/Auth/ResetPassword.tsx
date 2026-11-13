@@ -49,18 +49,18 @@ export const ResetPassword: React.FC = () => {
   return (
     <>
       <SEO title="Reset Password | JADMAA" />
-      <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-[#FAF6F0] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <Link to="/" className="flex justify-center mb-6">
             <ResponsiveImage src="/images/logo-1.png" alt="JADMAA Logo" width={64} height={64} priority={true} aspectRatio="1/1" className="h-14 sm:h-16 w-auto mx-auto object-contain" />
           </Link>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-gray-900 font-heading">
+          <h2 className="mt-2 text-center text-3xl font-extrabold text-[#2B2521] font-heading">
             Reset your password
           </h2>
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-gray-200">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-2xl sm:px-10 border border-[#E8DDD0]">
             
             {success ? (
                <div className="text-center space-y-4">

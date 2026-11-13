@@ -66,7 +66,7 @@ export const StudentDashboard: React.FC = () => {
       <SEO title="Student Dashboard | JADMAA" />
       
       {/* Header */}
-      <section className="bg-white border-b border-gray-200 pt-8 pb-10">
+      <section className="bg-[#FAF6F0] border-b border-[#E8DDD0] pt-8 pb-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
@@ -79,10 +79,10 @@ export const StudentDashboard: React.FC = () => {
                )}
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-gray-900">
+              <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-[#2B2521]">
                 Welcome back, {student.name.split(' ')[0]}
               </h1>
-              <p className="text-gray-500 text-sm mt-1">Continue your Varmakalai learning journey.</p>
+              <p className="text-[#5C5148] text-sm mt-1">Continue your Varmakalai learning journey.</p>
             </div>
           </div>
           <Link to="/courses" className="px-5 py-2.5 bg-jadmaa-red hover:bg-red-800 text-white text-sm font-semibold rounded shadow-sm transition self-start sm:self-auto">
@@ -91,7 +91,7 @@ export const StudentDashboard: React.FC = () => {
         </div>
       </section>
 
-      <section className="py-8 bg-gray-50 min-h-[600px]">
+      <section className="py-8 bg-[#F2EDE4] min-h-[600px]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
           
           {/* Stats Row */}

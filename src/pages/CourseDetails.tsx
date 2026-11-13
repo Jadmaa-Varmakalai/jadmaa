@@ -309,7 +309,7 @@ export const CourseDetails: React.FC = () => {
       />
 
       {/* Main Container mirroring jadmaa.com single course layout */}
-      <div className="bg-[#FAF8F5] min-h-screen py-8 md:py-12 text-[#212327] font-sans">
+      <div className="bg-[#FAF6F0] min-h-screen py-8 md:py-12 text-[#212327] font-sans">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           
           {/* Breadcrumb Trail */}
@@ -793,9 +793,13 @@ export const CourseDetails: React.FC = () => {
             </aside>
 
           </div>
+        </div>
+      </div>
 
-          {/* Related Courses Section */}
-          <section className="mt-16 pt-12 border-t border-[#E5E2DC]" data-aos="fade-up">
+      {/* 2. Related Courses Section in Dark Cream #F2EDE4 */}
+      {relatedCourses.filter(c => c.id !== course.id).length > 0 && (
+        <section className="py-16 bg-[#F2EDE4] border-t border-[#E8DDD0] text-left" data-aos="fade-up">
+          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl text-[#111827] mb-8">
               Related Varmakalai Programs
             </h2>
@@ -807,10 +811,9 @@ export const CourseDetails: React.FC = () => {
                   <CourseCard key={related.id} course={related} />
                 ))}
             </div>
-          </section>
-
-        </div>
-      </div>
+          </div>
+        </section>
+      )}
 
       {/* Share Modal */}
       {isShareModalOpen && (

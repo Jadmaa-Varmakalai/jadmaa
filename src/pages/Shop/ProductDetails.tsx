@@ -397,62 +397,63 @@ export const ProductDetails: React.FC = () => {
               </div>
             </div>
           </div>
-
-          {/* Related Products */}
-          {product.relatedProducts && product.relatedProducts.length > 0 && (
-            <div className="space-y-4 pt-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-heading font-extrabold text-jadmaa-charcoal">
-                  More Products in Store
-                </h3>
-                <Link
-                  to="/products"
-                  className="text-xs font-bold text-jadmaa-red hover:underline flex items-center gap-1"
-                >
-                  <span>View All</span>
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {product.relatedProducts.map((rp) => (
-                  <Link
-                    key={rp.id}
-                    to={`/products/${rp.slug}`}
-                    className="bg-white rounded-2xl border border-gray-100 shadow-xs hover:shadow-md transition p-4 flex flex-col group overflow-hidden"
-                  >
-                    <div className="w-full h-44 bg-gray-50 rounded-xl overflow-hidden mb-3">
-                      {rp.images && rp.images[0] ? (
-                        <ResponsiveImage
-                          src={rp.images[0]}
-                          alt={rp.name}
-                          width={240}
-                          height={240}
-                          aspectRatio="1/1"
-                          className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                          <ShoppingBag className="w-8 h-8" />
-                        </div>
-                      )}
-                    </div>
-                    <h4 className="font-bold text-sm text-gray-900 line-clamp-1 group-hover:text-jadmaa-red transition">
-                      {rp.name}
-                    </h4>
-                    <div className="mt-2 flex items-baseline gap-2">
-                      <span className="text-sm font-extrabold text-jadmaa-charcoal">
-                        ₹{rp.price.toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-
         </div>
       </div>
+
+      {/* 2. Related Products Section in Dark Cream #F2EDE4 */}
+      {product.relatedProducts && product.relatedProducts.length > 0 && (
+        <section className="py-12 bg-[#F2EDE4] border-t border-[#E8DDD0] text-left">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xl font-heading font-extrabold text-jadmaa-charcoal">
+                More Products in Store
+              </h3>
+              <Link
+                to="/products"
+                className="text-xs font-bold text-jadmaa-red hover:underline flex items-center gap-1"
+              >
+                <span>View All</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {product.relatedProducts.map((rp) => (
+                <Link
+                  key={rp.id}
+                  to={`/products/${rp.slug}`}
+                  className="bg-white rounded-2xl border border-gray-100 shadow-xs hover:shadow-md transition p-4 flex flex-col group overflow-hidden"
+                >
+                  <div className="w-full h-44 bg-gray-50 rounded-xl overflow-hidden mb-3">
+                    {rp.images && rp.images[0] ? (
+                      <ResponsiveImage
+                        src={rp.images[0]}
+                        alt={rp.name}
+                        width={240}
+                        height={240}
+                        aspectRatio="1/1"
+                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <ShoppingBag className="w-8 h-8" />
+                      </div>
+                    )}
+                  </div>
+                  <h4 className="font-bold text-sm text-gray-900 line-clamp-1 group-hover:text-jadmaa-red transition">
+                    {rp.name}
+                  </h4>
+                  <div className="mt-2 flex items-baseline gap-2">
+                    <span className="text-sm font-extrabold text-jadmaa-charcoal">
+                      ₹{rp.price.toLocaleString('en-IN')}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
     </>
   );
 };

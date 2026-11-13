@@ -414,36 +414,38 @@ export const BlogPostDetail: React.FC = () => {
               </nav>
             )}
           </main>
-
-          {/* Related Articles Section (BlogCard style) */}
-          {relatedBlogs.length > 0 && (
-            <section className="mt-14 pt-10 border-t border-[#E8DDD0] text-left">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-wider block mb-1">
-                    More Articles
-                  </span>
-                  <h2 className="text-[24px] sm:text-[28px] font-bold text-[#2B2521] font-heading">
-                    Related Insights &amp; Stories
-                  </h2>
-                </div>
-                <Link
-                  to="/blog"
-                  className="text-[13px] font-semibold text-[#B12B2B] hover:text-[#8F2020] hover:underline"
-                >
-                  View All Blogs →
-                </Link>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {relatedBlogs.map((item) => (
-                  <BlogCard key={item.id} blog={item} />
-                ))}
-              </div>
-            </section>
-          )}
         </div>
       </div>
+
+      {/* 2. Related Articles Section in Dark Cream #F2EDE4 */}
+      {relatedBlogs.length > 0 && (
+        <section className="py-14 bg-[#F2EDE4] border-t border-[#E8DDD0] text-left">
+          <div className="max-w-[1100px] mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <span className="text-[12px] font-bold text-[#B12B2B] uppercase tracking-wider block mb-1">
+                  More Articles
+                </span>
+                <h2 className="text-[24px] sm:text-[28px] font-bold text-[#2B2521] font-heading">
+                  Related Insights &amp; Stories
+                </h2>
+              </div>
+              <Link
+                to="/blog"
+                className="text-[13px] font-semibold text-[#B12B2B] hover:text-[#8F2020] hover:underline"
+              >
+                View All Blogs →
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {relatedBlogs.map((item) => (
+                <BlogCard key={item.id} blog={item} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Interactive Crop & Position Modal */}
       {isCropModalOpen && featuredImageUrl && (

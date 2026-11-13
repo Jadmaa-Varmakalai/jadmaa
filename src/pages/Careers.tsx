@@ -103,7 +103,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* The Pathway: From Student to Branch Trainer */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-8 sm:py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <div className="text-center space-y-2">
@@ -186,7 +186,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* Join the path & Grow with JADMAA */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-8 sm:py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               

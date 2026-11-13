@@ -12,6 +12,7 @@ export default {
           redDark: "#8C1E1E",
           charcoal: "#2B2521",
           cream: "#FAF6F0",
+          creamDark: "#F2EDE4",
           creamLight: "#FFFDF9",
           border: "#E8DDD0",
           accentBlue: "#046BD2",
