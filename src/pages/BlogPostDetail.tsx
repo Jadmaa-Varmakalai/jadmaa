@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { SEO, buildArticleSchema } from '../components/common/SEO';
 import { BlogCard } from '../components/common/BlogCard';
 import { ImageCropModal } from '../components/common/ImageCropModal';
-import { getOptimizedBlogThumbnail, getOptimizedImageUrl } from '../utils/imageUtils';
+import { getOptimizedBlogThumbnail } from '../utils/imageUtils';
 import { ResponsiveImage } from '../components/common/ResponsiveImage';
 import { blogApi, cleanSlug } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
@@ -166,6 +166,21 @@ export const BlogPostDetail: React.FC = () => {
     return match ? match[1] : null;
   }, [blog]);
 
+  // Blog title for thumbnail template (up to 50 characters, matching BlogCard)
+  const templateTitle = useMemo(() => {
+    const raw = (blog?.title || '').trim();
+    if (raw.length <= 50) return raw;
+    if (typeof Intl !== 'undefined' && (Intl as any).Segmenter) {
+      try {
+        const segmenter = new (Intl as any).Segmenter('ta', { granularity: 'grapheme' });
+        const graphemes = Array.from(segmenter.segment(raw), (s: any) => s.segment);
+        if (graphemes.length <= 50) return raw;
+        return graphemes.slice(0, 50).join('').trim();
+      } catch (_) {}
+    }
+    return raw.slice(0, 50).trim();
+  }, [blog?.title]);
+
   // Handle saving newly cropped or adjusted image (AFFECTS ONLY INSIDE BLOG IMAGE, NOT CARD THUMBNAIL)
   const handleSaveCrop = async (newUrl: string) => {
     if (!blog) return;
@@ -252,37 +267,60 @@ export const BlogPostDetail: React.FC = () => {
                 {blog.title}
               </h1>
 
-              {/* 2. Featured Image / Inside Banner */}
+              {/* 2. Featured Image / Inside Banner — Unified Outside Split Thumbnail Template */}
               {insideBannerUrl && (
                 <div className="w-full mb-6 relative group/banner">
-                  {/* Clean responsive image container maintaining identical 16:9 aspect ratio across all device layouts */}
-                  <div className="w-full aspect-[16/9] overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8DDD0] bg-[#FAF6F0] shadow-2xs relative flex items-center justify-center">
-                    {/* Render ambient blurred backdrop ONLY if image is uncropped */}
-                    {!isCropped && (
-                      <img
-                        src={getOptimizedImageUrl(insideBannerUrl, 160, undefined, 'webp')}
-                        alt=""
-                        aria-hidden="true"
-                        className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-40 scale-110 pointer-events-none select-none"
+                  <div className="w-full flex h-[210px] sm:h-[280px] md:h-[340px] overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8DDD0] bg-white shadow-2xs">
+                    {/* LEFT — Thumbnail Artwork (Cream Background) */}
+                    <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
+                      <ResponsiveImage
+                        key={insideBannerUrl}
+                        src={insideBannerUrl}
+                        alt={blog.title}
+                        priority={true}
+                        width={640}
+                        height={340}
+                        aspectRatio="1/1"
+                        isBlog={true}
+                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 45vw, 420px"
+                        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
+                        fallbackSrc={featuredImageUrl}
+                        wrapperClassName="w-full h-full"
                       />
-                    )}
+                    </div>
 
-                    {/* Main Image: uncropped uses object-contain; cropped fills cleanly with object-cover and NO blur backdrop */}
-                    <ResponsiveImage
-                      key={insideBannerUrl}
-                      src={insideBannerUrl}
-                      alt={blog.title}
-                      priority={true}
-                      width={1080}
-                      height={608}
-                      aspectRatio="16/9"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 90vw, 840px"
-                      className={`w-full h-full ${
-                        isCropped ? 'object-cover' : 'object-contain'
-                      } object-center rounded-xl sm:rounded-2xl block transition-all duration-300 relative z-10`}
-                      wrapperClassName="w-full h-full"
-                      fallbackSrc={featuredImageUrl}
-                    />
+                    {/* RIGHT — Blog Title at Top + Fixed Logo + Brand Text + Tagline */}
+                    <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3 py-3 sm:px-5 sm:py-4 md:px-7 md:py-6 text-center overflow-hidden border-l border-[#E8DDD0]">
+                      {/* 1. Blog title at the top */}
+                      <div className="w-full flex items-start justify-center pt-0.5 sm:pt-1">
+                        <p className="text-[#2B2521] text-[12px] sm:text-[15px] md:text-[18px] font-bold leading-[1.3] line-clamp-3 text-center">
+                          {templateTitle}
+                        </p>
+                      </div>
+
+                      {/* 2 & 3. Fixed JADMAA logo + branding + tagline below */}
+                      <div className="flex flex-col items-center justify-center my-auto pt-1 pb-0.5">
+                        <img
+                          src="/logo.png"
+                          alt="JADMAA Varmakalai"
+                          className="h-[52px] sm:h-[68px] md:h-[82px] w-auto max-w-[85%] object-contain transition-transform duration-300 hover:scale-105"
+                          loading="eager"
+                        />
+                        <div className="mt-1.5 sm:mt-2 text-center leading-none">
+                          <div>
+                            <span className="text-[#2B2521] text-[9.5px] sm:text-[12px] md:text-[13.5px] font-extrabold tracking-[0.14em] uppercase">
+                              JADMAA{' '}
+                            </span>
+                            <span className="text-[#B12B2B] text-[9.5px] sm:text-[12px] md:text-[13.5px] font-bold tracking-[0.14em] uppercase">
+                              VARMAKALAI
+                            </span>
+                          </div>
+                          <p className="mt-1 sm:mt-1.5 text-[#5C5148] text-[7.5px] sm:text-[9.5px] md:text-[11px] font-semibold tracking-[0.06em] uppercase">
+                            Ancient Power. Modern Training.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Clean Crop Image Option Toolbar (Admins) */}

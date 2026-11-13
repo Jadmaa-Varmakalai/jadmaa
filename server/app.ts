@@ -127,15 +127,18 @@ app.use('/api/v1/offers', offerRoutes);
 app.use('/api/v1/admin/offers', offerAdminRoutes);
 
 // Fallback handler for non-API routes (SPA index.html)
-app.use((req, res, next) => {
-  if (req.method !== 'GET' || req.path.startsWith('/api/')) return next();
-  const distHtml = path.resolve(process.cwd(), 'dist', 'index.html');
-  const rootHtml = path.resolve(process.cwd(), 'index.html');
-  const htmlPath = fs.existsSync(distHtml) ? distHtml : rootHtml;
-  if (fs.existsSync(htmlPath)) {
-    return res.sendFile(htmlPath);
-  }
-  return res.status(404).send('Page not found');
-});
+// Only in production / serverless environments (in local dev, Vite middlewares handle SPA and modules)
+if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+  app.use((req, res, next) => {
+    if (req.method !== 'GET' || req.path.startsWith('/api/') || req.path.includes('.')) return next();
+    const distHtml = path.resolve(process.cwd(), 'dist', 'index.html');
+    const rootHtml = path.resolve(process.cwd(), 'index.html');
+    const htmlPath = fs.existsSync(distHtml) ? distHtml : rootHtml;
+    if (fs.existsSync(htmlPath)) {
+      return res.sendFile(htmlPath);
+    }
+    return res.status(404).send('Page not found');
+  });
+}
 
 export default app;

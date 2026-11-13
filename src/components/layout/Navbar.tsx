@@ -344,7 +344,18 @@ export const Navbar: React.FC = () => {
               aspectRatio="1/1"
               className="h-[40px] sm:h-12 w-auto object-contain shrink-0"
             />
-            <span className="font-heading font-bold text-[17px] min-[360px]:text-[18px] sm:text-[20px] text-[#2B2521] tracking-tight sm:tracking-[0.5px] leading-tight truncate">
+            {/* Mobile Brand Name: Stacked "Jadmaa" / "varmakalai" */}
+            <span className="flex flex-col sm:hidden font-heading font-bold leading-none select-none">
+              <span className="text-[16px] text-[#2B2521] tracking-tight leading-none">
+                Jadmaa
+              </span>
+              <span className="text-[13px] text-[#B12B2B] tracking-tight leading-none mt-0.5">
+                varmakalai
+              </span>
+            </span>
+
+            {/* Desktop Brand Name */}
+            <span className="hidden sm:inline font-heading font-bold text-[20px] text-[#2B2521] tracking-[0.5px] leading-tight truncate">
               JADMAA <span className="text-[#B12B2B]">VARMAKALAI</span>
             </span>
           </Link>
