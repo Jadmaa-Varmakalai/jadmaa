@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { CourseCard, isOnlineCourse } from '../components/courses/CourseCard';
-import { Search, Filter, BookOpen, Video, MapPin, Layers } from 'lucide-react';
+import { Search, Filter, BookOpen, Video, MapPin, Layers, X } from 'lucide-react';
 import { courseApi } from '../lib/api/courseApi';
 import { EditableText } from '../components/common/EditableText';
 import type { Course } from '../types';
@@ -15,7 +16,29 @@ export const Courses: React.FC = () => {
   const [trainingFilter, setTrainingFilter] = useState<'all' | 'online' | 'branch'>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedLevel, setSelectedLevel] = useState<string>('All');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState<string>(() => searchParams.get('q') || searchParams.get('search') || '');
+
+  // Synchronize state when URL query params change
+  useEffect(() => {
+    const q = searchParams.get('q') || searchParams.get('search') || '';
+    if (q !== searchQuery) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    const newParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      newParams.set('q', value.trim());
+    } else {
+      newParams.delete('q');
+      newParams.delete('search');
+    }
+    setSearchParams(newParams, { replace: true });
+  };
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -149,16 +172,27 @@ export const Courses: React.FC = () => {
             
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               
-              {/* Search input */}
+              {/* Search input with themed icon & clear button */}
               <div className="relative flex-1 max-w-md">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+                <Search className="w-4 h-4 text-[#B12B2B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   placeholder="Search courses or training programs..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm rounded-xl border border-jadmaa-border bg-[#FAF8F5] text-jadmaa-charcoal focus:border-jadmaa-red focus:ring-1 focus:ring-jadmaa-red outline-none"
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm rounded-xl border border-jadmaa-border bg-[#FAF8F5] text-jadmaa-charcoal placeholder-[#5C5148]/60 focus:bg-white focus:border-jadmaa-red focus:ring-1 focus:ring-jadmaa-red outline-none transition"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => handleSearchChange('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-jadmaa-red rounded-lg transition cursor-pointer"
+                    title="Clear search"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
 
               {/* Level selector */}
@@ -223,7 +257,7 @@ export const Courses: React.FC = () => {
                 />
               </p>
               <button
-                onClick={() => { setTrainingFilter('all'); setSelectedCategory('All'); setSelectedLevel('All'); setSearchQuery(''); }}
+                onClick={() => { setTrainingFilter('all'); setSelectedCategory('All'); setSelectedLevel('All'); handleSearchChange(''); }}
                 className="px-4 py-2 text-sm font-bold text-jadmaa-red hover:underline"
               >
                 Reset All Filters

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   Menu, 
   X, 
@@ -12,8 +12,7 @@ import {
   AlertTriangle,
   Check,
   Loader2,
-  ShoppingBag,
-  Search
+  ShoppingBag
 } from 'lucide-react';
 import { mainNavItems } from '../../data/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -26,7 +25,6 @@ export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { user, isLoggedIn, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -34,28 +32,6 @@ export const Navbar: React.FC = () => {
   const [editPromptText, setEditPromptText] = useState('');
   const [discardWarningOpen, setDiscardWarningOpen] = useState(false);
   const [saveSuccessNotice, setSaveSuccessNotice] = useState(false);
-
-  // Searchbar overlay mode
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchInputValue, setSearchInputValue] = useState('');
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (isSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isSearchOpen]);
-
-  // Close search overlay on Escape
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isSearchOpen) {
-        setIsSearchOpen(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isSearchOpen]);
 
   // Helper to determine authenticated user destination
   const getAuthenticatedDashboardRoute = () => {
@@ -67,19 +43,6 @@ export const Navbar: React.FC = () => {
       return '/instructor/dashboard';
     }
     return '/student/dashboard';
-  };
-
-  const handleOpenSearch = () => {
-    setIsOpen(false); // Close mobile drawer if open
-    setIsSearchOpen(true);
-  };
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchInputValue.trim()) {
-      setIsSearchOpen(false);
-      navigate(`/search?q=${encodeURIComponent(searchInputValue.trim())}`);
-    }
   };
 
   const { 
@@ -283,53 +246,7 @@ export const Navbar: React.FC = () => {
       <header className={`w-full bg-[#FAF6F0] transition-all duration-200 border-b border-[#E8DDD0] ${
         scrolled ? 'shadow-md py-2 sm:py-2.5' : 'py-2.5 sm:py-3.5'
       }`}>
-      {/* Full-Navbar Interactive Search Overlay with Smooth Slide-Down Animation */}
-      {isSearchOpen ? (
-        <div className="max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-10 xl:px-12 animate-search-slide-down">
-          <form onSubmit={handleSearchSubmit} className="flex items-center gap-2.5 sm:gap-3 h-11 sm:h-12 bg-white/70 sm:bg-transparent rounded-2xl px-2 sm:px-0">
-            <div className="text-[#B12B2B] pl-1 shrink-0">
-              <Search className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2]" />
-            </div>
-
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchInputValue}
-              onChange={(e) => setSearchInputValue(e.target.value)}
-              placeholder="Search courses, products, training programs, articles... (Press Enter)"
-              className="flex-1 bg-transparent border-0 text-xs sm:text-base font-medium text-[#2B2521] placeholder-[#5C5148]/60 focus:outline-none min-w-0"
-            />
-
-            {searchInputValue && (
-              <button
-                type="button"
-                onClick={() => setSearchInputValue('')}
-                className="p-1 text-gray-400 hover:text-gray-600 rounded-lg transition shrink-0"
-                title="Clear input"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-
-            <button
-              type="submit"
-              className="px-3.5 sm:px-5 py-1.5 sm:py-2 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs sm:text-sm font-bold rounded-xl transition shadow-xs cursor-pointer shrink-0"
-            >
-              Search
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(false)}
-              className="p-1.5 sm:p-2 rounded-xl text-[#5C5148] hover:text-[#2B2521] hover:bg-black/5 transition cursor-pointer shrink-0"
-              title="Close search (Esc)"
-              aria-label="Close search"
-            >
-              <X className="w-5 h-5 sm:w-6 sm:h-6" />
-            </button>
-          </form>
-        </div>
-      ) : (
+      {/* Navigation Bar Header Content */}
       <div className="max-w-[1500px] mx-auto px-3 sm:px-6 lg:px-10 xl:px-12">
         <div className="flex items-center justify-between">
           
@@ -344,13 +261,13 @@ export const Navbar: React.FC = () => {
               aspectRatio="1/1"
               className="h-[40px] sm:h-12 w-auto object-contain shrink-0"
             />
-            {/* Mobile Brand Name: Stacked "Jadmaa" / "varmakalai" */}
-            <span className="flex flex-col sm:hidden font-heading font-bold leading-none select-none">
-              <span className="text-[16px] text-[#2B2521] tracking-tight leading-none">
-                Jadmaa
+            {/* Mobile Brand Name: Stacked "JADMAA" / "VARMAKALAI" in CAPS & prominent sizing */}
+            <span className="flex flex-col sm:hidden font-heading font-extrabold leading-none select-none">
+              <span className="text-[18px] min-[360px]:text-[19px] min-[400px]:text-[20px] text-[#2B2521] tracking-tight leading-none uppercase">
+                JADMAA
               </span>
-              <span className="text-[13px] text-[#B12B2B] tracking-tight leading-none mt-0.5">
-                varmakalai
+              <span className="text-[14.5px] min-[360px]:text-[15.5px] min-[400px]:text-[16.5px] text-[#B12B2B] tracking-tight leading-none mt-1 uppercase">
+                VARMAKALAI
               </span>
             </span>
 
@@ -381,19 +298,9 @@ export const Navbar: React.FC = () => {
               );
             })}
 
-            {/* Action Icons Trio: Search | User Account | Shopping Bag */}
+            {/* Action Icons: User Account | Shopping Bag */}
             <div className="flex items-center space-x-1 lg:space-x-1.5 ml-2">
-              {/* 1. Search Icon Button */}
-              <button
-                onClick={handleOpenSearch}
-                className="p-1.5 lg:p-2 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
-                title="Search academy, courses, products"
-                aria-label="Open search bar"
-              >
-                <Search className="w-5 h-5 stroke-[1.75]" />
-              </button>
-
-              {/* 2. User Account / Profile Icon */}
+              {/* User Account / Profile Icon */}
               {isLoggedIn ? (
                 <div ref={profileRef} className="relative">
                   <button
@@ -494,18 +401,8 @@ export const Navbar: React.FC = () => {
             </div>
           </nav>
 
-          {/* Mobile Actions: Search + User + Shopping Bag + Hamburger */}
+          {/* Mobile Actions: User + Shopping Bag + Hamburger */}
           <div className="flex items-center space-x-0.5 min-[360px]:space-x-1 sm:space-x-1.5 md:hidden shrink-0">
-            {/* Mobile Search Button */}
-            <button
-              onClick={handleOpenSearch}
-              className="p-1.5 text-[#2B2521] hover:text-[#B12B2B] transition-colors rounded-lg hover:bg-black/5 cursor-pointer flex items-center justify-center"
-              title="Search"
-              aria-label="Search"
-            >
-              <Search className="w-5 h-5 stroke-[1.75]" />
-            </button>
-
             {/* Mobile User Profile Button */}
             <Link
               to={isLoggedIn ? getAuthenticatedDashboardRoute() : '/login'}
@@ -549,7 +446,6 @@ export const Navbar: React.FC = () => {
 
         </div>
       </div>
-      )}
 
       {/* Mobile Slide-Over Drawer with Darkened Backdrop */}
       {isOpen && (
