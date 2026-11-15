@@ -275,12 +275,12 @@ export const Home: React.FC = () => {
                 />
               </p>
 
-              <div className="flex flex-nowrap items-center gap-2.5 sm:gap-3.5 pt-1 max-w-[420px] sm:max-w-none">
-                <Link to="/contact" className="btn-jadmaa-primary flex-1 sm:flex-none sm:w-[200px] h-[40px] sm:h-[48px] !px-2.5 sm:!px-6 text-center justify-center">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-3.5 pt-1">
+                <Link to="/contact" className="btn-jadmaa-primary w-[180px] h-[38px] sm:h-[42px] text-[13px] sm:text-[14px] !px-3 text-center justify-center">
                   <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
                 </Link>
-                <Link to="/contact" className="btn-jadmaa-outline flex-1 sm:flex-none sm:w-[200px] h-[40px] sm:h-[48px] !px-2.5 sm:!px-6 text-center justify-center">
-                  <EditableText settingKey="home.hero.cta2" defaultText="Book Free Demo Class" />
+                <Link to="/contact" className="btn-jadmaa-outline w-[180px] h-[38px] sm:h-[42px] text-[13px] sm:text-[14px] !px-3 text-center justify-center">
+                  <EditableText settingKey="home.hero.cta2" defaultText="Book Demo Class" />
                 </Link>
               </div>
 
