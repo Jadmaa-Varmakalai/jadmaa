@@ -22,6 +22,12 @@ const JOBS: ImageJob[] = [
     isTransparent: false,
     widths: [360, 480, 682, 1024],
   },
+  // Homepage Wellness Transparent Cutout
+  {
+    src: 'public/images/wellness-transparent.png',
+    isTransparent: true,
+    widths: [360, 480, 682, 1024],
+  },
   // Homepage Training Stance
   {
     src: 'public/images/training-stance.png',

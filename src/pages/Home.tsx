@@ -747,18 +747,30 @@ export const Home: React.FC = () => {
             <EditableText settingKey="home.wellness.title" defaultText="Varma Treatment & Traditional Wellness" />
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             
-            {/* Left Image - Full size matching section height */}
-            <div className="lg:col-span-4 flex flex-col h-full">
-              <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-white">
-                <img 
-                  src="/images/wellness-682x1024.png" 
-                  alt="Traditional Varma therapy session at JADMAA Varmakalai" 
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full min-h-[460px] lg:min-h-[540px] object-cover object-top rounded-[14px] hover:scale-105 transition-transform duration-700 ease-out"
-                />
+            {/* Left Image - Transparent subject without enclosing card */}
+            <div className="lg:col-span-4 flex justify-center items-center relative" data-aos="fade-up">
+              <div className="relative group text-center max-w-[360px] sm:max-w-[420px] lg:max-w-full">
+                <picture>
+                  <source
+                    type="image/avif"
+                    srcSet="/images/optimized/wellness-transparent-360w.avif 360w, /images/optimized/wellness-transparent-480w.avif 480w, /images/optimized/wellness-transparent-682w.avif 682w, /images/optimized/wellness-transparent.avif 1024w"
+                    sizes="(max-width: 640px) 360px, (max-width: 1024px) 480px, 420px"
+                  />
+                  <source
+                    type="image/webp"
+                    srcSet="/images/optimized/wellness-transparent-360w.webp 360w, /images/optimized/wellness-transparent-480w.webp 480w, /images/optimized/wellness-transparent-682w.webp 682w, /images/optimized/wellness-transparent.webp 1024w"
+                    sizes="(max-width: 640px) 360px, (max-width: 1024px) 480px, 420px"
+                  />
+                  <img 
+                    src="/images/wellness-transparent.png" 
+                    alt="Traditional Varma therapy session at JADMAA Varmakalai" 
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-[420px] sm:max-h-[480px] lg:max-h-[520px] w-auto mx-auto object-contain drop-shadow-[0_16px_32px_rgba(43,37,33,0.14)] hover:scale-[1.03] transition-transform duration-500 ease-out"
+                  />
+                </picture>
               </div>
             </div>
 
