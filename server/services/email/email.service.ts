@@ -120,9 +120,14 @@ export const sendNewCourseSuggestionEmail = async (courseId: string) => {
     const frontendUrl = process.env.FRONTEND_URL || 'https://jadmaa.com';
     const courseUrl = `${frontendUrl}/courses/${course.slug}`;
 
-    for (const student of students) {
-      const subject = `🔥 New Varmakalai Course Available: ${course.title}`;
-      const htmlContent = `
+    // Send in concurrent batches of 5 to ensure delivery before serverless execution exits
+    const chunkSize = 5;
+    for (let i = 0; i < students.length; i += chunkSize) {
+      const chunk = students.slice(i, i + chunkSize);
+      await Promise.allSettled(
+        chunk.map(student => {
+          const subject = `🔥 New Varmakalai Course Available: ${course.title}`;
+          const htmlContent = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 8px; padding: 24px; color: #2B2521;">
           <div style="text-align: center; margin-bottom: 24px;">
             <h2 style="color: #B12B2B; margin-top: 0; font-weight: 800;">JADMAA VARMAKALAI</h2>
@@ -156,11 +161,11 @@ export const sendNewCourseSuggestionEmail = async (courseId: string) => {
           </p>
         </div>
       `;
-
-      // Send the email (runs asynchronously in background)
-      BrevoService.sendEmail(student.email, subject, htmlContent).catch(err => {
-        console.error(`[EmailService] Failed to send course recommendation to ${student.email}:`, err);
-      });
+          return BrevoService.sendEmail(student.email, subject, htmlContent).catch(err => {
+            console.error(`[EmailService] Failed to send course recommendation to ${student.email}:`, err);
+          });
+        })
+      );
     }
   } catch (error) {
     console.error('[EmailService] Error in sendNewCourseSuggestionEmail:', error);
@@ -290,11 +295,13 @@ export const sendCoursePurchaseAdminNotificationEmail = async (
 
     console.log(`[EmailService] Sending course purchase alert to admins: ${Array.from(adminEmails).join(', ')}`);
 
-    adminEmails.forEach((adminEmail) => {
-      BrevoService.sendTransactionalEmail(adminEmail, subject, htmlContent).catch((err) => {
-        console.error(`[EmailService] Error sending purchase alert to admin ${adminEmail}:`, err);
-      });
-    });
+    await Promise.allSettled(
+      Array.from(adminEmails).map(adminEmail =>
+        BrevoService.sendTransactionalEmail(adminEmail, subject, htmlContent).catch((err) => {
+          console.error(`[EmailService] Error sending purchase alert to admin ${adminEmail}:`, err);
+        })
+      )
+    );
 
     return { success: true };
   } catch (error: any) {
@@ -438,11 +445,13 @@ export const sendEnquiryAdminNotificationEmail = async (
 
     console.log(`[EmailService] Sending enquiry alert to admins: ${Array.from(adminEmails).join(', ')}`);
 
-    adminEmails.forEach((adminEmail) => {
-      BrevoService.sendTransactionalEmail(adminEmail, subject, htmlContent).catch((err) => {
-        console.error(`[EmailService] Error sending enquiry alert to admin ${adminEmail}:`, err);
-      });
-    });
+    await Promise.allSettled(
+      Array.from(adminEmails).map(adminEmail =>
+        BrevoService.sendTransactionalEmail(adminEmail, subject, htmlContent).catch((err) => {
+          console.error(`[EmailService] Error sending enquiry alert to admin ${adminEmail}:`, err);
+        })
+      )
+    );
 
     return { success: true };
   } catch (error: any) {
@@ -768,11 +777,13 @@ export const sendProductOrderAdminNotificationEmail = async (
 
     console.log(`[EmailService] Sending product order alert for #${orderNumber} to admins: ${Array.from(adminEmails).join(', ')}`);
 
-    adminEmails.forEach((adminEmail) => {
-      BrevoService.sendEmail(adminEmail, subject, htmlContent).catch((err) => {
-        console.error(`[EmailService] Error sending product order alert to admin ${adminEmail}:`, err);
-      });
-    });
+    await Promise.allSettled(
+      Array.from(adminEmails).map(adminEmail =>
+        BrevoService.sendEmail(adminEmail, subject, htmlContent).catch((err) => {
+          console.error(`[EmailService] Error sending product order alert to admin ${adminEmail}:`, err);
+        })
+      )
+    );
 
     return { success: true };
   } catch (error: any) {

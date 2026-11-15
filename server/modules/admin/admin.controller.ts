@@ -794,7 +794,7 @@ export const createCourse = async (req: Request, res: Response) => {
     await logAdminAction((req as any).user.id, 'CREATE_COURSE', 'Course', course.id, { title: course.title }, req);
     invalidateCoursesCache();
     if (course.status === 'PUBLISHED') {
-      sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
+      await sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
     }
     res.json({ success: true, data: { ...course, isAvailable: isCourseAvailable(course.id) } });
   } catch (err: any) {
@@ -925,7 +925,7 @@ export const publishCourse = async (req: Request, res: Response) => {
     });
     await logAdminAction((req as any).user.id, 'PUBLISH_COURSE', 'Course', course.id, null, req);
     invalidateCoursesCache();
-    sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
+    await sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
     res.json({ success: true, data: course });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
@@ -1222,43 +1222,45 @@ export const submitPublicEnquiry = async (req: Request, res: Response) => {
       },
     });
 
-    // Send email alert to admin(s) via Brevo asynchronously
-    sendEnquiryAdminNotificationEmail({
-      name: name.trim(),
-      phone: mobile.trim(),
-      email: email ? email.trim() : undefined,
-      category: category === 'TREATMENT' ? 'TREATMENT' : 'CLASS',
-      type: type || (category === 'TREATMENT' ? 'VARMA_TREATMENT' : 'OFFLINE_CLASS'),
-      typeLabel,
-      courseTitle: courseTitle ? courseTitle.trim() : undefined,
-      location: location ? location.trim() : undefined,
-      message: message ? message.trim() : undefined,
-    }).catch((err) => {
-      console.error('[EnquiryController] Error sending admin notification email:', err);
-    });
+    // Send email alert to admin(s) and customer before returning response
+    const emailTasks: Promise<any>[] = [
+      sendEnquiryAdminNotificationEmail({
+        name: name.trim(),
+        phone: mobile.trim(),
+        email: email ? email.trim() : undefined,
+        category: category === 'TREATMENT' ? 'TREATMENT' : 'CLASS',
+        type: type || (category === 'TREATMENT' ? 'VARMA_TREATMENT' : 'OFFLINE_CLASS'),
+        typeLabel,
+        courseTitle: courseTitle ? courseTitle.trim() : undefined,
+        location: location ? location.trim() : undefined,
+        message: message ? message.trim() : undefined,
+      }).catch((err) => {
+        console.error('[EnquiryController] Error sending admin notification email:', err);
+      }),
+    ];
 
-    // If user provided an email, sync to Brevo Marketing List & send customer confirmation
     if (email && email.trim().includes('@')) {
       const cleanEmail = email.trim();
       const cleanName = name.trim();
 
-      // 1. Sync contact to Brevo Contacts / Marketing list
-      BrevoService.addContactToMarketingList(cleanEmail, cleanName).catch((err) => {
-        console.warn('[EnquiryController] Warning syncing lead to Brevo list:', err);
-      });
-
-      // 2. Send instant acknowledgement email to the user
-      sendEnquiryUserAcknowledgementEmail({
-        name: cleanName,
-        email: cleanEmail,
-        phone: mobile.trim(),
-        typeLabel,
-        courseTitle: courseTitle ? courseTitle.trim() : undefined,
-        location: location ? location.trim() : undefined,
-      }).catch((err) => {
-        console.warn('[EnquiryController] Warning sending customer confirmation email:', err);
-      });
+      emailTasks.push(
+        BrevoService.addContactToMarketingList(cleanEmail, cleanName).catch((err) => {
+          console.warn('[EnquiryController] Warning syncing lead to Brevo list:', err);
+        }),
+        sendEnquiryUserAcknowledgementEmail({
+          name: cleanName,
+          email: cleanEmail,
+          phone: mobile.trim(),
+          typeLabel,
+          courseTitle: courseTitle ? courseTitle.trim() : undefined,
+          location: location ? location.trim() : undefined,
+        }).catch((err) => {
+          console.warn('[EnquiryController] Warning sending customer confirmation email:', err);
+        })
+      );
     }
+
+    await Promise.allSettled(emailTasks);
 
     res.status(201).json({
       success: true,

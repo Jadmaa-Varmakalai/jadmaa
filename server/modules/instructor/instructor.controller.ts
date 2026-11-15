@@ -314,7 +314,7 @@ export const createInstructorCourse = async (req: Request, res: Response) => {
 
     if (course.status === 'PUBLISHED') {
       invalidateCoursesCache();
-      sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
+      await sendNewCourseSuggestionEmail(course.id).catch(err => console.error('Failed to trigger course recommendation emails:', err));
     }
 
     res.json({ success: true, data: course });

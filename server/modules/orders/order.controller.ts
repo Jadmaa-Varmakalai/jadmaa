@@ -332,34 +332,8 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
     const orderCustomerEmail = user.email || confirmedOrder.user?.email || '';
     const orderCustomerPhone = confirmedOrder.customerPhone || user.phone || '';
 
-    sendProductOrderAdminNotificationEmail({
-      orderNumber: confirmedOrder.orderNumber,
-      orderId: confirmedOrder.id,
-      userName: orderCustomerName,
-      userEmail: orderCustomerEmail,
-      userPhone: orderCustomerPhone,
-      deliveryAddress: confirmedOrder.shippingAddress,
-      deliveryPincode: confirmedOrder.shippingPincode,
-      items: confirmedOrder.items.map((item) => ({
-        productName: item.productName,
-        unitPrice: item.unitPrice,
-        quantity: item.quantity,
-        lineTotal: item.lineTotal,
-        sku: item.sku,
-        image: item.image,
-      })),
-      subtotal: confirmedOrder.subtotal,
-      shippingCharge: confirmedOrder.shippingCharge,
-      totalAmount: confirmedOrder.totalAmount,
-      paymentMethod: confirmedOrder.paymentMethod,
-      paymentId: razorpay_payment_id,
-    }).catch((emailErr) => {
-      console.error('[Orders:verifyOrderPayment] Failed to send admin order notification email:', emailErr);
-    });
-
-    // Send confirmation receipt to customer if valid email is present
-    if (orderCustomerEmail) {
-      sendProductOrderCustomerConfirmationEmail({
+    const orderEmailTasks: Promise<any>[] = [
+      sendProductOrderAdminNotificationEmail({
         orderNumber: confirmedOrder.orderNumber,
         orderId: confirmedOrder.id,
         userName: orderCustomerName,
@@ -381,9 +355,40 @@ export const verifyOrderPayment = async (req: Request, res: Response) => {
         paymentMethod: confirmedOrder.paymentMethod,
         paymentId: razorpay_payment_id,
       }).catch((emailErr) => {
-        console.error('[Orders:verifyOrderPayment] Failed to send customer order receipt email:', emailErr);
-      });
+        console.error('[Orders:verifyOrderPayment] Failed to send admin order notification email:', emailErr);
+      }),
+    ];
+
+    if (orderCustomerEmail) {
+      orderEmailTasks.push(
+        sendProductOrderCustomerConfirmationEmail({
+          orderNumber: confirmedOrder.orderNumber,
+          orderId: confirmedOrder.id,
+          userName: orderCustomerName,
+          userEmail: orderCustomerEmail,
+          userPhone: orderCustomerPhone,
+          deliveryAddress: confirmedOrder.shippingAddress,
+          deliveryPincode: confirmedOrder.shippingPincode,
+          items: confirmedOrder.items.map((item) => ({
+            productName: item.productName,
+            unitPrice: item.unitPrice,
+            quantity: item.quantity,
+            lineTotal: item.lineTotal,
+            sku: item.sku,
+            image: item.image,
+          })),
+          subtotal: confirmedOrder.subtotal,
+          shippingCharge: confirmedOrder.shippingCharge,
+          totalAmount: confirmedOrder.totalAmount,
+          paymentMethod: confirmedOrder.paymentMethod,
+          paymentId: razorpay_payment_id,
+        }).catch((emailErr) => {
+          console.error('[Orders:verifyOrderPayment] Failed to send customer order receipt email:', emailErr);
+        })
+      );
     }
+
+    await Promise.allSettled(orderEmailTasks);
 
     return res.status(200).json({
       success: true,

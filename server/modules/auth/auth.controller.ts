@@ -124,7 +124,7 @@ export const register = async (req: Request, res: Response) => {
       });
     }
 
-    BrevoService.addContactToMarketingList(user.email, user.name).catch((err) => {
+    await BrevoService.addContactToMarketingList(user.email, user.name).catch((err) => {
       console.error('[AuthController] Failed to add contact to Brevo marketing list:', err);
     });
 
@@ -247,9 +247,14 @@ export const login = async (req: Request, res: Response) => {
         },
       });
 
-      sendSessionReverifyOtpEmail(email, otp, user.name).catch((err) => {
-        console.error('[AuthController] Failed to send session reverify OTP:', err);
-      });
+      try {
+        const otpResult = await sendSessionReverifyOtpEmail(email, otp, user.name);
+        if (!otpResult.success) {
+          console.warn('[AuthController] Session reverify OTP email delivery warning:', otpResult.reason);
+        }
+      } catch (err) {
+        console.error('[AuthController] Error sending session reverify OTP:', err);
+      }
 
       return res.json({
         success: true,
@@ -441,9 +446,14 @@ export const resendSessionOtp = async (req: Request, res: Response) => {
       },
     });
 
-    sendSessionReverifyOtpEmail(normalizedEmail, otp, user.name).catch((err) => {
-      console.error('[AuthController] Failed to resend session reverify OTP:', err);
-    });
+    try {
+      const otpResult = await sendSessionReverifyOtpEmail(normalizedEmail, otp, user.name);
+      if (!otpResult.success) {
+        console.warn('[AuthController] Resend OTP email delivery warning:', otpResult.reason);
+      }
+    } catch (err) {
+      console.error('[AuthController] Error resending session reverify OTP:', err);
+    }
 
     res.json({
       success: true,
