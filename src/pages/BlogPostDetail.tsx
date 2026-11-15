@@ -202,7 +202,6 @@ export const BlogPostDetail: React.FC = () => {
                     title={blog.title}
                     imageUrl={featuredImageUrl}
                     priority={true}
-                    isInsideBlog={true}
                   />
                 </div>
               )}
