@@ -2,7 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import type { BlogPost } from '../../lib/api/blogApi';
 import { format } from 'date-fns';
-import { ResponsiveImage } from './ResponsiveImage';
+import { BlogCoverTemplate } from './BlogCoverTemplate';
 
 interface BlogCardProps {
   blog: BlogPost;
@@ -64,61 +64,19 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = fa
 
   return (
     <article className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group relative">
-      {/* ── Upper visual split panel ─────────────────────────────────── */}
+      {/* ── Upper visual split panel (1:1 Template, Never Cropped) ───── */}
       <Link
         to={`/blog/${blog.slug}`}
-        className="flex h-[195px] sm:h-[205px] overflow-hidden border-b border-[#E8DDD0]"
+        className="block w-full overflow-hidden"
         aria-label={`Open article: ${blog.title}`}
       >
-        {/* LEFT — Thumbnail Artwork (Cream Background) */}
-        <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
-          <ResponsiveImage
-            src={blog.thumbnailUrl || fallbackThumbnail}
-            alt={blog.title}
-            priority={priority}
-            width={320}
-            height={205}
-            aspectRatio="1/1"
-            isBlog={true}
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 240px"
-            className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105"
-            fallbackSrc={fallbackThumbnail}
-            wrapperClassName="w-full h-full"
-          />
-        </div>
-
-        {/* RIGHT — Blog Title at Top + Fixed Logo + Brand Text + Tagline */}
-        <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3 py-3 sm:px-3.5 sm:py-3.5 text-center overflow-hidden border-l border-[#E8DDD0]">
-          {/* 1. Blog title at the top (allowed 50 chars, up to 3 lines) */}
-          <div className="w-full flex items-start justify-center pt-0.5">
-            <p className="text-[#2B2521] text-[12px] sm:text-[13px] font-bold leading-[1.3] line-clamp-3 text-center">
-              {displayTopic}
-            </p>
-          </div>
-
-          {/* 2 & 3. Smaller fixed JADMAA logo + branding + tagline below */}
-          <div className="flex flex-col items-center justify-center my-auto pt-1 pb-0.5">
-            <img
-              src={logoSrc}
-              alt="JADMAA Varmakalai"
-              className="h-[52px] sm:h-[58px] w-auto max-w-[85%] object-contain transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-            />
-            <div className="mt-1.5 text-center leading-none">
-              <div>
-                <span className="text-[#2B2521] text-[9.5px] sm:text-[10px] font-extrabold tracking-[0.14em] uppercase">
-                  JADMAA{' '}
-                </span>
-                <span className="text-[#B12B2B] text-[9.5px] sm:text-[10px] font-bold tracking-[0.14em] uppercase">
-                  VARMAKALAI
-                </span>
-              </div>
-              <p className="mt-1 text-[#5C5148] text-[7.5px] sm:text-[8px] font-semibold tracking-[0.06em] uppercase">
-                Ancient Power. Modern Training.
-              </p>
-            </div>
-          </div>
-        </div>
+        <BlogCoverTemplate
+          title={blog.title}
+          imageUrl={blog.thumbnailUrl}
+          priority={priority}
+          isInsideBlog={false}
+          className="border-0 border-b border-[#E8DDD0]"
+        />
       </Link>
 
       {/* ── Lower content section ────────────────────────────────────── */}

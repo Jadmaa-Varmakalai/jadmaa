@@ -788,3 +788,16 @@ a[role="button"]:active {
   will-change: transform, opacity;
 }
 
+
+/* ==========================================
+   STATIC SECTION BACKGROUNDS
+   Section container backgrounds (including alternate #F2EDE4 / #FAF6F0)
+   must remain solid, fixed, and steady — never animate the section wrapper.
+   ========================================== */
+section,
+section[data-aos] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}

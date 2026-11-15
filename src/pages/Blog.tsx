@@ -57,7 +57,7 @@ export const Blog: React.FC = () => {
 
       <div className="bg-[#FAF6F0] min-h-screen text-left text-[#2B2521]">
         {/* Header Container */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left" data-aos="fade-up">
+        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-3">
               <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">

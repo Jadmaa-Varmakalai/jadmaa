@@ -18,6 +18,7 @@ interface ImageUploadProps {
   className?: string;
   aspectRatio?: 'video' | 'square' | 'auto';
   requiredRatio?: RequiredRatio;
+  disableCrop?: boolean;
 }
 
 /**
@@ -81,6 +82,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   className = '',
   aspectRatio = 'auto',
   requiredRatio,
+  disableCrop = false,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -233,7 +235,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       )}
 
       {/* Ratio Warning Alert */}
-      {ratioWarning && (
+      {ratioWarning && !disableCrop && (
         <div className="p-3 bg-amber-50 border border-amber-300 rounded-xl text-amber-900 text-xs flex items-start space-x-2">
           <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
           <div className="space-y-1.5 text-left flex-1">
@@ -275,15 +277,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
               <p className="text-[11px] text-emerald-600 font-medium flex items-center gap-1">
                 <span>✓ Ready</span>
               </p>
-              <button
-                type="button"
-                onClick={() => setIsCropModalOpen(true)}
-                className="inline-flex items-center gap-1 px-2 py-0.5 bg-white hover:bg-[#FAF6F0] border border-[#B12B2B] text-[#B12B2B] rounded text-[11px] font-bold transition cursor-pointer"
-                title="Crop or adjust framing to fit container"
-              >
-                <Crop className="w-3 h-3" />
-                <span>Crop / Adjust Fit</span>
-              </button>
+              {!disableCrop && (
+                <button
+                  type="button"
+                  onClick={() => setIsCropModalOpen(true)}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-white hover:bg-[#FAF6F0] border border-[#B12B2B] text-[#B12B2B] rounded text-[11px] font-bold transition cursor-pointer"
+                  title="Crop or adjust framing to fit container"
+                >
+                  <Crop className="w-3 h-3" />
+                  <span>Crop / Adjust Fit</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}

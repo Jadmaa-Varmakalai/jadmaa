@@ -200,12 +200,12 @@ export const BlogManager: React.FC = () => {
             </div>
           </div>
           <ImageUpload 
-            label="Thumbnail Image (Fixed 1:1 Square Proportion)"
+            label="Cover Image (1:1 Template)"
             value={currentBlog.thumbnailUrl || ''}
             onChange={(url) => setCurrentBlog({...currentBlog, thumbnailUrl: url})}
             aspectRatio="square"
-            requiredRatio={{ width: 1, height: 1, label: '1:1 Square (e.g. 800×800 px)' }}
-            helperText="Fixed 1:1 square ratio (e.g., 800×800px) required so thumbnails are never cropped in blog cards."
+            disableCrop={true}
+            helperText="1:1 square template. Any image uploaded here will fit cleanly inside without being cropped."
           />
           <div>
             <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Content (Markdown)</label>

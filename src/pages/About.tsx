@@ -36,7 +36,7 @@ export const About: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Section 1: Title & Tagline */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left" data-aos="fade-up">
+        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
             <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
               <EditableText settingKey="about.eyebrow" defaultText="Tradition & Lineage" />
@@ -51,7 +51,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 2: Image + Intro paragraphs */}
-        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
@@ -101,7 +101,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 3: Meet Our Founder */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
             <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               <EditableText settingKey="about.founder.heading" defaultText="Meet Our Founder" />
@@ -146,7 +146,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 4: Why Choose JADMAA Varmakalai? */}
-        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
             <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               Why Choose JADMAA Varmakalai?
@@ -166,7 +166,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 5: Vision & Mission (2 boxes side-by-side) */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -193,7 +193,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 6: Your best choice & Learn from best instructors */}
-        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -231,7 +231,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 7: Join Now CTA */}
-        <section className="py-12 sm:py-16 bg-[#FAF6F0]" data-aos="fade-up">
+        <section className="py-12 sm:py-16 bg-[#FAF6F0]">
           <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
             <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
               JADMAA Varmakalai welcomes everyone — from beginners taking their first step into martial arts to dedicated practitioners seeking advanced Varmakalai knowledge. Join us and become part of a community committed to preserving tradition while building strength for the future.

@@ -66,7 +66,7 @@ export const Careers: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Banner Section */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
@@ -103,7 +103,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* The Pathway: From Student to Branch Trainer */}
-        <section className="py-8 sm:py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-8 sm:py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <div className="text-center space-y-2">
@@ -149,7 +149,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* Where it can lead: Career Opportunities */}
-        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-8 sm:py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
             
             <div className="text-center space-y-2 max-w-2xl mx-auto">
@@ -186,7 +186,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* Join the path & Grow with JADMAA */}
-        <section className="py-8 sm:py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-8 sm:py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -236,7 +236,7 @@ export const Careers: React.FC = () => {
         </section>
 
         {/* Final CTA Section */}
-        <section className="py-12 sm:py-16 bg-[#FAF6F0]" data-aos="fade-up">
+        <section className="py-12 sm:py-16 bg-[#FAF6F0]">
           <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               Train. Lead. Inspire. Preserve the Legacy.

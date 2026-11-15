@@ -798,7 +798,7 @@ export const CourseDetails: React.FC = () => {
 
       {/* 2. Related Courses Section in Dark Cream #F2EDE4 */}
       {relatedCourses.filter(c => c.id !== course.id).length > 0 && (
-        <section className="py-16 bg-[#F2EDE4] border-t border-[#E8DDD0] text-left" data-aos="fade-up">
+        <section className="py-16 bg-[#F2EDE4] border-t border-[#E8DDD0] text-left">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <h2 className="font-heading font-bold text-2xl sm:text-3xl text-[#111827] mb-8">
               Related Varmakalai Programs
