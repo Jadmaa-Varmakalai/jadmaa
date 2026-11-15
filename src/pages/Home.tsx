@@ -275,7 +275,7 @@ export const Home: React.FC = () => {
                 />
               </p>
 
-              <div className="flex flex-wrap items-center gap-3.5 pt-1">
+              <div className="flex flex-wrap items-center gap-2.5 sm:gap-3.5 pt-1">
                 <Link to="/contact" className="btn-jadmaa-primary">
                   <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
                 </Link>
@@ -285,7 +285,7 @@ export const Home: React.FC = () => {
               </div>
 
               {/* Hero Stats Row - All 4 in single row on mobile (exact jadmaa.com match) */}
-              <div className="pt-6 sm:pt-8 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
+              <div className="pt-5 sm:pt-8 border-t-0 sm:border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
                   <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
