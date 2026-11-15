@@ -398,7 +398,7 @@ export const Checkout: React.FC = () => {
                             width={80}
                             height={80}
                             aspectRatio="1/1"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                             wrapperClassName="w-full h-full"
                           />
                         ) : (

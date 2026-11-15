@@ -294,17 +294,17 @@ export const Products: React.FC = () => {
                     {/* Image Area */}
                     <Link
                       to={`/products/${product.slug}`}
-                      className="relative block w-full h-56 bg-gray-50 overflow-hidden"
+                      className="relative block w-full aspect-square bg-[#FAF6F0]/40 overflow-hidden flex items-center justify-center"
                     >
                       {product.images && product.images[0] ? (
                         <ResponsiveImage
                           src={product.images[0]}
                           alt={product.name}
-                          width={360}
-                          height={224}
-                          aspectRatio="16/10"
+                          width={500}
+                          height={500}
+                          aspectRatio="1/1"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300">
