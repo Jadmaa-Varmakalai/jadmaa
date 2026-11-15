@@ -62,21 +62,31 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = fa
   })();
   const displayTopic = displayTitle;
 
+  // Standardized dynamic title font size based on title length:
+  // Guarantees up to 50 characters (including long Tamil and English titles) fit cleanly
+  // across mobile, tablet, and laptop screens without being cut off by line clamping.
+  const titleLength = displayTopic.length;
+  const titleFontSize = React.useMemo(() => {
+    if (titleLength <= 24) return 'text-[12.5px] sm:text-[13.5px] lg:text-[14px]';
+    if (titleLength <= 36) return 'text-[11px] sm:text-[12px] lg:text-[12.5px]';
+    return 'text-[9.5px] sm:text-[10.5px] lg:text-[11px]';
+  }, [titleLength]);
+
   return (
-    <article className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group relative">
-      {/* ── Upper visual split panel ─────────────────────────────────── */}
+    <article className="bg-white border border-[#E8DDD0] rounded-[14px] overflow-hidden flex flex-col transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 group relative max-w-[390px] sm:max-w-none w-full h-full">
+      {/* ── Upper visual split panel (Geometrically locked to aspect-[340/205] for standard framing) ── */}
       <Link
         to={`/blog/${blog.slug}`}
-        className="flex h-[195px] sm:h-[205px] overflow-hidden border-b border-[#E8DDD0]"
+        className="flex aspect-[340/205] w-full overflow-hidden border-b border-[#E8DDD0]"
         aria-label={`Open article: ${blog.title}`}
       >
-        {/* LEFT — Thumbnail Artwork (Cream Background) */}
-        <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
+        {/* LEFT (50%) — Thumbnail Artwork (Cream Background, Exact 170:205 Framing) */}
+        <div className="w-1/2 h-full overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
           <ResponsiveImage
             src={blog.thumbnailUrl || fallbackThumbnail}
             alt={blog.title}
             priority={priority}
-            width={320}
+            width={340}
             height={205}
             aspectRatio="1/1"
             isBlog={true}
@@ -87,33 +97,33 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = fa
           />
         </div>
 
-        {/* RIGHT — Blog Title at Top + Fixed Logo + Brand Text + Tagline */}
-        <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3 py-3 sm:px-3.5 sm:py-3.5 text-center overflow-hidden border-l border-[#E8DDD0]">
-          {/* 1. Blog title at the top (allowed 50 chars, up to 3 lines) */}
+        {/* RIGHT (50%) — Blog Title at Top + Fixed Logo + Brand Text + Tagline */}
+        <div className="w-1/2 h-full bg-white flex flex-col justify-between items-center px-2 py-2 sm:px-2.5 sm:py-2.5 lg:px-3 lg:py-3 text-center overflow-hidden border-l border-[#E8DDD0]">
+          {/* 1. Blog title at the top (auto-fit font, never cut off with ellipsis) */}
           <div className="w-full flex items-start justify-center pt-0.5">
-            <p className="text-[#2B2521] text-[12px] sm:text-[13px] font-bold leading-[1.3] line-clamp-3 text-center">
+            <p className={`text-[#2B2521] ${titleFontSize} font-bold leading-[1.25] sm:leading-[1.3] line-clamp-4 text-center break-words`}>
               {displayTopic}
             </p>
           </div>
 
-          {/* 2 & 3. Smaller fixed JADMAA logo + branding + tagline below */}
-          <div className="flex flex-col items-center justify-center my-auto pt-1 pb-0.5">
+          {/* 2 & 3. Standardized JADMAA logo + branding + tagline below */}
+          <div className="flex flex-col items-center justify-center my-auto py-0.5 sm:py-1">
             <img
               src={logoSrc}
               alt="JADMAA Varmakalai"
-              className="h-[52px] sm:h-[58px] w-auto max-w-[85%] object-contain transition-transform duration-300 group-hover:scale-105"
+              className="h-[42px] sm:h-[48px] lg:h-[52px] w-auto max-w-[85%] object-contain transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
             />
-            <div className="mt-1.5 text-center leading-none">
+            <div className="mt-1 sm:mt-1.5 text-center leading-none">
               <div>
-                <span className="text-[#2B2521] text-[9.5px] sm:text-[10px] font-extrabold tracking-[0.14em] uppercase">
+                <span className="text-[#2B2521] text-[8px] sm:text-[9px] lg:text-[9.5px] font-extrabold tracking-[0.14em] uppercase">
                   JADMAA{' '}
                 </span>
-                <span className="text-[#B12B2B] text-[9.5px] sm:text-[10px] font-bold tracking-[0.14em] uppercase">
+                <span className="text-[#B12B2B] text-[8px] sm:text-[9px] lg:text-[9.5px] font-bold tracking-[0.14em] uppercase">
                   VARMAKALAI
                 </span>
               </div>
-              <p className="mt-1 text-[#5C5148] text-[7.5px] sm:text-[8px] font-semibold tracking-[0.06em] uppercase">
+              <p className="mt-0.5 sm:mt-1 text-[#5C5148] text-[6.5px] sm:text-[7.5px] lg:text-[8px] font-semibold tracking-[0.06em] uppercase">
                 Ancient Power. Modern Training.
               </p>
             </div>
@@ -121,29 +131,29 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = fa
         </div>
       </Link>
 
-      {/* ── Lower content section ────────────────────────────────────── */}
-      <div className="p-5 flex flex-col flex-grow text-left">
+      {/* ── Lower content section (Standardized Heights for Row Uniformity) ── */}
+      <div className="p-4 sm:p-5 flex flex-col flex-grow text-left">
         {/* Red blog title */}
-        <h3 className="text-[17px] sm:text-[18px] font-bold text-[#B12B2B] leading-[1.35] mb-2 hover:text-[#8F2020] transition-colors line-clamp-3">
+        <h3 className="text-[16px] sm:text-[17.5px] font-bold text-[#B12B2B] leading-[1.35] mb-2 hover:text-[#8F2020] transition-colors line-clamp-2 min-h-[44px] sm:min-h-[48px]">
           <Link to={`/blog/${blog.slug}`}>
-            {displayTitle}
+            {blog.title}
           </Link>
         </h3>
 
         {/* Meta — date + author */}
-        <div className="text-[12px] text-[#7A6E65] leading-[1.4] mb-3 font-normal">
+        <div className="text-[12px] text-[#7A6E65] leading-[1.4] mb-2.5 font-normal">
           <span>{formattedDate}</span>
           <span className="mx-1.5 text-[#E8DDD0]">|</span>
           <span>by {blog.author?.name || 'info@jadmaa.com'}</span>
         </div>
 
         {/* Excerpt */}
-        <div className="text-[13px] text-[#5C5148] leading-[1.65] line-clamp-3 mb-4 flex-grow">
+        <div className="text-[13px] text-[#5C5148] leading-[1.6] line-clamp-3 mb-4 flex-grow min-h-[60px]">
           {blog.excerpt || 'Read the full article to learn more about this topic.'}
         </div>
 
         {/* Read More Link & Admin Action Bar */}
-        <div className="mt-auto pt-2 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#F5EFE6]">
+        <div className="mt-auto pt-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#F5EFE6]">
           <Link
             to={`/blog/${blog.slug}`}
             className="inline-flex items-center text-[13px] font-semibold text-[#B12B2B] hover:text-[#8F2020] hover:underline transition-colors gap-1"

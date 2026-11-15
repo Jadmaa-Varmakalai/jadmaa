@@ -89,15 +89,15 @@ export const Blog: React.FC = () => {
 
         {/* Blog Posts Grid Section */}
         <section className="py-12 bg-[#F2EDE4] border-b border-jadmaa-border min-h-screen">
-          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
+          <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
             {loading && blogs.length === 0 ? (
               <div className="text-center py-20 text-[#7A6E65]">Loading articles...</div>
             ) : error && blogs.length === 0 ? (
               <div className="text-center py-20 text-[#B12B2B]">Error: {error}</div>
             ) : blogs.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" data-aos="fade-up">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 items-stretch justify-items-center" data-aos="fade-up">
                 {blogs.map((blog, idx) => (
-                  <div key={blog.id} data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
+                  <div key={blog.id} data-aos="fade-up" data-aos-delay={(idx % 3) * 100} className="w-full flex justify-center">
                     <BlogCard 
                       blog={blog} 
                       isAdmin={canManageBlogs}

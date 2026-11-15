@@ -319,9 +319,11 @@ export const BlogPostDetail: React.FC = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 items-stretch justify-items-center">
               {relatedBlogs.map((item) => (
-                <BlogCard key={item.id} blog={item} />
+                <div key={item.id} className="w-full flex justify-center">
+                  <BlogCard blog={item} />
+                </div>
               ))}
             </div>
           </div>

@@ -49,6 +49,16 @@ export const BlogCoverTemplate: React.FC<BlogCoverTemplateProps> = ({
     return raw.slice(0, 50).trim();
   }, [title]);
 
+  // Standardized dynamic title font size based on title length:
+  // Guarantees up to 50 characters (including long Tamil and English titles) fit cleanly
+  // across mobile, tablet, and laptop screens without being cut off by line clamping.
+  const titleLength = displayTitle.length;
+  const titleFontSize = useMemo(() => {
+    if (titleLength <= 24) return 'text-[13px] sm:text-[16px] md:text-[19px]';
+    if (titleLength <= 36) return 'text-[11.5px] sm:text-[14.5px] md:text-[17px]';
+    return 'text-[10px] sm:text-[13px] md:text-[15.5px]';
+  }, [titleLength]);
+
   return (
     <div
       className={`w-full aspect-[340/205] flex overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8DDD0] bg-white shadow-2xs ${className}`}
@@ -71,32 +81,32 @@ export const BlogCoverTemplate: React.FC<BlogCoverTemplateProps> = ({
       </div>
 
       {/* RIGHT — Blog Title at Top + Fixed Logo + Brand Text + Tagline (Exact BlogCard Proportions) */}
-      <div className="w-1/2 h-full bg-white flex flex-col justify-between items-center px-3 py-3 sm:px-5 sm:py-5 md:px-7 md:py-6 text-center overflow-hidden border-l border-[#E8DDD0]">
-        {/* 1. Blog title at top */}
+      <div className="w-1/2 h-full bg-white flex flex-col justify-between items-center px-2.5 py-2.5 sm:px-4 sm:py-4 md:px-6 md:py-5 text-center overflow-hidden border-l border-[#E8DDD0]">
+        {/* 1. Blog title at top (auto-fit font, never cut off with ellipsis) */}
         <div className="w-full flex items-start justify-center pt-0.5 sm:pt-1">
-          <p className="text-[#2B2521] text-[12px] sm:text-[15px] md:text-[18px] font-bold leading-[1.3] line-clamp-3 text-center">
+          <p className={`text-[#2B2521] ${titleFontSize} font-bold leading-[1.25] sm:leading-[1.3] line-clamp-4 text-center break-words`}>
             {displayTitle}
           </p>
         </div>
 
-        {/* 2 & 3. Fixed JADMAA logo + branding + tagline */}
-        <div className="flex flex-col items-center justify-center my-auto py-1 sm:py-2">
+        {/* 2 & 3. Standardized JADMAA logo + branding + tagline */}
+        <div className="flex flex-col items-center justify-center my-auto py-1 sm:py-1.5">
           <img
             src={logoSrc}
             alt="JADMAA Varmakalai"
-            className="h-[52px] sm:h-[68px] md:h-[84px] w-auto max-w-[85%] object-contain transition-transform duration-300 hover:scale-105"
+            className="h-[46px] sm:h-[62px] md:h-[76px] w-auto max-w-[85%] object-contain transition-transform duration-300 hover:scale-105"
             loading="eager"
           />
-          <div className="mt-1.5 sm:mt-2.5 text-center leading-none">
+          <div className="mt-1 sm:mt-2 text-center leading-none">
             <div>
-              <span className="text-[#2B2521] text-[9.5px] sm:text-[11.5px] md:text-[13.5px] font-extrabold tracking-[0.14em] uppercase">
+              <span className="text-[#2B2521] text-[8.5px] sm:text-[11px] md:text-[13px] font-extrabold tracking-[0.14em] uppercase">
                 JADMAA{' '}
               </span>
-              <span className="text-[#B12B2B] text-[9.5px] sm:text-[11.5px] md:text-[13.5px] font-bold tracking-[0.14em] uppercase">
+              <span className="text-[#B12B2B] text-[8.5px] sm:text-[11px] md:text-[13px] font-bold tracking-[0.14em] uppercase">
                 VARMAKALAI
               </span>
             </div>
-            <p className="mt-1 sm:mt-1.5 text-[#5C5148] text-[7.5px] sm:text-[9px] md:text-[10.5px] font-semibold tracking-[0.06em] uppercase">
+            <p className="mt-0.5 sm:mt-1 text-[#5C5148] text-[6.5px] sm:text-[8.5px] md:text-[10px] font-semibold tracking-[0.06em] uppercase">
               Ancient Power. Modern Training.
             </p>
           </div>
