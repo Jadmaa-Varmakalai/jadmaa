@@ -61,8 +61,6 @@ export const ScrollObserver: React.FC = () => {
       const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
       elements.forEach((el) => {
-
-        
         // Immediately reveal elements already inside or near viewport on page load
         const rect = el.getBoundingClientRect();
         if (rect.top <= viewportHeight * 1.25) {
