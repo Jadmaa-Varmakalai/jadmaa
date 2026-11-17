@@ -338,6 +338,14 @@ html {
   will-change: opacity, transform;
 }
 
+/* Section elements are foundational background containers: their background colors must NEVER be transparent, delayed, or animated */
+section,
+section[data-aos] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+}
+
 [data-aos].aos-animate,
 [data-aos].is-revealed,
 .reveal-on-scroll.is-revealed,
