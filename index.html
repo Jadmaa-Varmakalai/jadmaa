@@ -3,26 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/images/logo-1.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <script>
       (function() {
-        function checkDesktopMode() {
-          try {
-            var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-            var ua = navigator.userAgent || '';
-            var isMobileUA = /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
-            var isDesktopRequested = isTouch && (!isMobileUA || (window.innerWidth >= 900 && window.innerWidth <= 1020));
+        try {
+          var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+          var ua = navigator.userAgent || '';
+          var isMobileUA = /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+          var isSmallScreen = Math.min(window.screen.width || 1200, window.screen.height || 1200) <= 600;
 
-            var vp = document.querySelector('meta[name="viewport"]');
-            if (isDesktopRequested && vp) {
-              vp.setAttribute('content', 'width=1200, user-scalable=yes');
-            }
-          } catch (e) {}
+          // When 'Desktop site' is requested on a mobile device:
+          // Chrome Android drops 'Mobile' from UA while screen width remains <= 600px
+          var isDesktopModeOnMobile = isSmallScreen && (isTouch || !isMobileUA) && !isMobileUA;
+
+          if (isDesktopModeOnMobile) {
+            document.write('<meta name="viewport" content="width=1200, user-scalable=yes">');
+            document.documentElement.classList.add('mobile-desktop-mode');
+          } else {
+            document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">');
+          }
+        } catch (e) {
+          document.write('<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">');
         }
-        checkDesktopMode();
-        window.addEventListener('resize', checkDesktopMode);
       })();
     </script>
+    <noscript>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    </noscript>
 
     <!-- Primary Meta -->
     <title>JADMAA Varmakalai | Varmakalai Training &amp; Self Defence in Thanjavur, Kumbakonam, Ariyalur</title>

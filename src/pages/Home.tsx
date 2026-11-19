@@ -276,10 +276,10 @@ export const Home: React.FC = () => {
               </p>
 
               <div className="flex flex-row items-center gap-2 sm:gap-3 pt-0.5 w-full sm:w-auto">
-                <Link to="/contact" className="btn-jadmaa-primary flex-1 sm:flex-initial sm:w-[160px] h-[34px] sm:h-[40px] text-[11.5px] sm:text-[13.5px] !py-0 !px-2 sm:!px-3 text-center justify-center whitespace-nowrap font-semibold shadow-sm">
+                <Link to="/contact" className="btn-jadmaa-primary flex-1 sm:flex-initial sm:w-[160px] h-[38px] sm:h-[42px] text-[12.5px] sm:text-[14px] !py-0 !px-2.5 sm:!px-3 text-center justify-center whitespace-nowrap font-semibold shadow-sm">
                   <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
                 </Link>
-                <Link to="/contact" className="btn-jadmaa-outline flex-1 sm:flex-initial sm:w-[160px] h-[34px] sm:h-[40px] text-[11.5px] sm:text-[13.5px] !py-0 !px-2 sm:!px-3 text-center justify-center whitespace-nowrap font-semibold shadow-sm">
+                <Link to="/contact" className="btn-jadmaa-outline flex-1 sm:flex-initial sm:w-[160px] h-[38px] sm:h-[42px] text-[12.5px] sm:text-[14px] !py-0 !px-2.5 sm:!px-3 text-center justify-center whitespace-nowrap font-semibold shadow-sm">
                   <EditableText settingKey="home.hero.cta2" defaultText="Book Demo" />
                 </Link>
               </div>
@@ -342,7 +342,7 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Right Column: Dedicated Hero Practitioner Kick Image Container (bounded float animation, zero overlap) */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[220px] sm:min-h-[380px] lg:min-h-[460px] mt-4 sm:mt-5 lg:mt-0 pt-2 lg:pt-0 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[360px] sm:min-h-[440px] lg:min-h-[520px] lg:mt-0 pt-2 lg:pt-0" data-aos="fade-up" data-aos-delay="100">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center will-change-transform">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />
@@ -353,7 +353,7 @@ export const Home: React.FC = () => {
                     fetchPriority="high"
                     loading="eager"
                     decoding="async"
-                    className="max-h-[320px] sm:max-h-[420px] lg:max-h-[580px] xl:max-h-[640px] w-auto object-contain object-bottom drop-shadow-[0_16px_32px_rgba(177,43,43,0.18)] hover:scale-105 transition-transform duration-500 ease-out"
+                    className="max-h-[380px] sm:max-h-[460px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </picture>
               </div>
@@ -405,14 +405,17 @@ export const Home: React.FC = () => {
             <div className="lg:col-span-4 flex justify-center items-center relative">
               {/* Subtle ambient aura behind martial stance */}
               <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-[#B12B2B]/5 blur-3xl pointer-events-none -z-0" />
-              <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px]">
-                <img 
-                  src="/images/pose-dab-red-transparent.png" 
-                  alt="Varmakalai practitioner demonstrating a traditional stance" 
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:scale-[1.03] transition-transform duration-500 ease-out"
-                />
+              <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px] flex justify-center">
+                <picture>
+                  <source type="image/webp" srcSet="/images/pose-dab-red-transparent.webp" />
+                  <img 
+                    src="/images/pose-dab-red-transparent.png" 
+                    alt="Varmakalai practitioner demonstrating a traditional stance" 
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-[380px] sm:max-h-[440px] lg:max-h-[500px] w-auto mx-auto object-contain drop-shadow-[0_16px_36px_rgba(43,37,33,0.12)] hover:scale-[1.03] transition-transform duration-500 ease-out"
+                  />
+                </picture>
               </div>
             </div>
 

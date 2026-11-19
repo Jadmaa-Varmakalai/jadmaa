@@ -55,20 +55,20 @@ export const About: React.FC = () => {
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
-              {/* Left Image - Cropped Background-Removed Martial Stance */}
-              <div className="lg:col-span-4 flex justify-center">
-                <div className="w-full max-w-[340px] overflow-hidden rounded-[14px]">
-                  <ResponsiveImage 
-                    src="/images/pose-dab-red-transparent.webp" 
-                    alt="Varmakalai practitioner demonstrating a traditional stance" 
-                    priority={true}
-                    width={340}
-                    height={461}
-                    aspectRatio="653/885"
-                    sizes="(max-width: 640px) 100vw, 340px"
-                    className="w-full h-auto object-contain hover:scale-105 transition-transform duration-500 ease-out"
-                    fallbackSrc="/images/pose-dab-red-transparent.png"
-                  />
+              {/* Left Image - Transparent Martial Stance */}
+              <div className="lg:col-span-4 flex justify-center items-center relative">
+                <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-[#B12B2B]/5 blur-3xl pointer-events-none -z-0" />
+                <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px] flex justify-center">
+                  <picture>
+                    <source type="image/webp" srcSet="/images/pose-dab-red-transparent.webp" />
+                    <img 
+                      src="/images/pose-dab-red-transparent.png" 
+                      alt="Varmakalai practitioner demonstrating a traditional stance" 
+                      loading="lazy"
+                      decoding="async"
+                      className="max-h-[380px] sm:max-h-[440px] lg:max-h-[500px] w-auto mx-auto object-contain drop-shadow-[0_16px_36px_rgba(43,37,33,0.12)] hover:scale-[1.03] transition-transform duration-500 ease-out"
+                    />
+                  </picture>
                 </div>
               </div>
 

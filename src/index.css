@@ -806,3 +806,14 @@ section[data-aos] {
   transition: none !important;
   animation: none !important;
 }
+
+/* ==========================================
+   MOBILE DESKTOP SITE MODE
+   When 'Desktop site' is requested in a mobile browser,
+   maintain steady 1200px layout width without column collapse.
+   ========================================== */
+html.mobile-desktop-mode,
+html.mobile-desktop-mode body {
+  min-width: 1200px !important;
+  width: 1200px !important;
+}
