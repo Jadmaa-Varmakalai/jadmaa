@@ -182,12 +182,12 @@ export function getOptimizedBlogThumbnail(slugOrUrl: string): {
     };
   }
 
-  // If it's a remote URL for a blog thumbnail or cover image
-  if (slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://')) {
+  // If it's a remote URL or local uploaded file for a blog thumbnail or cover image
+  if (slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://') || slugOrUrl.startsWith('/uploads/')) {
     return {
       avif: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=avif`,
       webp: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=webp`,
-      jpg: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=jpeg`,
+      jpg: slugOrUrl.startsWith('/uploads/') ? slugOrUrl : `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=jpeg`,
       srcSetWebp: [360, 480, 720, 1200]
         .map(w => `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=${w}&format=webp ${w}w`)
         .join(', '),

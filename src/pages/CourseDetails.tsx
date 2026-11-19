@@ -4,6 +4,7 @@ import { SEO, buildCourseSchema } from '../components/common/SEO';
 import { CurriculumAccordion } from '../components/courses/CurriculumAccordion';
 import { CourseCard, isOnlineCourse, getValidCourseThumbnail } from '../components/courses/CourseCard';
 import { ResponsiveImage } from '../components/common/ResponsiveImage';
+import { ShareButton } from '../components/common/ShareButton';
 import { 
   Clock, Award, Play, ChevronRight, Share2, 
   BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star,
@@ -387,13 +388,13 @@ export const CourseDetails: React.FC = () => {
 
               {/* Actions: Share */}
               <div className="flex items-center space-x-3 text-xs md:text-sm">
-                <button 
-                  onClick={() => setIsShareModalOpen(true)}
-                  className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg border border-[#D5D0C7] hover:border-jadmaa-red text-[#4A443D] hover:text-jadmaa-red bg-white shadow-sm transition-colors"
-                >
-                  <Share2 className="w-4 h-4" />
-                  <span className="font-medium">Share Course</span>
-                </button>
+                <ShareButton
+                  title={course.title}
+                  url={`/courses/${course.slug}`}
+                  text={(course as any).metaDesc || course.subtitle || course.description}
+                  variant="button"
+                  buttonText="Share Course"
+                />
               </div>
             </div>
           </header>

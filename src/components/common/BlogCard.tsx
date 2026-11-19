@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { BlogPost } from '../../lib/api/blogApi';
 import { format } from 'date-fns';
 import { ResponsiveImage } from './ResponsiveImage';
+import { ShareButton } from './ShareButton';
 
 interface BlogCardProps {
   blog: BlogPost;
@@ -152,8 +153,8 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = fa
           {blog.excerpt || 'Read the full article to learn more about this topic.'}
         </div>
 
-        {/* Read More Link & Admin Action Bar */}
-        <div className="mt-auto pt-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-[#F5EFE6]">
+        {/* Read More Link & Action Bar */}
+        <div className="mt-auto pt-2.5 flex items-center justify-between gap-2 border-t border-[#F5EFE6]">
           <Link
             to={`/blog/${blog.slug}`}
             className="inline-flex items-center text-[13px] font-semibold text-[#B12B2B] hover:text-[#8F2020] hover:underline transition-colors gap-1"
@@ -161,41 +162,51 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = fa
             Read More <span aria-hidden="true">→</span>
           </Link>
 
-          {isAdmin && (
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onEdit?.(blog);
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-[12px] font-semibold rounded-[6px] shadow-sm transition-colors cursor-pointer"
-                title="Edit blog in Blogger editor"
-              >
-                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-              </button>
-              {onDelete && (
+          <div className="flex items-center gap-1.5">
+            <ShareButton
+              title={blog.title}
+              url={`/blog/${blog.slug}`}
+              text={blog.excerpt || blog.title}
+              variant="icon"
+              iconSize={14}
+            />
+
+            {isAdmin && (
+              <div className="flex items-center gap-1.5">
                 <button
                   type="button"
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onDelete?.(blog);
+                    onEdit?.(blog);
                   }}
-                  className="inline-flex items-center px-2 py-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 text-[12px] rounded-[6px] transition-colors cursor-pointer"
-                  title="Delete blog post"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-[12px] font-semibold rounded-[6px] shadow-sm transition-colors cursor-pointer"
+                  title="Edit blog in Blogger editor"
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
+                  Edit
                 </button>
-              )}
-            </div>
-          )}
+                {onDelete && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      onDelete?.(blog);
+                    }}
+                    className="inline-flex items-center p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 text-[12px] rounded-[6px] transition-colors cursor-pointer"
+                    title="Delete blog post"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </article>

@@ -18,7 +18,7 @@ export const Home: React.FC = () => {
   // Read stats from settings with rock-solid defaults matching JADMAA tradition
   const traditionValue = parseInt(settings['home.stats.tradition.value'] || '1000', 10) || 1000;
   const branchesValue = parseInt(settings['home.stats.branches.value'] || '3', 10) || 3;
-  const coursesValue = parseInt(settings['home.stats.courses.value'] || '7', 10) || 7;
+  const coursesValue = parseInt(settings['home.stats.courses.value'] || '5', 10) || 5;
   const experienceValue = parseInt(settings['home.stats.experience.value'] || '10', 10) || 10;
 
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>(() => {
@@ -254,7 +254,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Column */}
-            <div className="lg:col-span-7 space-y-5 text-left">
+            <div className="lg:col-span-7 space-y-4 text-left relative z-20">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -275,65 +275,65 @@ export const Home: React.FC = () => {
                 />
               </p>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-3.5 pt-1">
-                <Link to="/contact" className="btn-jadmaa-primary w-[180px] h-[38px] sm:h-[42px] text-[13px] sm:text-[14px] !px-3 text-center justify-center">
+              <div className="flex flex-row items-center gap-2 sm:gap-3 pt-0.5 w-full sm:w-auto">
+                <Link to="/contact" className="btn-jadmaa-primary flex-1 sm:flex-initial sm:w-[160px] h-[34px] sm:h-[40px] text-[11.5px] sm:text-[13.5px] !py-0 !px-2 sm:!px-3 text-center justify-center whitespace-nowrap font-semibold shadow-sm">
                   <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
                 </Link>
-                <Link to="/contact" className="btn-jadmaa-outline w-[180px] h-[38px] sm:h-[42px] text-[13px] sm:text-[14px] !px-3 text-center justify-center">
-                  <EditableText settingKey="home.hero.cta2" defaultText="Book Demo Class" />
+                <Link to="/contact" className="btn-jadmaa-outline flex-1 sm:flex-initial sm:w-[160px] h-[34px] sm:h-[40px] text-[11.5px] sm:text-[13.5px] !py-0 !px-2 sm:!px-3 text-center justify-center whitespace-nowrap font-semibold shadow-sm">
+                  <EditableText settingKey="home.hero.cta2" defaultText="Book Demo" />
                 </Link>
               </div>
 
-              {/* Hero Stats Row - All 4 in single row on mobile (exact jadmaa.com match) */}
-              <div className="pt-5 sm:pt-8 border-t-0 sm:border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
+              {/* Hero Stats Row - Compact single row on mobile with dedicated z-20 stacking context */}
+              <div className="relative z-20 pt-2 sm:pt-6 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-3 md:gap-5 text-center sm:text-left bg-[#FAF6F0]/95 py-1">
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[12.5px] sm:text-xl md:text-2xl text-[#2B2521] leading-tight min-h-[1.15em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.tradition.value" defaultText="1000" />
                     ) : (
                       <CountUp end={traditionValue} suffix="+" />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[7px] min-[360px]:text-[7.5px] sm:text-[11px] md:text-xs text-[#5C5148] mt-0.5 font-medium leading-[1.15] break-words">
                     <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[12.5px] sm:text-xl md:text-2xl text-[#2B2521] leading-tight min-h-[1.15em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.branches.value" defaultText="3" />
                     ) : (
                       <CountUp end={branchesValue} />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[7px] min-[360px]:text-[7.5px] sm:text-[11px] md:text-xs text-[#5C5148] mt-0.5 font-medium leading-[1.15] break-words">
                     <EditableText settingKey="home.stats.branches" defaultText="Branches" />
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[12.5px] sm:text-xl md:text-2xl text-[#2B2521] leading-tight min-h-[1.15em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
-                      <EditableText settingKey="home.stats.courses.value" defaultText="7" />
+                      <EditableText settingKey="home.stats.courses.value" defaultText="5" />
                     ) : (
                       <CountUp end={coursesValue} />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[7px] min-[360px]:text-[7.5px] sm:text-[11px] md:text-xs text-[#5C5148] mt-0.5 font-medium leading-[1.15] break-words">
                     <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[12.5px] sm:text-xl md:text-2xl text-[#2B2521] leading-tight min-h-[1.15em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.experience.value" defaultText="10" />
                     ) : (
                       <CountUp end={experienceValue} suffix="+" />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[7px] min-[360px]:text-[7.5px] sm:text-[11px] md:text-xs text-[#5C5148] mt-0.5 font-medium leading-[1.15] break-words">
                     <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
                   </div>
                 </div>
@@ -341,9 +341,9 @@ export const Home: React.FC = () => {
 
             </div>
 
-            {/* Right Column: Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0" data-aos="fade-up" data-aos-delay="100">
-              <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center">
+            {/* Right Column: Dedicated Hero Practitioner Kick Image Container (bounded float animation, zero overlap) */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[220px] sm:min-h-[380px] lg:min-h-[460px] mt-4 sm:mt-5 lg:mt-0 pt-2 lg:pt-0 overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+              <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center will-change-transform">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />
                   <source type="image/webp" srcSet="/images/optimized/hero-kick-action-transparent-386w.webp 386w, /images/optimized/hero-kick-action-transparent.webp 386w" />
@@ -353,7 +353,7 @@ export const Home: React.FC = () => {
                     fetchPriority="high"
                     loading="eager"
                     decoding="async"
-                    className="max-h-[440px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out animate-jd-hero-float"
+                    className="max-h-[320px] sm:max-h-[420px] lg:max-h-[580px] xl:max-h-[640px] w-auto object-contain object-bottom drop-shadow-[0_16px_32px_rgba(177,43,43,0.18)] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </picture>
               </div>

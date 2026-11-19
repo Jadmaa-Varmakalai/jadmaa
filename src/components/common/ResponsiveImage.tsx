@@ -99,6 +99,14 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
             width={width}
             height={height}
             {...commonImgProps}
+            onError={(e) => {
+              const img = e.target as HTMLImageElement;
+              if (img.src !== src && !img.src.endsWith(src)) {
+                img.src = src;
+              } else {
+                handleError(e);
+              }
+            }}
           />
         </picture>
       </div>
@@ -175,7 +183,7 @@ export const ResponsiveImage: React.FC<ResponsiveImageProps> = ({
   }
 
   // 4. Standard, fallback, or error image rendering
-  const effectiveSrc = hasError ? fallbackSrc : (src || fallbackSrc);
+  const effectiveSrc = (hasError && fallbackSrc) ? fallbackSrc : (src || fallbackSrc || '/images/course-basic.jpg');
 
   return (
     <div className={`relative overflow-hidden ${wrapperClassName}`}>

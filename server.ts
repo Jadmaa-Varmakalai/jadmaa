@@ -4,20 +4,25 @@ import path from 'path';
 import { BrevoService } from './server/services/email/brevo.service.js';
 import app from './server/app.js';
 
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    // @ts-ignore
-    const { createServer: createViteServer } = await (import('' + 'vite') as Promise<any>);
-    const vite = await createViteServer({
-      server: { 
-        middlewareMode: true,
-        hmr: false
-      },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
+  const isProd = process.env.NODE_ENV === 'production';
+  if (!isProd) {
+    try {
+      // @ts-ignore
+      const { createServer: createViteServer } = await (import('' + 'vite') as Promise<any>);
+      const vite = await createViteServer({
+        server: { 
+          middlewareMode: true,
+          hmr: false
+        },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } catch (e: any) {
+      console.warn('[Server] Vite middleware load skipped:', e?.message || e);
+    }
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath, {

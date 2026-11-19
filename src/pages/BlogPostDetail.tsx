@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { SEO, buildArticleSchema } from '../components/common/SEO';
 import { BlogCard } from '../components/common/BlogCard';
 import { BlogCoverTemplate } from '../components/common/BlogCoverTemplate';
+import { ShareButton } from '../components/common/ShareButton';
 import { getOptimizedBlogThumbnail } from '../utils/imageUtils';
 import { blogApi, cleanSlug } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
@@ -207,20 +208,29 @@ export const BlogPostDetail: React.FC = () => {
               )}
 
               {/* 3. Blog Category, Author, and Publication Information */}
-              <div className="flex flex-wrap items-center gap-2 text-[12px] sm:text-[13px] text-[#5C5148] font-medium leading-[1.45] mb-8 pb-4 border-b border-[#F0F0F0]">
-                {displayTopic && (
-                  <>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#B12B2B]/10 text-[#B12B2B] font-bold text-[11px] uppercase tracking-wider">
-                      {displayTopic}
-                    </span>
-                    <span className="text-[#E8DDD0]">•</span>
-                  </>
-                )}
-                <span>By <strong className="text-[#2B2521] font-semibold">{blog.author?.name || 'info@jadmaa.com'}</strong></span>
-                <span className="text-[#E8DDD0]">•</span>
-                <time dateTime={blog.createdAt} className="text-[#7A6E65]">
-                  {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </time>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-[12px] sm:text-[13px] text-[#5C5148] font-medium leading-[1.45] mb-8 pb-4 border-b border-[#F0F0F0]">
+                <div className="flex flex-wrap items-center gap-2">
+                  {displayTopic && (
+                    <>
+                      <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#B12B2B]/10 text-[#B12B2B] font-bold text-[11px] uppercase tracking-wider">
+                        {displayTopic}
+                      </span>
+                      <span className="text-[#E8DDD0]">•</span>
+                    </>
+                  )}
+                  <span>By <strong className="text-[#2B2521] font-semibold">{blog.author?.name || 'info@jadmaa.com'}</strong></span>
+                  <span className="text-[#E8DDD0]">•</span>
+                  <time dateTime={blog.createdAt} className="text-[#7A6E65]">
+                    {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </time>
+                </div>
+                <ShareButton
+                  title={blog.title}
+                  url={`/blog/${encodeURIComponent(blog.slug)}`}
+                  text={blog.excerpt || blog.title}
+                  variant="pill"
+                  buttonText="Share"
+                />
               </div>
 
               {/* 4. Blog Article Content */}

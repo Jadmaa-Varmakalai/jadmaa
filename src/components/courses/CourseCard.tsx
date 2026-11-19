@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Clock, Star, Users, ArrowRight, Video, MapPin } from 'lucide-react';
 import type { Course } from '../../types';
 import { ResponsiveImage } from '../common/ResponsiveImage';
+import { ShareButton } from '../common/ShareButton';
 
 export const isOnlineCourse = (course: Course): boolean => {
   if (!course) return false;
@@ -210,20 +211,29 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
             </div>
           )}
 
-          {/* Action Button */}
-          <Link
-            to={`/courses/${course.slug}`}
-            className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#B12B2B] to-[#911B1B] hover:from-[#911B1B] hover:to-[#781515] text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow-md transition-all group-hover:translate-x-0.5"
-          >
-            <span>
-              {course.isFree
-                ? 'Start Learning'
-                : isOnline
-                ? 'View Course'
-                : 'Branch Details'}
-            </span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          {/* Action & Share Buttons */}
+          <div className="flex items-center gap-2">
+            <ShareButton
+              title={cleanTitle}
+              url={`/courses/${course.slug}`}
+              text={course.description || course.subtitle || cleanTitle}
+              variant="icon"
+              iconSize={15}
+            />
+            <Link
+              to={`/courses/${course.slug}`}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#B12B2B] to-[#911B1B] hover:from-[#911B1B] hover:to-[#781515] text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow-md transition-all group-hover:translate-x-0.5"
+            >
+              <span>
+                {course.isFree
+                  ? 'Start Learning'
+                  : isOnline
+                  ? 'View Course'
+                  : 'Branch Details'}
+              </span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </div>
 
       </div>

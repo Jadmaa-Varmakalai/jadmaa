@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
+import { ShareButton } from '../../components/common/ShareButton';
 import { productApi } from '../../lib/api/productApi';
 import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -379,50 +380,60 @@ export const Products: React.FC = () => {
                           <span className="text-[10px] text-gray-400">Inclusive of all taxes</span>
                         </div>
 
-                        {isAdmin ? (
-                          <div className="flex items-center gap-1.5">
-                            <Link
-                              to={`/admin#products?edit=${product.id}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-2xs"
-                              title="Edit in Admin Panel"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Edit</span>
-                            </Link>
+                        <div className="flex items-center gap-1.5">
+                          <ShareButton
+                            title={product.name}
+                            url={`/products/${product.slug}`}
+                            text={product.description || product.name}
+                            variant="icon"
+                            iconSize={14}
+                          />
+
+                          {isAdmin ? (
+                            <div className="flex items-center gap-1.5">
+                              <Link
+                                to={`/admin#products?edit=${product.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-2xs"
+                                title="Edit in Admin Panel"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Edit</span>
+                              </Link>
+                              <button
+                                onClick={(e) => handleDeleteProduct(e, product)}
+                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 shadow-2xs cursor-pointer"
+                                title="Delete Product"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Delete</span>
+                              </button>
+                            </div>
+                          ) : (
                             <button
-                              onClick={(e) => handleDeleteProduct(e, product)}
-                              className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 shadow-2xs cursor-pointer"
-                              title="Delete Product"
+                              onClick={(e) => handleAddToCart(e, product)}
+                              disabled={isOutOfStock}
+                              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
+                                isJustAdded
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-jadmaa-red hover:bg-red-700 text-white'
+                              }`}
+                              title={isOutOfStock ? 'Product is currently sold out' : 'Add to cart'}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Delete</span>
+                              {isJustAdded ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Added</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ShoppingBag className="w-3.5 h-3.5" />
+                                  <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
+                                </>
+                              )}
                             </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => handleAddToCart(e, product)}
-                            disabled={isOutOfStock}
-                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
-                              isJustAdded
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-jadmaa-red hover:bg-red-700 text-white'
-                            }`}
-                            title={isOutOfStock ? 'Product is currently sold out' : 'Add to cart'}
-                          >
-                            {isJustAdded ? (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Added</span>
-                              </>
-                            ) : (
-                              <>
-                                <ShoppingBag className="w-3.5 h-3.5" />
-                                <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
-                              </>
-                            )}
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

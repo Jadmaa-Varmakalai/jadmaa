@@ -10,7 +10,16 @@ export const Register: React.FC = () => {
   const [searchParams] = useSearchParams();
   const location = useLocation();
   const redirectUrl = searchParams.get('redirect') || (location.state as any)?.returnTo;
-  const { register } = useAuth();
+  const { register, user, isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      const dest = redirectUrl && typeof redirectUrl === 'string' && redirectUrl.startsWith('/') && !redirectUrl.startsWith('/login') && !redirectUrl.startsWith('/register')
+        ? redirectUrl
+        : user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' ? '/admin' : user.role === 'INSTRUCTOR' ? '/instructor' : '/student';
+      navigate(dest, { replace: true });
+    }
+  }, [isLoggedIn, user, navigate, redirectUrl]);
 
   const isInstructorUrl = searchParams.get('instructor') === 'true' || searchParams.get('role') === 'instructor';
   const emailParam = searchParams.get('email') || '';
@@ -89,6 +98,14 @@ export const Register: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  if (isLoggedIn && user) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center bg-[#FAF6F0]" role="status">
+        <div className="w-8 h-8 rounded-full border-3 border-[#B12B2B]/20 border-t-[#B12B2B] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <>

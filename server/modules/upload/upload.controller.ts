@@ -3,73 +3,6 @@ import fs from 'fs';
 import path from 'path';
 import sharp from 'sharp';
 
-// Lazy-load Supabase client to avoid startup errors if env vars missing
-let supabaseClient: any = null;
-
-const getSupabaseClient = async () => {
-  if (supabaseClient) return supabaseClient;
-
-  let supabaseUrl = process.env.SUPABASE_URL;
-  let supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !supabaseKey) {
-    try {
-      const dotenv = await import('dotenv');
-      dotenv.config({ override: true });
-      supabaseUrl = process.env.SUPABASE_URL;
-      supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    } catch (_) {}
-  }
-
-  if (!supabaseUrl || !supabaseKey) {
-    console.warn('[Upload] Supabase missing credentials. URL:', Boolean(supabaseUrl), 'Key present:', Boolean(supabaseKey));
-    return null;
-  }
-
-  try {
-    const { createClient } = await import('@supabase/supabase-js');
-    supabaseClient = createClient(supabaseUrl, supabaseKey);
-    return supabaseClient;
-  } catch (err) {
-    console.warn('[Upload] Supabase client init failed:', err);
-    return null;
-  }
-};
-
-/**
- * Upload image buffer to Supabase Storage bucket 'blog-images'.
- * Returns the public URL or null if it fails.
- */
-const uploadToSupabase = async (buffer: Buffer, fileName: string, mimeType: string): Promise<string | null> => {
-  try {
-    const supabase = await getSupabaseClient();
-    if (!supabase) return null;
-
-    const bucketName = 'blog-images';
-
-    const { error } = await supabase.storage
-      .from(bucketName)
-      .upload(`uploads/${fileName}`, buffer, {
-        contentType: mimeType,
-        upsert: true,
-      });
-
-    if (error) {
-      console.warn('[Upload] Supabase upload error:', error.message);
-      return null;
-    }
-
-    const { data: urlData } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(`uploads/${fileName}`);
-
-    return urlData?.publicUrl || null;
-  } catch (err) {
-    console.warn('[Upload] Supabase upload exception:', err);
-    return null;
-  }
-};
-
 /**
  * VULN-02 Defense: Magic Byte / File Signature Validation.
  * Inspects the actual binary header rather than trusting client MIME types or file extensions.
@@ -276,33 +209,17 @@ export const uploadImage = async (req: Request, res: Response) => {
     const outputFileName = `${cleanBaseName}_${timestamp}_${randomSuffix}.${finalExt}`;
     const thumbFileName = `${cleanBaseName}_${timestamp}_${randomSuffix}_thumb.${finalExt}`;
 
-    // 1. Try Supabase Storage first
-    const supabaseUrl = await uploadToSupabase(optimizedBuffer, outputFileName, finalMime);
-    if (supabaseUrl) {
-      if (thumbBuffer) {
-        await uploadToSupabase(thumbBuffer, thumbFileName, finalMime).catch(() => {});
-      }
-      return res.json({
-        success: true,
-        data: {
-          url: supabaseUrl,
-          thumbnailUrl: supabaseUrl.replace(outputFileName, thumbFileName),
-          format: finalExt,
-        },
-      });
-    }
-
-    // 2. Try local disk storage
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
+    // Local VPS disk storage (exclusive)
+    const targetUploadsDir = process.env.UPLOADS_DIR || (fs.existsSync('/opt/jadmaa/uploads') ? '/opt/jadmaa/uploads' : path.join(process.cwd(), 'public', 'uploads'));
     try {
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
+      if (!fs.existsSync(targetUploadsDir)) {
+        fs.mkdirSync(targetUploadsDir, { recursive: true });
       }
-      const filePath = path.join(uploadsDir, outputFileName);
+      const filePath = path.join(targetUploadsDir, outputFileName);
       fs.writeFileSync(filePath, optimizedBuffer);
 
       if (thumbBuffer) {
-        const thumbPath = path.join(uploadsDir, thumbFileName);
+        const thumbPath = path.join(targetUploadsDir, thumbFileName);
         fs.writeFileSync(thumbPath, thumbBuffer);
       }
 
@@ -315,20 +232,13 @@ export const uploadImage = async (req: Request, res: Response) => {
           format: finalExt,
         },
       });
-    } catch (fsErr) {
-      console.warn('[Upload] Disk write failed:', fsErr);
+    } catch (fsErr: any) {
+      console.error('[Upload] Local disk write failed:', fsErr);
+      return res.status(500).json({
+        success: false,
+        error: { message: 'Failed to write uploaded image to local storage.' },
+      });
     }
-
-    // 3. Fallback to clean base64 WebP if storage providers are unavailable
-    const fallbackDataUrl = `data:image/webp;base64,${optimizedBuffer.toString('base64')}`;
-    return res.json({
-      success: true,
-      data: {
-        url: fallbackDataUrl,
-        thumbnailUrl: fallbackDataUrl,
-        format: 'webp',
-      },
-    });
   } catch (error: any) {
     console.error('[Upload] Error processing image upload:', error);
     res.status(500).json({ success: false, error: { message: error.message || 'Error uploading image' } });

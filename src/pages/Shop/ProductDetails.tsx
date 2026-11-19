@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
+import { ShareButton } from '../../components/common/ShareButton';
 import { productApi } from '../../lib/api/productApi';
 import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -227,10 +228,20 @@ export const ProductDetails: React.FC = () => {
               {/* Right Column: Info & Actions */}
               <div className="flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
-                  {/* Title */}
-                  <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-jadmaa-charcoal leading-tight">
-                    {product.name}
-                  </h1>
+                  {/* Title & Share */}
+                  <div className="flex items-start justify-between gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-jadmaa-charcoal leading-tight">
+                      {product.name}
+                    </h1>
+                    <ShareButton
+                      title={product.name}
+                      url={`/products/${product.slug}`}
+                      text={product.description || product.name}
+                      variant="button"
+                      buttonText="Share"
+                      className="shrink-0"
+                    />
+                  </div>
 
                   {/* Price */}
                   <div className="flex items-baseline gap-3 pt-1">

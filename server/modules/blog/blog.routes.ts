@@ -1,11 +1,13 @@
 import { Router } from 'express';
-import { getBlogs, getBlogBySlug, createBlog, updateBlog, deleteBlog, getOptimizedImage, updateBlogThumbnail } from './blog.controller.js';
+import { getBlogs, getBlogBySlug, createBlog, updateBlog, deleteBlog, getOptimizedImage, updateBlogThumbnail, getBlogOgImage } from './blog.controller.js';
 import { authenticate, requireAdmin } from '../../middleware/auth.middleware.js';
 
 const router = Router();
 
 // High-performance image optimization endpoint (must come before /:slug)
 router.get('/optimized-image', getOptimizedImage);
+// Dynamic 4:3 OpenGraph preview card endpoint
+router.get('/og-image/:slug', getBlogOgImage);
 
 router.get('/', getBlogs);
 router.get('/:slug', getBlogBySlug);

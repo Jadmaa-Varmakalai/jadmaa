@@ -3,7 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/images/logo-1.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      (function() {
+        function checkDesktopMode() {
+          try {
+            var isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            var ua = navigator.userAgent || '';
+            var isMobileUA = /Android.*Mobile|iPhone|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+            var isDesktopRequested = isTouch && (!isMobileUA || (window.innerWidth >= 900 && window.innerWidth <= 1020));
+
+            var vp = document.querySelector('meta[name="viewport"]');
+            if (isDesktopRequested && vp) {
+              vp.setAttribute('content', 'width=1200, user-scalable=yes');
+            }
+          } catch (e) {}
+        }
+        checkDesktopMode();
+        window.addEventListener('resize', checkDesktopMode);
+      })();
+    </script>
 
     <!-- Primary Meta -->
     <title>JADMAA Varmakalai | Varmakalai Training &amp; Self Defence in Thanjavur, Kumbakonam, Ariyalur</title>
@@ -11,17 +30,19 @@
     <meta name="keywords" content="Varmakalai, Varma Kalai, Varmakalai Training, Varmakalai Classes, Varmakalai in Tamil Nadu, Traditional Martial Arts Tamil Nadu, Varma Self Defence Training, Varmakalai for Kids, Varmakalai for Women, JADMAA Varmakalai, Varmakalai Training in Thanjavur, Varmakalai Classes in Thanjavur, Self Defence Classes in Thanjavur, Martial Arts for Kids in Thanjavur, Varma Kalai Treatment in Thanjavur, Varmakalai Training in Kumbakonam, Varmakalai Classes in Kumbakonam, Self Defence Training in Kumbakonam, Martial Arts Classes in Kumbakonam, Varma Kalai Consultation in Kumbakonam, Varmakalai Training in Ariyalur, Varmakalai Classes in Ariyalur, Self Defence Classes in Ariyalur, Martial Arts Training in Ariyalur, Varma Kalai Consultation in Ariyalur, Marmam, Varmam, Varma pressure point, Varma points, Varma therapy" />
     <meta name="author" content="JADMAA Varmakalai" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://www.jadmaavarmakalai.com/" />
+    <link rel="canonical" href="https://jadmaa.com/" />
 
     <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="google0f4bc4d7c180a3ee" />
 
     <!-- Open Graph (Facebook / WhatsApp / LinkedIn) -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.jadmaavarmakalai.com/" />
+    <meta property="og:url" content="https://jadmaa.com/" />
     <meta property="og:title" content="JADMAA Varmakalai | Authentic Varmakalai Training &amp; Self Defence" />
     <meta property="og:description" content="Learn authentic Varmakalai — traditional Tamil martial art — at JADMAA. Training in Varma self-defence, Varmam therapy &amp; Marmam pressure points for all ages in Thanjavur, Kumbakonam &amp; Ariyalur, Tamil Nadu." />
-    <meta property="og:image" content="https://www.jadmaavarmakalai.com/images/logo-1.png" />
+    <meta property="og:image" content="https://jadmaa.com/images/jadmaa-hero-preview.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta property="og:site_name" content="JADMAA Varmakalai" />
     <meta property="og:locale" content="en_IN" />
 
@@ -29,7 +50,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="JADMAA Varmakalai | Varmakalai Training &amp; Self Defence" />
     <meta name="twitter:description" content="Authentic Varmakalai training in Thanjavur, Kumbakonam &amp; Ariyalur. Kids, women, and adult programs. Varma therapy &amp; self-defence." />
-    <meta name="twitter:image" content="https://www.jadmaavarmakalai.com/images/logo-1.png" />
+    <meta name="twitter:image" content="https://jadmaa.com/images/jadmaa-hero-preview.jpg" />
 
     <!-- Geo / Local SEO -->
     <meta name="geo.region" content="IN-TN" />

@@ -8,7 +8,7 @@ import { authApi } from '../../lib/api/authApi';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login, verifySessionOtp } = useAuth();
+  const { login, verifySessionOtp, user, isLoggedIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -21,6 +21,23 @@ export const Login: React.FC = () => {
   const [applyAsInstructor, setApplyAsInstructor] = useState(false);
   const [instructorWarning, setInstructorWarning] = useState<string | null>(null);
   const [checkingInstructor, setCheckingInstructor] = useState(false);
+
+  // Helper to determine dashboard path based on role
+  const getDashboardPath = (role?: string) => {
+    if (role === 'ADMIN' || role === 'SUPER_ADMIN') return '/admin';
+    if (role === 'INSTRUCTOR') return '/instructor';
+    return '/student';
+  };
+
+  // If already logged in, redirect away immediately (preventing back-button cycling back to login)
+  useEffect(() => {
+    if (isLoggedIn && user) {
+      const dest = returnTo && typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('/login') && !returnTo.startsWith('/register')
+        ? returnTo
+        : getDashboardPath(user.role);
+      navigate(dest, { replace: true });
+    }
+  }, [isLoggedIn, user, navigate, returnTo]);
 
   // Re-authentication OTP verification states
   const [showOtpScreen, setShowOtpScreen] = useState(false);
@@ -38,15 +55,10 @@ export const Login: React.FC = () => {
   }, [resendCooldown]);
 
   const handleDestinationRedirect = (loggedInUser: any) => {
-    if (returnTo && typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('/login') && !returnTo.startsWith('/register')) {
-      navigate(returnTo);
-    } else if (loggedInUser.role === 'ADMIN' || loggedInUser.role === 'SUPER_ADMIN') {
-      navigate('/admin');
-    } else if (loggedInUser.role === 'INSTRUCTOR') {
-      navigate('/instructor');
-    } else {
-      navigate('/student');
-    }
+    const dest = returnTo && typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('/login') && !returnTo.startsWith('/register')
+      ? returnTo
+      : getDashboardPath(loggedInUser?.role);
+    navigate(dest, { replace: true });
   };
 
   const handleApplyInstructorToggle = async (checked: boolean) => {
@@ -159,6 +171,14 @@ export const Login: React.FC = () => {
       setResendingOtp(false);
     }
   };
+
+  if (isLoggedIn && user) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center bg-[#FAF6F0]" role="status">
+        <div className="w-8 h-8 rounded-full border-3 border-[#B12B2B]/20 border-t-[#B12B2B] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <>

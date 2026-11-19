@@ -155,22 +155,34 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
         
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700">Course Title *</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-gray-700">Course Title *</label>
+              <span className="text-xs font-semibold text-gray-500">
+                {formData.title?.length || 0} of 80 chars
+              </span>
+            </div>
             <input 
               type="text" 
               required
+              maxLength={80}
               value={formData.title}
-              onChange={e => setFormData({...formData, title: e.target.value})}
+              onChange={e => setFormData({...formData, title: e.target.value.slice(0, 80)})}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700">Subtitle</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-gray-700">Subtitle</label>
+              <span className="text-xs font-semibold text-gray-500">
+                {formData.subtitle?.length || 0} of 120 chars
+              </span>
+            </div>
             <input 
               type="text" 
+              maxLength={120}
               value={formData.subtitle}
-              onChange={e => setFormData({...formData, subtitle: e.target.value})}
+              onChange={e => setFormData({...formData, subtitle: e.target.value.slice(0, 120)})}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red"
             />
           </div>
@@ -270,12 +282,18 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-600">Search Meta Title</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-gray-600">Search Meta Title</label>
+                  <span className="text-[10px] font-semibold text-gray-500">
+                    {formData.metaTitle?.length || 0} of 60 chars
+                  </span>
+                </div>
                 <input 
                   type="text" 
+                  maxLength={60}
                   placeholder="Appears in Google search results"
                   value={formData.metaTitle}
-                  onChange={e => setFormData({...formData, metaTitle: e.target.value})}
+                  onChange={e => setFormData({...formData, metaTitle: e.target.value.slice(0, 60)})}
                   className="w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-xs"
                 />
               </div>
@@ -293,12 +311,18 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-semibold text-gray-600">Meta Description</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-gray-600">Meta Description</label>
+                <span className="text-[10px] font-semibold text-gray-500">
+                  {formData.metaDesc?.length || 0} of 160 chars
+                </span>
+              </div>
               <textarea 
                 rows={2}
+                maxLength={160}
                 placeholder="150-160 characters search preview snippet..."
                 value={formData.metaDesc}
-                onChange={e => setFormData({...formData, metaDesc: e.target.value})}
+                onChange={e => setFormData({...formData, metaDesc: e.target.value.slice(0, 160)})}
                 className="w-full px-3 py-1.5 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-xs"
               />
             </div>

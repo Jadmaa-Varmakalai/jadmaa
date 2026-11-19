@@ -55,6 +55,40 @@ interface CachedImageEntry {
 const memoryImageCache = new Map<string, CachedImageEntry>();
 const MAX_MEMORY_CACHE_ITEMS = 100;
 
+export function resolveLocalImagePath(rawUrl: string): string | null {
+  if (!rawUrl) return null;
+  let cleanUrl = rawUrl.split('?')[0].trim();
+  // Strip protocol and hostname if URL points to jadmaa.com or localhost
+  cleanUrl = cleanUrl.replace(/^https?:\/\/(?:www\.)?(?:jadmaa\.com|jadmaavarmakalai\.com|localhost(?::\d+)?|127\.0\.0\.1(?::\d+)?)/i, '');
+  const cleanPath = cleanUrl.replace(/^\//, '');
+  const candidates: string[] = [];
+
+  if (cleanUrl.startsWith('/uploads/') || cleanUrl.startsWith('uploads/')) {
+    const filename = cleanUrl.replace(/^\/?uploads\//, '');
+    if (process.env.UPLOADS_DIR) candidates.push(path.join(process.env.UPLOADS_DIR, filename));
+    candidates.push(path.join('/opt/jadmaa/uploads', filename));
+    candidates.push(path.join(process.cwd(), 'public', 'uploads', filename));
+    candidates.push(path.join(process.cwd(), 'uploads', filename));
+  } else if (cleanUrl.startsWith('/images/') || cleanUrl.startsWith('images/')) {
+    const filename = cleanUrl.replace(/^\/?images\//, '');
+    candidates.push(path.join('/var/www/jadmaa/frontend/images', filename));
+    candidates.push(path.join(process.cwd(), 'public', 'images', filename));
+    candidates.push(path.join(process.cwd(), 'dist', 'images', filename));
+  }
+
+  candidates.push(path.join('/var/www/jadmaa/frontend', cleanPath));
+  candidates.push(path.join(process.cwd(), 'public', cleanPath));
+  candidates.push(path.join(process.cwd(), 'dist', cleanPath));
+  candidates.push(path.join(process.cwd(), cleanPath));
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 /**
  * High-performance on-demand image optimization and caching.
  * Transforms remote and local images to modern responsive WebP/AVIF formats,
@@ -119,6 +153,7 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
     }
 
     let inputBuffer: Buffer;
+    let resolvedLocalPath: string | null = null;
     if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
       const response = await fetch(rawUrl, {
         headers: { 'User-Agent': 'JADMAA-ImageOptimizer/1.0' },
@@ -129,12 +164,11 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
       }
       inputBuffer = Buffer.from(await response.arrayBuffer());
     } else {
-      const cleanPath = rawUrl.replace(/^\//, '');
-      const localFilePath = path.join(process.cwd(), 'public', cleanPath);
-      if (!fs.existsSync(localFilePath)) {
-        throw new Error(`Local file not found: ${localFilePath}`);
+      resolvedLocalPath = resolveLocalImagePath(rawUrl);
+      if (!resolvedLocalPath) {
+        throw new Error(`Local file not found for path: ${rawUrl}`);
       }
-      inputBuffer = await fs.promises.readFile(localFilePath);
+      inputBuffer = await fs.promises.readFile(resolvedLocalPath);
     }
 
     let pipeline = sharp(inputBuffer).resize(width, height, {
@@ -175,12 +209,175 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
     if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
       return res.redirect(302, rawUrl);
     }
-    const cleanPath = rawUrl.replace(/^\//, '');
-    const localFallback = path.join(process.cwd(), 'public', cleanPath);
-    if (fs.existsSync(localFallback)) {
-      return res.sendFile(localFallback);
+    const resolvedFallback = resolveLocalImagePath(rawUrl);
+    if (resolvedFallback) {
+      return res.sendFile(resolvedFallback);
     }
-    return res.status(500).send('Image optimization failed');
+    if (rawUrl.startsWith('/')) {
+      return res.redirect(302, rawUrl);
+    }
+    return res.status(404).send('Image not found');
+  }
+};
+
+/**
+ * Dynamic OpenGraph / Social Link Preview Image for Blogs.
+ * Composes an authentic 4:3 (800x600) image matching the BlogCard visual split template:
+ * - Left 50% (400x600): The blog thumbnail / featured image.
+ * - Right 50% (400x600): Clean panel with Blog Title (auto-wrapping), JADMAA Logo,
+ *   "JADMAA VARMAKALAI" branding, and tagline.
+ */
+export const getBlogOgImage = async (req: Request, res: Response) => {
+  try {
+    const rawSlug = (req.params.slug || '').trim();
+    if (!rawSlug) {
+      return res.status(400).send('Missing blog slug');
+    }
+
+    const decodedSlug = decodeURIComponent(rawSlug).trim();
+    const transliterated = transliterateTamilToEnglish(decodedSlug).toLowerCase().replace(/[\s_-]+/g, '-');
+
+    const blog = await prisma.blogPost.findFirst({
+      where: {
+        OR: [
+          { slug: rawSlug },
+          { slug: decodedSlug },
+          { slug: transliterated },
+          { id: rawSlug },
+        ]
+      },
+      select: {
+        id: true,
+        title: true,
+        thumbnailUrl: true,
+        author: { select: { name: true } }
+      }
+    });
+
+    if (!blog) {
+      return res.status(404).send('Blog not found');
+    }
+
+    const cacheKey = `og_blog_${blog.id}`;
+    const memCached = memoryImageCache.get(cacheKey);
+    if (memCached) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+      res.setHeader('Content-Type', 'image/jpeg');
+      return res.send(memCached.buffer);
+    }
+
+    const width = 800;
+    const height = 600;
+    const leftWidth = 400;
+    const rightWidth = 400;
+
+    // 1. Process thumbnail on left side
+    let thumbBuf: Buffer;
+    const rawThumb = (blog.thumbnailUrl || '').trim();
+    const localThumbPath = resolveLocalImagePath(rawThumb);
+
+    if (localThumbPath && fs.existsSync(localThumbPath)) {
+      thumbBuf = await sharp(localThumbPath)
+        .resize(leftWidth, height, { fit: 'cover' })
+        .toBuffer();
+    } else if (rawThumb.startsWith('http://') || rawThumb.startsWith('https://')) {
+      try {
+        const resp = await fetch(rawThumb, {
+          headers: { 'User-Agent': 'JADMAA-OGImage-Bot/1.0' },
+          signal: AbortSignal.timeout(6000)
+        });
+        if (resp.ok) {
+          const arr = await resp.arrayBuffer();
+          thumbBuf = await sharp(Buffer.from(arr))
+            .resize(leftWidth, height, { fit: 'cover' })
+            .toBuffer();
+        } else {
+          throw new Error('Remote thumb failed');
+        }
+      } catch {
+        const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
+        thumbBuf = await sharp(fallback)
+          .resize(leftWidth, height, { fit: 'cover' })
+          .toBuffer();
+      }
+    } else {
+      const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
+      thumbBuf = await sharp(fallback)
+        .resize(leftWidth, height, { fit: 'cover' })
+        .toBuffer();
+    }
+
+    // 2. Load JADMAA logo
+    let logoBuf: Buffer | null = null;
+    const logoPath = resolveLocalImagePath('/images/logo-1.png') || path.join(process.cwd(), 'public', 'images', 'logo-1.png');
+    if (logoPath && fs.existsSync(logoPath)) {
+      logoBuf = await sharp(logoPath)
+        .resize(90, 90, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
+        .toBuffer();
+    }
+
+    // 3. Prepare Right Panel Typography
+    const rawTitle = (blog.title || '').trim().slice(0, 50);
+    const escapedTitle = rawTitle.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '\'': '&apos;', '"': '&quot;' }[c] || c));
+    const line1 = escapedTitle.length > 25 ? escapedTitle.slice(0, 25) : escapedTitle;
+    const line2 = escapedTitle.length > 25 ? escapedTitle.slice(25) : '';
+
+    const rightSvg = Buffer.from(`
+      <svg width="${rightWidth}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="${rightWidth}" height="${height}" fill="#FFFFFF" />
+        <line x1="0" y1="0" x2="0" y2="${height}" stroke="#E8DDD0" stroke-width="2" />
+        
+        <!-- Category Badge -->
+        <rect x="35" y="45" width="130" height="26" rx="13" fill="#FFF1F1" />
+        <text x="100" y="62" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" font-weight="bold" fill="#B12B2B" text-anchor="middle">JADMAA BLOG</text>
+
+        <!-- Blog Title -->
+        <text x="35" y="125" font-family="DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="bold" fill="#2B2521">
+          <tspan x="35" dy="0">${line1}</tspan>
+          ${line2 ? `<tspan x="35" dy="32">${line2}</tspan>` : ''}
+        </text>
+
+        <!-- Divider -->
+        <line x1="35" y1="260" x2="365" y2="260" stroke="#E8DDD0" stroke-width="1" />
+
+        <!-- Branding Text below logo -->
+        <text x="200" y="415" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" letter-spacing="2" fill="#B12B2B" text-anchor="middle">JADMAA VARMAKALAI</text>
+        <text x="200" y="440" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" font-weight="500" fill="#5C5148" text-anchor="middle">Ancient Power. Modern Training.</text>
+        
+        <!-- Footer details -->
+        <rect x="35" y="505" width="330" height="44" rx="8" fill="#FAF6F0" />
+        <text x="200" y="532" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="600" fill="#2B2521" text-anchor="middle">Authentic Lineage | jadmaa.com</text>
+      </svg>
+    `);
+
+    const composites: sharp.OverlayOptions[] = [
+      { input: thumbBuf, top: 0, left: 0 },
+      { input: rightSvg, top: 0, left: leftWidth }
+    ];
+
+    if (logoBuf) {
+      composites.push({ input: logoBuf, top: 295, left: leftWidth + Math.round((rightWidth - 90) / 2) });
+    }
+
+    const outputBuf = await sharp({
+      create: {
+        width,
+        height,
+        channels: 3,
+        background: { r: 250, g: 246, b: 240 }
+      }
+    })
+      .composite(composites)
+      .jpeg({ quality: 85 })
+      .toBuffer();
+
+    memoryImageCache.set(cacheKey, { buffer: outputBuf, contentType: 'image/jpeg' });
+    res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+    res.setHeader('Content-Type', 'image/jpeg');
+    return res.send(outputBuf);
+  } catch (err: any) {
+    console.error('getBlogOgImage error:', err);
+    res.status(500).send('Error generating OG image');
   }
 };
 

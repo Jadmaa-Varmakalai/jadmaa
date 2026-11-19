@@ -268,14 +268,11 @@ h1.font-black, h2.font-black {
 }
 
 @keyframes jd-hero-float { 
-  0% { 
+  0%, 100% { 
     transform: translateY(0px); 
   }
   50% { 
-    transform: translateY(-12px); 
-  }
-  100% { 
-    transform: translateY(0px); 
+    transform: translateY(-5px); 
   }
 }
 

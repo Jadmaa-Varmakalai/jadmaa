@@ -152,24 +152,36 @@ export const InstructorCourseModal: React.FC<InstructorCourseModalProps> = ({
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700">Course Title *</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-gray-700">Course Title *</label>
+              <span className="text-xs font-semibold text-gray-500">
+                {formData.title?.length || 0} of 80 chars
+              </span>
+            </div>
             <input
               type="text"
               required
+              maxLength={80}
               placeholder="e.g. Fundamental Varma Pressure Points & Self-Defence"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, title: e.target.value.slice(0, 80) })}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red"
             />
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-bold text-gray-700">Subtitle</label>
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-gray-700">Subtitle</label>
+              <span className="text-xs font-semibold text-gray-500">
+                {formData.subtitle?.length || 0} of 120 chars
+              </span>
+            </div>
             <input
               type="text"
+              maxLength={120}
               placeholder="e.g. Step-by-step masterclass for martial artists"
               value={formData.subtitle || ''}
-              onChange={(e) => setFormData({ ...formData, subtitle: e.target.value })}
+              onChange={(e) => setFormData({ ...formData, subtitle: e.target.value.slice(0, 120) })}
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red"
             />
           </div>

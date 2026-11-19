@@ -27,25 +27,25 @@ export function validateSecurityConfiguration(): void {
   }
 
   // 2. Minimum length / entropy check
-  const minLength = isProduction ? 32 : 16;
+  const minLength = 16;
   if (jwtSecret && jwtSecret.length < minLength) {
-    const msg = `[Security Warning] JWT_SECRET is too short (${jwtSecret.length} chars). Production requires at least ${minLength} characters.`;
+    const msg = `[Security Error] JWT_SECRET is too short (${jwtSecret.length} chars). Minimum required is ${minLength} characters.`;
+    console.error(msg);
     if (isProduction) {
-      console.error(msg);
       process.exit(1);
-    } else {
-      console.warn(msg);
     }
+  } else if (jwtSecret && jwtSecret.length < 32) {
+    console.warn(`[Security Notice] JWT_SECRET is ${jwtSecret.length} chars (32+ chars recommended for production).`);
   }
 
   if (jwtRefreshSecret && jwtRefreshSecret.length < minLength) {
-    const msg = `[Security Warning] JWT_REFRESH_SECRET is too short (${jwtRefreshSecret.length} chars). Production requires at least ${minLength} characters.`;
+    const msg = `[Security Error] JWT_REFRESH_SECRET is too short (${jwtRefreshSecret.length} chars). Minimum required is ${minLength} characters.`;
+    console.error(msg);
     if (isProduction) {
-      console.error(msg);
       process.exit(1);
-    } else {
-      console.warn(msg);
     }
+  } else if (jwtRefreshSecret && jwtRefreshSecret.length < 32) {
+    console.warn(`[Security Notice] JWT_REFRESH_SECRET is ${jwtRefreshSecret.length} chars (32+ chars recommended for production).`);
   }
 }
 

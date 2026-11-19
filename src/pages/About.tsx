@@ -55,18 +55,19 @@ export const About: React.FC = () => {
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
-              {/* Left Image */}
+              {/* Left Image - Cropped Background-Removed Martial Stance */}
               <div className="lg:col-span-4 flex justify-center">
-                <div className="w-full max-w-[360px] overflow-hidden rounded-[14px]">
+                <div className="w-full max-w-[340px] overflow-hidden rounded-[14px]">
                   <ResponsiveImage 
-                    src="/images/pose-dab-red-e1785095608624-653x1024.jpg" 
+                    src="/images/pose-dab-red-transparent.webp" 
                     alt="Varmakalai practitioner demonstrating a traditional stance" 
                     priority={true}
-                    width={360}
-                    height={564}
-                    aspectRatio="653/1024"
-                    sizes="(max-width: 640px) 100vw, 360px"
-                    className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
+                    width={340}
+                    height={461}
+                    aspectRatio="653/885"
+                    sizes="(max-width: 640px) 100vw, 340px"
+                    className="w-full h-auto object-contain hover:scale-105 transition-transform duration-500 ease-out"
+                    fallbackSrc="/images/pose-dab-red-transparent.png"
                   />
                 </div>
               </div>
