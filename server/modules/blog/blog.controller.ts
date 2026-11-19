@@ -508,7 +508,7 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
         }
       })
         .composite(composites)
-        .png({ compressionLevel: 8 })
+        .png({ quality: 85, palette: true, compressionLevel: 9 })
         .toBuffer();
     } else {
       outputBuf = await sharp({
@@ -520,7 +520,7 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
         }
       })
         .composite(composites)
-        .jpeg({ quality: 90 })
+        .jpeg({ quality: 85, mozjpeg: true })
         .toBuffer();
     }
 
