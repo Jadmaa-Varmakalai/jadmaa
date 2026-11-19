@@ -5,7 +5,9 @@ tar -xzf /tmp/dist.tar.gz -C /var/www/jadmaa/frontend/
 chown -R www-data:www-data /var/www/jadmaa/frontend
 chmod -R 755 /var/www/jadmaa/frontend
 
-echo "2. Updating backend dist/server.cjs..."
+echo "2. Updating backend dist/server.cjs and font assets..."
+mkdir -p /opt/jadmaa/backend/public/fonts
+cp -r /var/www/jadmaa/frontend/fonts/* /opt/jadmaa/backend/public/fonts/ 2>/dev/null || true
 cp /var/www/jadmaa/frontend/server.cjs /opt/jadmaa/backend/dist/server.cjs
 cp /var/www/jadmaa/frontend/server.cjs.map /opt/jadmaa/backend/dist/server.cjs.map 2>/dev/null || true
 

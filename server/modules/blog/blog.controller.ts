@@ -58,8 +58,8 @@ const MAX_MEMORY_CACHE_ITEMS = 100;
 export function resolveLocalImagePath(rawUrl: string): string | null {
   if (!rawUrl) return null;
   let cleanUrl = rawUrl.split('?')[0].trim();
-  // Strip protocol and hostname if URL points to jadmaa.com or localhost
-  cleanUrl = cleanUrl.replace(/^https?:\/\/(?:www\.)?(?:jadmaa\.com|jadmaavarmakalai\.com|localhost(?::\d+)?|127\.0\.0\.1(?::\d+)?)/i, '');
+  // Strip protocol and hostname if URL points to jadmaa.com, server IP, or localhost
+  cleanUrl = cleanUrl.replace(/^https?:\/\/(?:www\.)?(?:jadmaa\.com|jadmaavarmakalai\.com|129\.121\.147\.213(?::\d+)?|localhost(?::\d+)?|127\.0\.0\.1(?::\d+)?)/i, '');
   const cleanPath = cleanUrl.replace(/^\//, '');
   const candidates: string[] = [];
 
@@ -220,12 +220,63 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
   }
 };
 
+let cachedTamilFontBase64: string | null = null;
+function getEmbeddedTamilFontBase64(): string {
+  if (cachedTamilFontBase64 !== null) return cachedTamilFontBase64;
+  const candidates = [
+    path.join(process.cwd(), 'public', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.join('/opt/jadmaa/backend', 'public', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.join('/var/www/jadmaa/frontend', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.join(__dirname, '..', '..', '..', 'public', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.resolve(process.cwd(), '..', 'public', 'fonts', 'NotoSansTamil-Bold.ttf')
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      try {
+        cachedTamilFontBase64 = fs.readFileSync(p).toString('base64');
+        return cachedTamilFontBase64;
+      } catch (e) {
+        console.warn('Failed reading Tamil font from', p, e);
+      }
+    }
+  }
+  cachedTamilFontBase64 = '';
+  return cachedTamilFontBase64;
+}
+
+function wrapBlogTitle(text: string, maxCharsPerLine = 20, maxLines = 4): string[] {
+  const words = (text || '').trim().split(/\s+/);
+  if (!words.length || !words[0]) return ['JADMAA Blog'];
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (const word of words) {
+    if (!currentLine) {
+      currentLine = word;
+    } else if ((currentLine + ' ' + word).length <= maxCharsPerLine) {
+      currentLine += ' ' + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+      if (lines.length === maxLines - 1) {
+        break;
+      }
+    }
+  }
+  if (currentLine && lines.length < maxLines) {
+    lines.push(currentLine);
+  }
+  return lines;
+}
+
 /**
  * Dynamic OpenGraph / Social Link Preview Image for Blogs.
- * Composes an authentic 4:3 (800x600) image matching the BlogCard visual split template:
- * - Left 50% (400x600): The blog thumbnail / featured image.
- * - Right 50% (400x600): Clean panel with Blog Title (auto-wrapping), JADMAA Logo,
- *   "JADMAA VARMAKALAI" branding, and tagline.
+ * Composes an authentic 4:3 (1200x900) image matching the exact BlogCard visual split template:
+ * - Left 50% (600x900): Full-bleed grayscale/monochrome blog cover photo.
+ * - Right 50% (600x900): Clean panel (#FAF8F5) with 1px vertical divider (#E8DDD0):
+ *     - Top half: Centered Tamil/English blog title in bold dark charcoal (#2B2825).
+ *     - Bottom half: Centered JADMAA emblem logo, bold brand wordmark (JADMAA VARMAKALAI),
+ *       and tagline (ANCIENT POWER. MODERN TRAINING.).
  */
 export const getBlogOgImage = async (req: Request, res: Response) => {
   try {
@@ -244,12 +295,20 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
           { slug: decodedSlug },
           { slug: transliterated },
           { id: rawSlug },
+          ...(decodedSlug.includes('வர்ம-சிகிச்சை') || rawSlug.includes('%E0%AE%B5%E0%AE%B0%E0%AF%8D%E0%AE%AE')
+            ? [{ slug: 'varma-sikissai-enraal-enna-alikkappatum-muraikal' }]
+            : []),
+          ...(decodedSlug.includes('யார்-வர்ம') || rawSlug.includes('%E0%AE%AF%E0%AE%BE%E0%AE%B0%E0%AF%8D')
+            ? [{ slug: 'yaar-varma-aasaan-yaar-varmaani-virivaana-vilakkam' }]
+            : [])
         ]
       },
       select: {
         id: true,
         title: true,
         thumbnailUrl: true,
+        createdAt: true,
+        updatedAt: true,
         author: { select: { name: true } }
       }
     });
@@ -258,7 +317,8 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
       return res.status(404).send('Blog not found');
     }
 
-    const cacheKey = `og_blog_${blog.id}`;
+    const v = Math.floor(new Date(blog.updatedAt || blog.createdAt).getTime() / 1000);
+    const cacheKey = `og_blog_v2_${blog.id}_${v}`;
     const memCached = memoryImageCache.get(cacheKey);
     if (memCached) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
@@ -266,87 +326,154 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
       return res.send(memCached.buffer);
     }
 
-    const width = 800;
-    const height = 600;
-    const leftWidth = 400;
-    const rightWidth = 400;
+    // Exact 4:3 split card (1200 x 900)
+    const width = 1200;
+    const height = 900;
+    const leftWidth = 600;
+    const rightWidth = 600;
 
-    // 1. Process thumbnail on left side
+    // 1. Process thumbnail on left side: full-bleed grayscale monochrome cover photo
     let thumbBuf: Buffer;
     const rawThumb = (blog.thumbnailUrl || '').trim();
     const localThumbPath = resolveLocalImagePath(rawThumb);
 
     if (localThumbPath && fs.existsSync(localThumbPath)) {
       thumbBuf = await sharp(localThumbPath)
+        .grayscale()
         .resize(leftWidth, height, { fit: 'cover' })
         .toBuffer();
     } else if (rawThumb.startsWith('http://') || rawThumb.startsWith('https://')) {
-      try {
-        const resp = await fetch(rawThumb, {
-          headers: { 'User-Agent': 'JADMAA-OGImage-Bot/1.0' },
-          signal: AbortSignal.timeout(6000)
-        });
-        if (resp.ok) {
-          const arr = await resp.arrayBuffer();
-          thumbBuf = await sharp(Buffer.from(arr))
+      const isPrivateOrLocal = /^(https?:\/\/)?(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1)/i.test(rawThumb);
+      if (!isPrivateOrLocal) {
+        try {
+          const resp = await fetch(rawThumb, {
+            headers: { 'User-Agent': 'JADMAA-OGImage-Bot/1.0' },
+            signal: AbortSignal.timeout(6000)
+          });
+          if (resp.ok) {
+            const arr = await resp.arrayBuffer();
+            thumbBuf = await sharp(Buffer.from(arr))
+              .grayscale()
+              .resize(leftWidth, height, { fit: 'cover' })
+              .toBuffer();
+          } else {
+            throw new Error('Remote thumb failed');
+          }
+        } catch {
+          const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
+          thumbBuf = await sharp(fallback)
+            .grayscale()
             .resize(leftWidth, height, { fit: 'cover' })
             .toBuffer();
-        } else {
-          throw new Error('Remote thumb failed');
         }
-      } catch {
+      } else {
         const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
         thumbBuf = await sharp(fallback)
+          .grayscale()
           .resize(leftWidth, height, { fit: 'cover' })
           .toBuffer();
       }
     } else {
       const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
       thumbBuf = await sharp(fallback)
+        .grayscale()
         .resize(leftWidth, height, { fit: 'cover' })
         .toBuffer();
     }
 
     // 2. Load JADMAA logo
     let logoBuf: Buffer | null = null;
-    const logoPath = resolveLocalImagePath('/images/logo-1.png') || path.join(process.cwd(), 'public', 'images', 'logo-1.png');
-    if (logoPath && fs.existsSync(logoPath)) {
-      logoBuf = await sharp(logoPath)
-        .resize(90, 90, { fit: 'contain', background: { r: 255, g: 255, b: 255, alpha: 0 } })
-        .toBuffer();
+    const logoSize = 150;
+    const logoCandidates = [
+      path.join(process.cwd(), 'public', 'logo.png'),
+      path.join(process.cwd(), 'public', 'images', 'logo-1.png'),
+      '/var/www/jadmaa/frontend/logo.png',
+      '/var/www/jadmaa/frontend/images/logo-1.png',
+      resolveLocalImagePath('/images/logo-1.png') || ''
+    ];
+    for (const lp of logoCandidates) {
+      if (lp && fs.existsSync(lp)) {
+        try {
+          logoBuf = await sharp(lp)
+            .resize(logoSize, logoSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+            .toBuffer();
+          break;
+        } catch {}
+      }
     }
 
     // 3. Prepare Right Panel Typography
-    const rawTitle = (blog.title || '').trim().slice(0, 50);
-    const escapedTitle = rawTitle.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '\'': '&apos;', '"': '&quot;' }[c] || c));
-    const line1 = escapedTitle.length > 25 ? escapedTitle.slice(0, 25) : escapedTitle;
-    const line2 = escapedTitle.length > 25 ? escapedTitle.slice(25) : '';
+    const rawTitle = (blog.title || '').trim();
+    const lines = wrapBlogTitle(rawTitle, 20, 4);
+    const fontSize = lines.length <= 2 ? 38 : lines.length === 3 ? 34 : 29;
+    const lineHeight = Math.round(fontSize * 1.45);
+    const totalTextHeight = lines.length * lineHeight;
+    const startY = Math.round(250 - totalTextHeight / 2 + fontSize * 0.85);
+
+    const tspanLines = lines.map((line, idx) => {
+      const escaped = line.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '\'': '&apos;', '"': '&quot;' }[c] || c));
+      return `<tspan x="300" y="${startY + idx * lineHeight}">${escaped}</tspan>`;
+    }).join('\n');
+
+    const fontBase64 = getEmbeddedTamilFontBase64();
+    const fontFaceCss = fontBase64 ? `
+      @font-face {
+        font-family: 'Noto Sans Tamil Embedded';
+        src: url('data:font/truetype;charset=utf-8;base64,${fontBase64}') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+      }
+    ` : '';
 
     const rightSvg = Buffer.from(`
       <svg width="${rightWidth}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="${rightWidth}" height="${height}" fill="#FFFFFF" />
+        <defs>
+          <style>
+            ${fontFaceCss}
+            .title-text {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', 'Lohit Tamil', sans-serif;
+              font-size: ${fontSize}px;
+              font-weight: bold;
+              fill: #2B2825;
+              text-anchor: middle;
+            }
+            .brand-jadmaa {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
+              font-size: 26px;
+              font-weight: 800;
+              letter-spacing: 4px;
+              fill: #2B2825;
+            }
+            .brand-varmakalai {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
+              font-size: 26px;
+              font-weight: 800;
+              letter-spacing: 4px;
+              fill: #B12B2B;
+            }
+            .tagline {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
+              font-size: 13.5px;
+              font-weight: 600;
+              letter-spacing: 2px;
+              fill: #5C5148;
+              text-anchor: middle;
+            }
+          </style>
+        </defs>
+        <rect width="${rightWidth}" height="${height}" fill="#FAF8F5" />
         <line x1="0" y1="0" x2="0" y2="${height}" stroke="#E8DDD0" stroke-width="2" />
-        
-        <!-- Category Badge -->
-        <rect x="35" y="45" width="130" height="26" rx="13" fill="#FFF1F1" />
-        <text x="100" y="62" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" font-weight="bold" fill="#B12B2B" text-anchor="middle">JADMAA BLOG</text>
 
-        <!-- Blog Title -->
-        <text x="35" y="125" font-family="DejaVu Sans, Arial, sans-serif" font-size="22" font-weight="bold" fill="#2B2521">
-          <tspan x="35" dy="0">${line1}</tspan>
-          ${line2 ? `<tspan x="35" dy="32">${line2}</tspan>` : ''}
+        <!-- Top Half: Centered Blog Title -->
+        <text class="title-text">
+          ${tspanLines}
         </text>
 
-        <!-- Divider -->
-        <line x1="35" y1="260" x2="365" y2="260" stroke="#E8DDD0" stroke-width="1" />
-
-        <!-- Branding Text below logo -->
-        <text x="200" y="415" font-family="DejaVu Sans, Arial, sans-serif" font-size="16" font-weight="bold" letter-spacing="2" fill="#B12B2B" text-anchor="middle">JADMAA VARMAKALAI</text>
-        <text x="200" y="440" font-family="DejaVu Sans, Arial, sans-serif" font-size="12" font-weight="500" fill="#5C5148" text-anchor="middle">Ancient Power. Modern Training.</text>
-        
-        <!-- Footer details -->
-        <rect x="35" y="505" width="330" height="44" rx="8" fill="#FAF6F0" />
-        <text x="200" y="532" font-family="DejaVu Sans, Arial, sans-serif" font-size="13" font-weight="600" fill="#2B2521" text-anchor="middle">Authentic Lineage | jadmaa.com</text>
+        <!-- Bottom Half: Branding below logo (logo is at y=550, size=150) -->
+        <text x="300" y="745" text-anchor="middle">
+          <tspan class="brand-jadmaa">JADMAA </tspan><tspan dx="8" class="brand-varmakalai">VARMAKALAI</tspan>
+        </text>
+        <text x="300" y="780" class="tagline">ANCIENT POWER. MODERN TRAINING.</text>
       </svg>
     `);
 
@@ -356,7 +483,11 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
     ];
 
     if (logoBuf) {
-      composites.push({ input: logoBuf, top: 295, left: leftWidth + Math.round((rightWidth - 90) / 2) });
+      composites.push({
+        input: logoBuf,
+        top: 550,
+        left: leftWidth + Math.round((rightWidth - logoSize) / 2)
+      });
     }
 
     const outputBuf = await sharp({
@@ -364,11 +495,11 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
         width,
         height,
         channels: 3,
-        background: { r: 250, g: 246, b: 240 }
+        background: { r: 250, g: 248, b: 245 }
       }
     })
       .composite(composites)
-      .jpeg({ quality: 85 })
+      .jpeg({ quality: 90 })
       .toBuffer();
 
     memoryImageCache.set(cacheKey, { buffer: outputBuf, contentType: 'image/jpeg' });
