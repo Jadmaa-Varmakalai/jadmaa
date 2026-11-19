@@ -337,11 +337,10 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
       if (blog) {
         pageTitle = blog.metaTitle || `${blog.title} | JADMAA Varmakalai`;
         pageDesc = blog.metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160).trim();
-        const v = Math.floor(new Date(blog.updatedAt || blog.createdAt).getTime() / 1000);
-        pageImage = `${BASE_URL}/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}?v=${v}`;
-        pageImageMime = 'image/jpeg';
+        pageImage = `${BASE_URL}/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.png?v=3`;
+        pageImageMime = 'image/png';
         imageWidth = 1200;
-        imageHeight = 900;
+        imageHeight = 630;
         pageCanonical = `${BASE_URL}/blog/${encodeURIComponent(blog.slug)}`;
         pageType = 'article';
         schemaJson = {
