@@ -11,17 +11,20 @@ import { invalidateUserCache } from '../../middleware/auth.middleware.js';
 import { getJwtSecret, getJwtRefreshSecret, hashToken } from '../../config/security.js';
 
 // Dual-Expiry Session Constants
-const ABSOLUTE_SESSION_LIFETIME_MS = 14 * 24 * 60 * 60 * 1000; // 14 days max absolute lifetime
-const INACTIVITY_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000;         // 7 days without user activity
+const ABSOLUTE_SESSION_LIFETIME_MS = 30 * 24 * 60 * 60 * 1000; // 30 days max absolute lifetime (monthly once)
+const INACTIVITY_TIMEOUT_MS = 7 * 24 * 60 * 60 * 1000;         // 7 days without user activity (minimum 1 week non-active session)
 const OTP_EXPIRY_MS = 10 * 60 * 1000;                           // 10 minutes OTP validity
+const ROTATION_GRACE_PERIOD_MS = 60 * 1000;                    // 60 seconds grace period for concurrent requests/tabs
 
 /**
  * Generates an access token and a cryptographically secure refresh token.
  * Hashes and persists the refresh token in the Prisma UserSession & RefreshSession models.
+ * Preserves the original 30-day absolute expiration across token rotations.
  */
 export const generateTokens = async (
   user: any,
-  req?: Request
+  req?: Request,
+  originalExpiresAt?: Date
 ): Promise<{ accessToken: string; refreshToken: string }> => {
   const accessToken = jwt.sign(
     { id: user.id, role: user.role },
@@ -32,7 +35,7 @@ export const generateTokens = async (
   // Generate cryptographically random 40-byte hex refresh token
   const rawRefreshToken = crypto.randomBytes(40).toString('hex');
   const tokenHash = hashToken(rawRefreshToken);
-  const expiresAt = new Date(Date.now() + ABSOLUTE_SESSION_LIFETIME_MS); // 14 days absolute cap
+  const expiresAt = originalExpiresAt || new Date(Date.now() + ABSOLUTE_SESSION_LIFETIME_MS); // 30 days absolute cap
 
   const ipAddress = (req?.ip || (req?.headers?.['x-forwarded-for'] as string) || null)?.substring(0, 45);
   const userAgent = (req?.headers?.['user-agent'] as string || null)?.substring(0, 255);
@@ -181,18 +184,10 @@ export const login = async (req: Request, res: Response) => {
       .catch(console.error);
 
     // DUAL-EXPIRY & SESSION VERIFICATION CHECK:
-    // If user's previous session expired (14 days absolute cap OR 7 days inactivity),
-    // OR if user is logging into an older account with NO active session, require 6-digit email OTP.
+    // Only require 6-digit email OTP if user's session expired due to:
+    // 1) 30 days absolute monthly limit reached, OR
+    // 2) 7+ days inactivity timeout (minimum 1 week non-active session).
     const now = Date.now();
-
-    const activeSession = await prisma.userSession.findFirst({
-      where: {
-        userId: user.id,
-        revokedAt: null,
-        expiresAt: { gt: new Date() },
-        lastActiveAt: { gt: new Date(now - INACTIVITY_TIMEOUT_MS) },
-      },
-    });
 
     const latestUserSession = await prisma.userSession.findFirst({
       where: { userId: user.id },
@@ -211,19 +206,16 @@ export const login = async (req: Request, res: Response) => {
     // Check if account is a brand new registration (created within the last 10 minutes)
     const isBrandNewRegistration = now - new Date(user.createdAt).getTime() < 10 * 60 * 1000;
 
-    if (!isBrandNewRegistration) {
-      if (latestSession) {
-        const isAbsoluteExpired = now > latestSession.expiresAt.getTime();
-        const lastActiveTime = (latestSession as any).lastActiveAt
-          ? new Date((latestSession as any).lastActiveAt).getTime()
-          : new Date(latestSession.createdAt).getTime();
-        const isInactiveExpired = now - lastActiveTime > INACTIVITY_TIMEOUT_MS;
+    if (!isBrandNewRegistration && latestSession) {
+      const isAbsoluteExpired = now > latestSession.expiresAt.getTime();
+      const lastActiveTime = (latestSession as any).lastActiveAt
+        ? new Date((latestSession as any).lastActiveAt).getTime()
+        : new Date(latestSession.createdAt).getTime();
+      const isInactiveExpired = now - lastActiveTime > INACTIVITY_TIMEOUT_MS;
 
-        if (isAbsoluteExpired || isInactiveExpired || latestSession.revokedAt) {
-          isSessionExpired = true;
-        }
-      } else {
-        // Old unused ID with NO recorded active session in the database
+      // Only trigger session expiry OTP if 30-day cap or 7-day inactivity was reached.
+      // Do NOT trigger on clean logouts or normal token rotations.
+      if (isAbsoluteExpired || isInactiveExpired) {
         isSessionExpired = true;
       }
     }
@@ -495,9 +487,38 @@ export const refresh = async (req: Request, res: Response) => {
 
     const session = userSession || refreshSession;
 
-    // 2. REUSE DETECTION: If token was already revoked, token theft has occurred!
+    // 2. REUSE DETECTION WITH 60-SECOND ROTATION GRACE PERIOD:
+    // Prevents race conditions from concurrent tab/request refreshes within 60s
     if (session && session.revokedAt) {
-      console.warn(`[Security Alert] Refresh token reuse detected for user ${session.userId}. Revoking all sessions.`);
+      const revokedMsAgo = Date.now() - session.revokedAt.getTime();
+      if (revokedMsAgo < ROTATION_GRACE_PERIOD_MS) {
+        // Legitimate concurrent request / tab race condition:
+        // Issue fresh access token using the active session
+        const activeSession = await prisma.userSession.findFirst({
+          where: {
+            userId: session.userId,
+            revokedAt: null,
+            expiresAt: { gt: new Date() },
+          },
+          orderBy: { createdAt: 'desc' },
+        });
+
+        if (activeSession) {
+          const accessToken = jwt.sign(
+            { id: session.userId, role: session.user.role },
+            getJwtSecret(),
+            { expiresIn: '15m' }
+          );
+          return res.json({
+            success: true,
+            data: {
+              token: accessToken,
+            },
+          });
+        }
+      }
+
+      console.warn(`[Security Alert] Refresh token reuse detected for user ${session.userId}. Revoked ${revokedMsAgo}ms ago.`);
       await prisma.userSession.updateMany({
         where: { userId: session.userId, revokedAt: null },
         data: { revokedAt: new Date() },
@@ -519,7 +540,7 @@ export const refresh = async (req: Request, res: Response) => {
 
     if (session) {
       const now = Date.now();
-      // Absolute expiry check (14 days cap)
+      // Absolute expiry check (30 days monthly cap)
       if (now > session.expiresAt.getTime()) {
         if (userSession) {
           await prisma.userSession.update({ where: { id: userSession.id }, data: { revokedAt: new Date() } });
@@ -528,10 +549,10 @@ export const refresh = async (req: Request, res: Response) => {
           await prisma.refreshSession.update({ where: { id: refreshSession.id }, data: { revokedAt: new Date() } });
         }
         res.clearCookie('refreshToken');
-        return res.status(401).json({ success: false, error: { message: 'Session expired (14-day limit reached). Please log in again.' } });
+        return res.status(401).json({ success: false, error: { message: 'Session expired (monthly 30-day limit reached). Please log in again.' } });
       }
 
-      // Inactivity check (7 days without activity)
+      // Inactivity check (minimum 7 days without activity)
       const lastActive = (session as any).lastActiveAt
         ? (session as any).lastActiveAt.getTime()
         : session.createdAt.getTime();
@@ -543,7 +564,7 @@ export const refresh = async (req: Request, res: Response) => {
           await prisma.refreshSession.update({ where: { id: refreshSession.id }, data: { revokedAt: new Date() } });
         }
         res.clearCookie('refreshToken');
-        return res.status(401).json({ success: false, error: { message: 'Session expired due to inactivity. Please log in again.' } });
+        return res.status(401).json({ success: false, error: { message: 'Session expired due to inactivity (7+ days). Please log in again.' } });
       }
 
       user = session.user;
@@ -579,14 +600,16 @@ export const refresh = async (req: Request, res: Response) => {
       });
     }
 
-    // Issue new token pair and insert new UserSession & RefreshSession records with updated lastActiveAt
-    const tokens = await generateTokens(user, req);
+    // Issue new token pair and insert new UserSession & RefreshSession records with updated lastActiveAt,
+    // preserving the session's original 30-day absolute expiration
+    const originalExpiresAt = session?.expiresAt;
+    const tokens = await generateTokens(user, req, originalExpiresAt);
 
     res.cookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge: ABSOLUTE_SESSION_LIFETIME_MS,
+      maxAge: originalExpiresAt ? Math.max(0, originalExpiresAt.getTime() - Date.now()) : ABSOLUTE_SESSION_LIFETIME_MS,
     });
 
     res.json({
