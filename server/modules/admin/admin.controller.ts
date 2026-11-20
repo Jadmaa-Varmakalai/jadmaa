@@ -141,7 +141,24 @@ export const getStudentById = async (req: Request, res: Response) => {
       where: { id: (req.params.id as string) },
       select: { 
         id: true, name: true, email: true, phone: true, isActive: true, createdAt: true, lastLoginAt: true, role: true,
-        enrollments: { include: { course: { select: { title: true } } } },
+        enrollments: { 
+          include: { 
+            course: { 
+              select: { 
+                id: true,
+                title: true,
+                modules: {
+                  select: {
+                    lessons: {
+                      select: { id: true, title: true, durationSeconds: true, isRequired: true }
+                    }
+                  }
+                }
+              } 
+            } 
+          },
+          orderBy: { createdAt: 'desc' }
+        },
         payments: { orderBy: { createdAt: 'desc' } },
         certificates: { include: { course: { select: { title: true } } } },
         lessonProgress: true
@@ -150,7 +167,83 @@ export const getStudentById = async (req: Request, res: Response) => {
     if (!student || (student.role !== 'STUDENT' && student.role !== 'ADMIN' && student.role !== 'SUPER_ADMIN')) {
       return res.status(404).json({ success: false, error: { message: 'Student not found' } });
     }
-    res.json({ success: true, data: student });
+
+    const userLessonProgress = student.lessonProgress || [];
+    const progressMap = new Map<string, { completed: boolean; watchedSeconds: number }>();
+    for (const lp of userLessonProgress) {
+      progressMap.set(lp.lessonId, { completed: Boolean(lp.completed), watchedSeconds: lp.watchedSeconds || 0 });
+    }
+
+    const enrichedEnrollments = student.enrollments.map((enr: any) => {
+      let totalLessons = 0;
+      let completedLessons = 0;
+      let totalDurationSeconds = 0;
+      let totalWatchedSeconds = 0;
+      let hasValidDurations = true;
+      let partialUnits = 0;
+
+      const modules = enr.course?.modules || [];
+      for (const mod of modules) {
+        for (const lesson of mod.lessons || []) {
+          totalLessons++;
+          const dur = lesson.durationSeconds || 0;
+          if (dur <= 0) hasValidDurations = false;
+          totalDurationSeconds += dur;
+
+          const prog = progressMap.get(lesson.id);
+          if (prog?.completed) {
+            completedLessons++;
+            totalWatchedSeconds += (dur > 0 ? dur : 0);
+            partialUnits += 1;
+          } else if (prog && prog.watchedSeconds > 0) {
+            const watched = dur > 0 ? Math.min(dur, prog.watchedSeconds) : prog.watchedSeconds;
+            totalWatchedSeconds += watched;
+            partialUnits += dur > 0 ? Math.min(0.99, watched / dur) : 0.5;
+          }
+        }
+      }
+
+      const isCompleted = enr.status === 'COMPLETED' || (totalLessons > 0 && completedLessons === totalLessons);
+      let percentage = 0;
+      if (isCompleted) {
+        percentage = 100;
+      } else if (totalLessons > 0) {
+        if (hasValidDurations && totalDurationSeconds > 0) {
+          percentage = Math.min(99, Math.round((totalWatchedSeconds / totalDurationSeconds) * 100));
+        } else {
+          percentage = Math.min(99, Math.round((partialUnits / totalLessons) * 100));
+        }
+      }
+
+      return {
+        id: enr.id,
+        courseId: enr.courseId,
+        userId: enr.userId,
+        status: enr.status,
+        enrolledAt: enr.enrolledAt,
+        completedAt: enr.completedAt,
+        createdAt: enr.createdAt,
+        course: {
+          id: enr.course?.id,
+          title: enr.course?.title
+        },
+        progress: {
+          isCompleted,
+          percentage,
+          totalLessons,
+          completedLessons,
+          totalDurationSeconds,
+          totalWatchedSeconds
+        }
+      };
+    });
+
+    const responseData = {
+      ...student,
+      enrollments: enrichedEnrollments
+    };
+
+    res.json({ success: true, data: responseData });
   } catch (err: any) {
     res.status(500).json({ success: false, error: { message: err.message || 'Server error' } });
   }
@@ -1051,14 +1144,107 @@ export const getEnrollments = async (req: Request, res: Response) => {
       prisma.enrollment.findMany({
         where, skip, take: limit,
         include: { 
-          user: { select: { name: true, email: true } },
-          course: { select: { title: true } }
+          user: { select: { id: true, name: true, email: true } },
+          course: { 
+            select: { 
+              id: true,
+              title: true,
+              modules: {
+                select: {
+                  lessons: {
+                    select: { id: true, durationSeconds: true }
+                  }
+                }
+              }
+            } 
+          }
         },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.enrollment.count({ where })
     ]);
-    res.json({ success: true, data: { items, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } } });
+
+    const userIds = Array.from(new Set(items.map((i: any) => i.userId)));
+    const courseIds = Array.from(new Set(items.map((i: any) => i.courseId)));
+
+    const lessonProgresses = userIds.length > 0 && courseIds.length > 0 ? await prisma.lessonProgress.findMany({
+      where: {
+        userId: { in: userIds },
+        courseId: { in: courseIds }
+      },
+      select: { userId: true, courseId: true, lessonId: true, completed: true, watchedSeconds: true }
+    }) : [];
+
+    const userLessonMap = new Map<string, { completed: boolean; watchedSeconds: number }>();
+    for (const lp of lessonProgresses) {
+      userLessonMap.set(`${lp.userId}_${lp.lessonId}`, { completed: Boolean(lp.completed), watchedSeconds: lp.watchedSeconds || 0 });
+    }
+
+    const enrichedItems = items.map((enr: any) => {
+      let totalLessons = 0;
+      let completedLessons = 0;
+      let totalDurationSeconds = 0;
+      let totalWatchedSeconds = 0;
+      let hasValidDurations = true;
+      let partialUnits = 0;
+
+      const modules = enr.course?.modules || [];
+      for (const mod of modules) {
+        for (const lesson of mod.lessons || []) {
+          totalLessons++;
+          const dur = lesson.durationSeconds || 0;
+          if (dur <= 0) hasValidDurations = false;
+          totalDurationSeconds += dur;
+
+          const prog = userLessonMap.get(`${enr.userId}_${lesson.id}`);
+          if (prog?.completed) {
+            completedLessons++;
+            totalWatchedSeconds += (dur > 0 ? dur : 0);
+            partialUnits += 1;
+          } else if (prog && prog.watchedSeconds > 0) {
+            const watched = dur > 0 ? Math.min(dur, prog.watchedSeconds) : prog.watchedSeconds;
+            totalWatchedSeconds += watched;
+            partialUnits += dur > 0 ? Math.min(0.99, watched / dur) : 0.5;
+          }
+        }
+      }
+
+      const isCompleted = enr.status === 'COMPLETED' || (totalLessons > 0 && completedLessons === totalLessons);
+      let percentage = 0;
+      if (isCompleted) {
+        percentage = 100;
+      } else if (totalLessons > 0) {
+        if (hasValidDurations && totalDurationSeconds > 0) {
+          percentage = Math.min(99, Math.round((totalWatchedSeconds / totalDurationSeconds) * 100));
+        } else {
+          percentage = Math.min(99, Math.round((partialUnits / totalLessons) * 100));
+        }
+      }
+
+      return {
+        id: enr.id,
+        userId: enr.userId,
+        courseId: enr.courseId,
+        paymentId: enr.paymentId,
+        status: enr.status,
+        enrolledAt: enr.enrolledAt,
+        completedAt: enr.completedAt,
+        createdAt: enr.createdAt,
+        user: enr.user,
+        course: {
+          id: enr.course?.id,
+          title: enr.course?.title
+        },
+        progress: {
+          isCompleted,
+          percentage,
+          totalLessons,
+          completedLessons
+        }
+      };
+    });
+
+    res.json({ success: true, data: { items: enrichedItems, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } } });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
 };
 
