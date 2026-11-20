@@ -65,7 +65,7 @@ export const SearchResultsPage: React.FC = () => {
           const desc = (c.description || '').toLowerCase();
           const cat = (c.category || '').toLowerCase();
           const level = (c.level || '').toLowerCase();
-          const instructor = (c.instructor?.displayName || '').toLowerCase();
+          const instructor = ((c.instructor as any)?.displayName || c.instructor?.name || '').toLowerCase();
           return title.includes(q) || desc.includes(q) || cat.includes(q) || level.includes(q) || instructor.includes(q);
         });
 

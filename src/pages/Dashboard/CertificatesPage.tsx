@@ -48,10 +48,17 @@ export const CertificatesPage: React.FC = () => {
       
       <section className="bg-[#FAF6F0] border-b border-[#E8DDD0] py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="font-heading font-extrabold text-3xl text-gray-900">
-            My Certificates
-          </h1>
-          <p className="text-[#5C5148] mt-2">View and download your earned Varmakalai credentials.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="font-heading font-extrabold text-3xl text-gray-900">
+                My Certificates
+              </h1>
+              <p className="text-[#5C5148] mt-1">View and download your earned Varmakalai credentials.</p>
+            </div>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-amber-50 border border-amber-200/80 rounded-lg text-xs text-amber-800 font-medium">
+              <span>✦ Official verified certificates are granted upon 100% completion of paid certified courses.</span>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -92,12 +99,30 @@ export const CertificatesPage: React.FC = () => {
                     </div>
                     
                     <div className="pt-4 border-t border-gray-100 flex items-center justify-between gap-3">
-                      <button className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 text-xs font-bold rounded flex items-center justify-center gap-2 transition">
+                      <a
+                        href={`/api/v1/certificates/${encodeURIComponent(cert.id)}/view`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-900 text-xs font-bold rounded flex items-center justify-center gap-2 transition"
+                      >
                         <ExternalLink className="w-4 h-4" /> View
-                      </button>
-                      <button className="flex-1 py-2 bg-jadmaa-red hover:bg-red-800 text-white text-xs font-bold rounded flex items-center justify-center gap-2 transition">
+                      </a>
+                      <a
+                        href={`/api/v1/certificates/${encodeURIComponent(cert.id)}/view?print=true`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 py-2 bg-jadmaa-red hover:bg-red-800 text-white text-xs font-bold rounded flex items-center justify-center gap-2 transition"
+                      >
                         <Download className="w-4 h-4" /> PDF
-                      </button>
+                      </a>
+                    </div>
+                    <div className="text-center pt-1">
+                      <Link 
+                        to={`/verify/${cert.verificationCode}`}
+                        className="text-[11px] text-amber-700 hover:text-amber-800 font-semibold hover:underline"
+                      >
+                        Verify Credential Authenticity &rarr;
+                      </Link>
                     </div>
                   </div>
                 </div>

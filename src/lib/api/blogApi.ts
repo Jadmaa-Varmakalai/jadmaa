@@ -15,6 +15,9 @@ export interface BlogPost {
     avatarUrl: string | null;
   };
   published: boolean;
+  metaTitle?: string | null;
+  metaDesc?: string | null;
+  keywords?: string | null;
   createdAt: string;
   updatedAt: string;
 }

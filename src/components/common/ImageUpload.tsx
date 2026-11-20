@@ -121,11 +121,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         img.src = objectUrl;
       }
 
+      // Client-side compression
+      const compressed = await compressImage(file);
+
       // Try uploading to server
       try {
-        const uploadRes = await uploadApi.uploadImage(file);
-        if (uploadRes && uploadRes.url) {
-          onChange(uploadRes.url);
+        const uploadedUrl = await uploadApi.uploadImage(compressed, file.name);
+        if (uploadedUrl) {
+          onChange(uploadedUrl);
           setIsProcessing(false);
           return;
         }
@@ -133,8 +136,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         console.warn('Backend upload failed, falling back to compressed local preview:', uploadErr);
       }
 
-      // Fallback: client-side compression
-      const compressed = await compressImage(file);
       onChange(compressed);
     } catch (err: any) {
       console.error('Image compression failed:', err);

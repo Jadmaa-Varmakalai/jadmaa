@@ -22,6 +22,7 @@ import instructorRoutes from './modules/instructor/instructor.routes.js';
 import productRoutes from './modules/products/product.routes.js';
 import orderRoutes from './modules/orders/order.routes.js';
 import offerRoutes, { adminRouter as offerAdminRoutes } from './modules/offers/offer.routes.js';
+import certificateRoutes from './modules/certificates/certificate.routes.js';
 import { getSitemapXml, getRobotsTxt, botPrerenderMiddleware } from './modules/seo/seo.controller.js';
 import { getOptimizedImage } from './modules/blog/blog.controller.js';
 import { initCourseAvailability } from './services/courseAvailability.service.js';
@@ -171,6 +172,7 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/offers', offerRoutes);
 app.use('/api/v1/admin/offers', offerAdminRoutes);
+app.use('/api/v1/certificates', certificateRoutes);
 
 // Fallback handler for non-API routes (SPA index.html)
 // Only in production / serverless environments (in local dev, Vite middlewares handle SPA and modules)

@@ -33,6 +33,7 @@ const ResetPassword = lazy(() => import('../pages/Auth/ResetPassword').then(m =>
 // Lazily loaded Learning & Status Pages
 const LearnCourse = lazy(() => import('../pages/Dashboard/LearnCourse').then(m => ({ default: m.LearnCourse })));
 const PaymentStatus = lazy(() => import('../pages/Dashboard/PaymentStatus').then(m => ({ default: m.PaymentStatus })));
+const VerifyCertificate = lazy(() => import('../pages/VerifyCertificate').then(m => ({ default: m.VerifyCertificate })));
 
 // Lazily loaded Authenticated Panels & Hub Pages
 const AdminPanel = lazy(() => import('../pages/Admin/AdminPanel').then(m => ({ default: m.AdminPanel })));
@@ -140,6 +141,10 @@ export const AppRoutes: React.FC = () => {
           {/* Learning Player (Fullscreen specialized player) */}
           <Route path="/learn/:courseId" element={<LearnCourse />} />
           <Route path="/payment/status/:merchantOrderId" element={<PaymentStatus />} />
+
+          {/* Certificate Verification (Public) */}
+          <Route path="/verify/:code" element={<VerifyCertificate />} />
+          <Route path="/verify" element={<VerifyCertificate />} />
 
           {/* Legacy root redirects to new authenticated routes */}
           <Route path="/dashboard" element={<Navigate to="/student/dashboard" replace />} />

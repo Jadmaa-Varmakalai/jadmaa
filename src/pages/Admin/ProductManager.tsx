@@ -131,7 +131,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
     setStockQuantity('10');
     setDescription('');
     setImages([]);
-    setNewImageUrl('');
     setIsActive(true);
     setFormError('');
     setIsDigital(false);
@@ -153,7 +152,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
     setStockQuantity(prod.stockQuantity.toString());
     setDescription(prod.description);
     setImages(prod.images || []);
-    setNewImageUrl('');
     setIsActive(prod.isActive);
     setFormError('');
     const isEbookCat = Boolean(
@@ -185,7 +183,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
         setFileSize(res.data.fileSize);
         setFileType(res.data.fileType as any);
       } else {
-        alert(res.error?.message || 'Failed to upload eBook file.');
+        alert((res as any).error?.message || 'Failed to upload eBook file.');
       }
     } catch (err: any) {
       console.error('Failed to upload eBook file:', err);

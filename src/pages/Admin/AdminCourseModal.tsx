@@ -13,6 +13,10 @@ interface AdminCourseModalProps {
 export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onClose, course, onSuccess }) => {
   const [formData, setFormData] = useState({
     title: '',
+    slug: '',
+    metaTitle: '',
+    metaDesc: '',
+    keywords: '',
     subtitle: '',
     description: '',
     category: 'Varmakalai',
