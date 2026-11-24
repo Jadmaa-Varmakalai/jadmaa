@@ -54,13 +54,6 @@ export const OPTIMIZED_IMAGE_MAP: Record<string, ImageDerivativeConfig> = {
     defaultHeight: 1024,
     aspectRatio: '386/1024',
   },
-  'file_000000008884820b9a3c789a8c0be531-1024x683': {
-    baseName: 'file_000000008884820b9a3c789a8c0be531-1024x683',
-    widths: [360, 480, 768, 1024],
-    defaultWidth: 1024,
-    defaultHeight: 683,
-    aspectRatio: '1024/683',
-  },
   'founder': {
     baseName: 'founder',
     widths: [360, 480, 720],
@@ -89,40 +82,12 @@ export const OPTIMIZED_IMAGE_MAP: Record<string, ImageDerivativeConfig> = {
     defaultHeight: 900,
     aspectRatio: '1/1',
   },
-  'course-intermediate': {
-    baseName: 'course-intermediate',
-    widths: [360, 480, 768, 900],
-    defaultWidth: 900,
-    defaultHeight: 900,
-    aspectRatio: '1/1',
-  },
-  'course-kids': {
-    baseName: 'course-kids',
-    widths: [360, 480, 768, 900],
-    defaultWidth: 900,
-    defaultHeight: 900,
-    aspectRatio: '1/1',
-  },
-  'course-selfdefence-all': {
-    baseName: 'course-selfdefence-all',
-    widths: [360, 480, 768, 900],
-    defaultWidth: 900,
-    defaultHeight: 900,
-    aspectRatio: '1/1',
-  },
   'course-weightloss-career': {
     baseName: 'course-weightloss-career',
     widths: [360, 480, 768, 1200],
     defaultWidth: 1254,
     defaultHeight: 1254,
     aspectRatio: '1/1',
-  },
-  'course-womens': {
-    baseName: 'course-womens',
-    widths: [360, 480, 768, 900],
-    defaultWidth: 900,
-    defaultHeight: 1075,
-    aspectRatio: '900/1075',
   },
 };
 

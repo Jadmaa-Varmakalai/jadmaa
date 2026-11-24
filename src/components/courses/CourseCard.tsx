@@ -22,13 +22,9 @@ export const getValidCourseThumbnail = (course: Partial<Course>): string => {
   const thumb = course.thumbnail?.trim() || '';
   if (!thumb) return '/images/course-basic.jpg';
   if (thumb.includes('course-weightloss')) return '/images/course-weightloss-career.jpg';
-  if (thumb.includes('course-intermediate')) return '/images/course-intermediate.jpg';
-  if (thumb.includes('course-kids')) return '/images/course-kids.jpg';
-  if (thumb.includes('course-womens')) return '/images/course-womens.jpg';
-  if (thumb.includes('course-selfdefence')) return '/images/course-selfdefence-all.jpg';
   if (thumb.includes('course-basic')) return '/images/course-basic.jpg';
   if (thumb.includes('logo-1')) return '/images/course-basic.jpg';
-  return thumb;
+  return '/images/course-basic.jpg';
 };
 
 interface CourseCardProps {

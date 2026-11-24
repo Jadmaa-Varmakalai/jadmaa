@@ -46,12 +46,6 @@ const JOBS: ImageJob[] = [
     isTransparent: false,
     widths: [360, 386],
   },
-  // Careers / About Photo
-  {
-    src: 'public/images/file_000000008884820b9a3c789a8c0be531-1024x683.png',
-    isTransparent: false,
-    widths: [360, 480, 768, 1024],
-  },
   // Founder WebP
   {
     src: 'public/images/founder.webp',
@@ -76,29 +70,9 @@ const JOBS: ImageJob[] = [
     widths: [360, 480, 768, 900],
   },
   {
-    src: 'public/images/course-intermediate.jpg',
-    isTransparent: false,
-    widths: [360, 480, 768, 900],
-  },
-  {
-    src: 'public/images/course-kids.jpg',
-    isTransparent: false,
-    widths: [360, 480, 768, 900],
-  },
-  {
-    src: 'public/images/course-selfdefence-all.jpg',
-    isTransparent: false,
-    widths: [360, 480, 768, 900],
-  },
-  {
     src: 'public/images/course-weightloss-career.jpg',
     isTransparent: false,
     widths: [360, 480, 768, 1200],
-  },
-  {
-    src: 'public/images/course-womens.jpg',
-    isTransparent: false,
-    widths: [360, 480, 768, 900],
   },
 ];
 
@@ -187,23 +161,23 @@ async function generateBlogThumbnails() {
   const blogCovers = [
     {
       slug: 'varmakalai-beginners-first-3-months-cover',
-      source: 'public/images/course-basic.jpg'
+      source: 'public/images/blog/original/varmakalai-beginners-first-3-months-cover.jpg'
     },
     {
       slug: 'womens-self-defence-varmakalai-cover',
-      source: 'public/images/course-womens.jpg'
+      source: 'public/images/blog/original/womens-self-defence-varmakalai-cover.jpg'
     },
     {
       slug: 'varma-therapy-explained-cover',
-      source: 'public/images/wellness-682x1024.png'
+      source: 'public/images/blog/original/varma-therapy-explained-cover.jpg'
     },
     {
       slug: 'varmakalai-benefits-kids-cover',
-      source: 'public/images/course-kids.jpg'
+      source: 'public/images/blog/original/varmakalai-benefits-kids-cover.jpg'
     },
     {
       slug: 'varmakalai-history-origins-cover',
-      source: 'public/images/pose-dab-red-e1785095608624-653x1024.jpg'
+      source: 'public/images/blog/original/varmakalai-history-origins-cover.jpg'
     }
   ];
 
