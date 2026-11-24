@@ -10,7 +10,7 @@ export const isOnlineCourse = (course: Course): boolean => {
   if ((course as any).isOnline === true || (course as any).trainingType === 'online') return true;
   if (course.slug === 'varmakalai-foundation-free-starter-course' || course.slug === '0-free-varma-foundation' || course.slug === 'varma-foundation') return true;
   if (course.isFree) return true;
-  if (course.category?.toLowerCase().includes('online')) return true;
+  if (typeof course.category === 'string' && course.category.toLowerCase().includes('online')) return true;
   if (course.modules && course.modules.some(m => m.lessons && m.lessons.some(l => (l as any).videoUrl || (l as any).youtubeVideoId))) {
     return true;
   }
@@ -142,7 +142,11 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
                 <span>{course.studentsCount} learners</span>
               </div>
             ) : (
-              <span className="text-gray-400 text-[10px]">{course.category || 'Varmakalai'}</span>
+              <span className="text-gray-400 text-[10px]">
+                {typeof course.category === 'object' && course.category !== null
+                  ? (course.category as any).name
+                  : (course.category || 'Varmakalai')}
+              </span>
             )}
           </div>
 

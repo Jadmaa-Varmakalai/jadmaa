@@ -147,7 +147,9 @@ export const Cart: React.FC = () => {
                       <div className="space-y-1 min-w-0">
                         {item.product.category && (
                           <span className="text-[10px] font-extrabold uppercase tracking-wider text-jadmaa-red">
-                            {item.product.category.name}
+                            {typeof item.product.category === 'object' && item.product.category !== null
+                              ? (item.product.category as any).name
+                              : String(item.product.category)}
                           </span>
                         )}
                         <Link to={`/products/${item.product.slug}`}>

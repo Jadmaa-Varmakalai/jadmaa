@@ -445,9 +445,11 @@ export const SearchResultsPage: React.FC = () => {
                           </div>
 
                           <div className="p-3 sm:p-4 space-y-1">
-                            {product.category?.name && (
+                            {(product.category?.name || (typeof product.category === 'string' && product.category)) && (
                               <span className="text-[10px] font-semibold text-[#5C5148] uppercase tracking-wider block">
-                                {product.category.name}
+                                {typeof product.category === 'object' && product.category !== null
+                                  ? (product.category as any).name
+                                  : product.category}
                               </span>
                             )}
                             <h3 className="font-bold text-xs sm:text-sm text-[#2B2521] group-hover:text-[#B12B2B] transition line-clamp-2 leading-tight">

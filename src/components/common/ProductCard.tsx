@@ -23,6 +23,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   className = '',
 }) => {
   const isOutOfStock = product.stockQuantity <= 0;
+  const categoryName = typeof product.category === 'object' && product.category !== null
+    ? (product.category as any).name
+    : typeof product.category === 'string' && product.category.trim()
+    ? product.category
+    : (product.isDigital ? 'Digital Guide' : 'Siddha Literature');
 
   return (
     <div
@@ -87,7 +92,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Category / Sub-meta */}
           <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-[#7A6E65] font-medium mb-1">
             <span className="uppercase tracking-wider font-semibold text-[#B12B2B]">
-              {product.category || (product.isDigital ? 'Digital Guide' : 'Siddha Literature')}
+              {categoryName}
             </span>
             {product.isDigital && (
               <span className="text-gray-400">Instant Access</span>
