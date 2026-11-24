@@ -253,8 +253,8 @@ export const Home: React.FC = () => {
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            {/* Left Column */}
-            <div className="lg:col-span-7 space-y-4 text-left relative z-20">
+            {/* Right Column (on desktop): Hero Content */}
+            <div className="lg:col-span-7 lg:order-2 space-y-4 text-left relative z-20">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -348,8 +348,8 @@ export const Home: React.FC = () => {
 
             </div>
 
-            {/* Right Column: Hero Practitioner Kick Image (stable reserved space, zero overlap with counts) */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[340px] sm:min-h-[420px] lg:min-h-[520px] mt-6 sm:mt-8 lg:mt-0 pt-3 lg:pt-0">
+            {/* Left Column (on desktop): Hero Practitioner Kick Image */}
+            <div className="lg:col-span-5 lg:order-1 flex justify-center lg:justify-start items-end relative z-10 min-h-[340px] sm:min-h-[420px] lg:min-h-[520px] mt-6 sm:mt-8 lg:mt-0 pt-3 lg:pt-0">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center will-change-transform contain-layout">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />
@@ -759,8 +759,8 @@ export const Home: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             
-            {/* Left Image - Transparent subject without enclosing card */}
-            <div className="lg:col-span-4 flex justify-center items-center relative" data-aos="fade-up">
+            {/* Right Image (on desktop) - Transparent subject without enclosing card */}
+            <div className="lg:col-span-4 order-2 lg:order-2 flex justify-center items-center relative" data-aos="fade-up">
               <div className="relative group text-center max-w-[360px] sm:max-w-[420px] lg:max-w-full">
                 <picture>
                   <source
@@ -784,8 +784,8 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Content */}
-            <div className="lg:col-span-8 space-y-5 flex flex-col" data-aos="fade-up" data-aos-delay="100">
+            {/* Left Content (on desktop) */}
+            <div className="lg:col-span-8 order-1 lg:order-1 space-y-5 flex flex-col" data-aos="fade-up" data-aos-delay="100">
               <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
                 <EditableText 
                   settingKey="home.wellness.description" 
