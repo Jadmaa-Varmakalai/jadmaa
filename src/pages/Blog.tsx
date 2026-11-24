@@ -89,19 +89,19 @@ export const Blog: React.FC = () => {
 
         {/* Blog Posts Grid Section */}
         <section className="py-12 bg-[#F2EDE4] border-b border-jadmaa-border min-h-screen">
-          <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
             {loading && blogs.length === 0 ? (
               <div className="text-center py-20 text-[#7A6E65]">Loading articles...</div>
             ) : error && blogs.length === 0 ? (
               <div className="text-center py-20 text-[#B12B2B]">Error: {error}</div>
             ) : blogs.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 items-stretch justify-items-center" data-aos="fade-up">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 items-stretch justify-items-center" data-aos="fade-up">
                 {blogs.map((blog, idx) => (
-                  <div key={blog.id} data-aos="fade-up" data-aos-delay={(idx % 3) * 100} className="w-full flex justify-center">
+                  <div key={blog.id} data-aos="fade-up" data-aos-delay={(idx % 4) * 80} className="w-full flex justify-center">
                     <BlogCard 
                       blog={blog} 
                       isAdmin={canManageBlogs}
-                      priority={idx < 3}
+                      priority={idx < 4}
                       onEdit={(blogToEdit) => navigate(`/admin/blogs?edit=${blogToEdit.id}`)}
                       onDelete={handleDeletePost}
                     />

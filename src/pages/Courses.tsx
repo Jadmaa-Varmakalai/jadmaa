@@ -283,9 +283,9 @@ export const Courses: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch" data-aos="fade-up">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 items-stretch" data-aos="fade-up">
                     {onlineCourses.map((course, idx) => (
-                      <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
+                      <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 4) * 80}>
                         <CourseCard course={course} />
                       </div>
                     ))}
@@ -309,9 +309,9 @@ export const Courses: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch" data-aos="fade-up">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 items-stretch" data-aos="fade-up">
                     {branchCourses.map((course, idx) => (
-                      <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
+                      <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 4) * 80}>
                         <CourseCard course={course} />
                       </div>
                     ))}
@@ -334,9 +334,9 @@ export const Courses: React.FC = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 items-stretch" data-aos="fade-up">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 items-stretch" data-aos="fade-up">
                 {filteredCourses.map((course, idx) => (
-                  <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 3) * 100}>
+                  <div key={course.id} className="flex" data-aos="fade-up" data-aos-delay={(idx % 4) * 80}>
                     <CourseCard course={course} />
                   </div>
                 ))}

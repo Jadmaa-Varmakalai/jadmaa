@@ -35,6 +35,15 @@ export const Home: React.FC = () => {
   const [coursesPaused, setCoursesPaused] = useState<boolean>(false);
   const [isCoursesDragging, setIsCoursesDragging] = useState<boolean>(false);
   const coursesDragStart = React.useRef<{ startX: number; scrollLeft: number }>({ startX: 0, scrollLeft: 0 });
+  const [activeCourseIndex, setActiveCourseIndex] = useState(0);
+
+  const handleCoursesScroll = () => {
+    if (!coursesTrackRef.current) return;
+    const { scrollLeft, clientWidth } = coursesTrackRef.current;
+    const cardWidth = clientWidth * 0.78;
+    const newIndex = Math.round(scrollLeft / (cardWidth || 1));
+    setActiveCourseIndex(Math.min(featuredCourses.length - 1, Math.max(0, newIndex)));
+  };
 
   // Testimonials Carousel State
   const testimonialsTrackRef = React.useRef<HTMLDivElement>(null);
@@ -697,11 +706,12 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Carousel Track Container */}
+          {/* Carousel Track Container — Mobile Peek Carousel + Tablet/Desktop Roll */}
           <div className="relative group">
             <div
               ref={coursesTrackRef}
-              className={`flex gap-4 sm:gap-6 overflow-x-auto no-scrollbar py-2 select-none ${
+              onScroll={handleCoursesScroll}
+              className={`flex gap-3.5 sm:gap-5 overflow-x-auto snap-x snap-mandatory no-scrollbar py-2 select-none px-1 sm:px-0 ${
                 featuredCourses.length <= 2
                   ? 'justify-start md:justify-center'
                   : 'cursor-grab active:cursor-grabbing justify-start'
@@ -740,13 +750,35 @@ export const Home: React.FC = () => {
                 featuredCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="w-[84vw] max-w-[340px] sm:max-w-none sm:w-[360px] lg:w-[380px] shrink-0"
+                    className="w-[78vw] max-w-[295px] sm:w-[320px] lg:w-[340px] shrink-0 snap-start flex flex-col"
                   >
                     <CourseCard course={course} />
                   </div>
                 ))
               )}
             </div>
+
+            {/* Mobile Pagination Indicator Dots */}
+            {featuredCourses.length > 1 && (
+              <div className="flex md:hidden items-center justify-center gap-1.5 pt-3">
+                {featuredCourses.map((c, i) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => {
+                      if (coursesTrackRef.current) {
+                        const cardWidth = coursesTrackRef.current.clientWidth * 0.78;
+                        coursesTrackRef.current.scrollTo({ left: i * cardWidth, behavior: 'smooth' });
+                      }
+                    }}
+                    aria-label={`Go to course ${i + 1}`}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      activeCourseIndex === i ? 'w-6 bg-[#B12B2B]' : 'w-1.5 bg-[#D5C7B8]'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -943,7 +975,7 @@ export const Home: React.FC = () => {
                 const baseList = testimonials.length > 0 ? testimonials : (mockTestimonials as any);
                 return [...baseList, ...baseList, ...baseList];
               })().map((t: any, idx: number) => (
-                <div key={`${t.id}-${idx}`} className="w-[85vw] sm:w-[350px] shrink-0 bg-white rounded-lg border border-[#E8DDD0] p-5 space-y-3 flex flex-col justify-between shadow-sm hover:shadow-md transition-shadow">
+                <div key={`${t.id}-${idx}`} className="w-[78vw] max-w-[300px] sm:w-[340px] shrink-0 snap-start bg-white rounded-xl border border-[#E8DDD0] p-4 sm:p-5 space-y-2.5 flex flex-col justify-between shadow-xs hover:shadow-md transition-shadow">
                   <div className="space-y-2">
                     <div className="flex text-amber-500">
                       {[...Array(t.rating)].map((_, i) => (

@@ -11,7 +11,6 @@ export const isOnlineCourse = (course: Course): boolean => {
   if (course.slug === 'varmakalai-foundation-free-starter-course' || course.slug === '0-free-varma-foundation' || course.slug === 'varma-foundation') return true;
   if (course.isFree) return true;
   if (course.category?.toLowerCase().includes('online')) return true;
-  // Check if it has actual recorded video lessons
   if (course.modules && course.modules.some(m => m.lessons && m.lessons.some(l => (l as any).videoUrl || (l as any).youtubeVideoId))) {
     return true;
   }
@@ -30,34 +29,21 @@ export const getValidCourseThumbnail = (course: Partial<Course>): string => {
 interface CourseCardProps {
   course: Course;
   hidePrice?: boolean;
+  className?: string;
 }
 
-export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = false }) => {
-  // Clean up repetitive SEO tags like "| JADMAA Varmakalai" from titles
+export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = false, className = '' }) => {
+  // Clean repetitive suffix
   const cleanTitle = course.title?.includes('|')
     ? course.title.split('|')[0].trim()
     : (course.title || 'Varmakalai Training');
 
-  // Render rating/review information ONLY when supported by real data
+  // Rating
   const hasRealRating = typeof course.rating === 'number' && course.rating > 0 && typeof course.reviewCount === 'number' && course.reviewCount > 0;
   const displayRating = hasRealRating ? course.rating.toFixed(1) : null;
   const displayReviews = hasRealRating ? course.reviewCount : null;
 
-  // Sanitized instructor name — never generate "Aasan info@jadmaa.com"
-  let rawInstructor = '';
-  if (typeof course.instructor === 'object' && course.instructor !== null) {
-    rawInstructor = (course.instructor as any).name || (course.instructor as any).displayName || '';
-  } else if (typeof course.instructor === 'string') {
-    rawInstructor = course.instructor;
-  }
-
-  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawInstructor.trim()) || rawInstructor.includes('@');
-  const isValidInstructor = rawInstructor.trim().length > 0 && !isEmail && !rawInstructor.toLowerCase().includes('info@');
-
-  const instructorName = isValidInstructor ? rawInstructor.trim() : 'JADMAA Instructor';
-  const initial = instructorName.replace(/^(aasan\s*[-–—:]*\s*|master\s*[-–—:]*\s*|dr\.?\s*|mr\.?\s*)/i, '').trim().charAt(0).toUpperCase() || 'J';
-
-  // Training type: recorded online vs offline branch training
+  // Training type
   const isOnline = isOnlineCourse(course);
 
   // Safe fallback thumbnail
@@ -73,160 +59,147 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
   const formattedPrice = hasPrice ? course.price.toLocaleString('en-IN') : '0';
 
   return (
-    <div className="jd-card group w-full flex flex-col bg-white rounded-2xl overflow-hidden border border-[#EBE4DC] shadow-[0_4px_20px_rgba(43,37,33,0.06)] hover:shadow-[0_16px_36px_rgba(177,43,43,0.12)] hover:border-[#E2C7B8] transition-all duration-300">
+    <div className={`jd-card group w-full flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-[#EBE4DC] shadow-[0_2px_12px_rgba(43,37,33,0.05)] hover:shadow-[0_12px_28px_rgba(177,43,43,0.11)] hover:border-[#E2C7B8] transition-all duration-300 h-full ${className}`}>
 
-      {/* Thumbnail with overlay & badges */}
-      <div className="relative w-full overflow-hidden bg-gray-100" style={{ aspectRatio: '16/9' }}>
+      {/* ── 1. Thumbnail with Badges (Aspect 16/10) ── */}
+      <div className="relative w-full aspect-[16/10] overflow-hidden bg-gray-100 border-b border-[#F0EBE4]">
         <ResponsiveImage
           src={thumbnailSrc}
           alt={cleanTitle}
-          width={480}
-          height={270}
-          aspectRatio="16/9"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 380px"
+          width={400}
+          height={250}
+          aspectRatio="16/10"
+          sizes="(max-width: 640px) 78vw, (max-width: 1024px) 33vw, 290px"
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         />
-        {/* Soft bottom gradient for depth */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+        {/* Soft bottom gradient */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
 
-        {/* Floating badges top-left */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
-          {/* Format Distinction Badge */}
+        {/* Format Badges (Top Left) */}
+        <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
           {isOnline ? (
-            <span className="px-2.5 py-1 text-xs font-bold bg-emerald-700/95 backdrop-blur-md text-white rounded-lg shadow-sm flex items-center gap-1">
-              <Video className="w-3 h-3" />
-              Recorded Online
+            <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-700/95 backdrop-blur-xs text-white rounded-md shadow-2xs flex items-center gap-1">
+              <Video className="w-2.5 h-2.5" />
+              <span>Online</span>
             </span>
           ) : (
-            <span className="px-2.5 py-1 text-xs font-bold bg-[#8F2020]/95 backdrop-blur-md text-white rounded-lg shadow-sm flex items-center gap-1">
-              <MapPin className="w-3 h-3" />
-              In-Person Branch
+            <span className="px-2 py-0.5 text-[10px] font-bold bg-[#8F2020]/95 backdrop-blur-xs text-white rounded-md shadow-2xs flex items-center gap-1">
+              <MapPin className="w-2.5 h-2.5" />
+              <span>Branch</span>
             </span>
           )}
 
-          <span className="px-2.5 py-1 text-xs font-semibold bg-[#1F2937]/90 backdrop-blur-md text-white rounded-lg shadow-sm">
-            {course.category || 'Varmakalai'}
-          </span>
-
-          {course.isPopular && (
-            <span className="px-2.5 py-1 text-xs font-bold bg-gradient-to-r from-[#B12B2B] to-[#D32F2F] text-white rounded-lg shadow-sm">
-              Popular
-            </span>
-          )}
           {course.isFree && (
-            <span className="px-2.5 py-1 text-xs font-bold bg-emerald-600 text-white rounded-lg shadow-sm">
+            <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-600 text-white rounded-md shadow-2xs">
               FREE
             </span>
           )}
-          {(course.isAvailable === false || (course as any).status === 'HOLD') && (
-            <span className="px-2.5 py-1 text-xs font-bold bg-amber-600 text-white rounded-lg shadow-sm">
-              On Hold
+
+          {course.isPopular && !course.isFree && (
+            <span className="px-2 py-0.5 text-[10px] font-bold bg-[#B12B2B] text-white rounded-md shadow-2xs">
+              Popular
             </span>
           )}
         </div>
 
-        {/* Level badge bottom-right */}
-        <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded-lg text-xs font-bold text-[#1F2937] border border-white/60 shadow-sm z-10">
+        {/* Share Button (Top Right) */}
+        <div className="absolute top-2 right-2 z-10">
+          <ShareButton
+            title={cleanTitle}
+            url={`/courses/${course.slug}`}
+            variant="icon"
+            iconSize={13}
+            className="w-7 h-7 bg-white/85 backdrop-blur-xs shadow-2xs hover:bg-white"
+          />
+        </div>
+
+        {/* Level badge (Bottom Right) */}
+        <div className="absolute bottom-2 right-2 bg-white/95 backdrop-blur-xs px-2 py-0.5 rounded-md text-[10px] font-bold text-[#1F2937] border border-white/60 shadow-2xs z-10">
           {course.level || 'All Levels'}
         </div>
       </div>
 
-      {/* Card Body */}
-      <div className="p-5 flex-1 flex flex-col justify-between gap-4">
+      {/* ── 2. Card Body (p-3 sm:p-4) ── */}
+      <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between gap-2.5 text-left">
 
-        {/* Meta row — duration chip & optional real rating chip */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-[#B12B2B] text-xs font-semibold border border-red-100/80">
-            <Clock className="w-3.5 h-3.5" />
-            <span>{durationText}</span>
-          </div>
-
-          {hasRealRating && (
-            <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 text-xs font-semibold border border-amber-200/80">
-              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-              <span className="font-bold">{displayRating}</span>
-              <span className="text-amber-700/70 font-normal">({displayReviews})</span>
+        <div>
+          {/* Metadata Row: Duration & Rating / Learners */}
+          <div className="flex items-center justify-between text-[11px] text-[#5C5148] font-medium mb-1">
+            <div className="inline-flex items-center gap-1 text-[#B12B2B] font-semibold">
+              <Clock className="w-3 h-3" />
+              <span>{durationText}</span>
             </div>
-          )}
-        </div>
 
-        {/* Title — Clean, high contrast, bold on hover */}
-        <h3 className="font-heading font-semibold text-[#1F2937] group-hover:text-[#B12B2B] transition-colors line-clamp-2 leading-snug text-lg sm:text-[19px]">
-          <Link to={`/courses/${course.slug}`}>{cleanTitle}</Link>
-        </h3>
-
-        {/* Description */}
-        <p className="text-sm text-[#4B5563] line-clamp-2 leading-relaxed flex-1">
-          {course.description || course.subtitle || ''}
-        </p>
-
-        {/* Instructor row */}
-        <div className="flex items-center gap-2.5 text-xs sm:text-sm text-[#4B5563] pt-1">
-          <div className="w-7 h-7 rounded-full bg-[#B12B2B] text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-sm">
-            {initial}
+            {hasRealRating ? (
+              <div className="inline-flex items-center gap-1 text-amber-700">
+                <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                <span className="font-bold">{displayRating}</span>
+                <span className="text-gray-400 text-[10px]">({displayReviews})</span>
+              </div>
+            ) : typeof course.studentsCount === 'number' && course.studentsCount > 0 ? (
+              <div className="inline-flex items-center gap-1 text-gray-500 text-[10px]">
+                <Users className="w-3 h-3 text-gray-400" />
+                <span>{course.studentsCount} learners</span>
+              </div>
+            ) : (
+              <span className="text-gray-400 text-[10px]">{course.category || 'Varmakalai'}</span>
+            )}
           </div>
-          <span className="font-medium text-[#374151] truncate">{instructorName}</span>
-          {typeof course.studentsCount === 'number' && course.studentsCount > 0 && (
-            <span className="ml-auto flex items-center gap-1 text-xs text-[#6B7280]">
-              <Users className="w-3.5 h-3.5 text-[#B12B2B]" />
-              {course.studentsCount} students
-            </span>
-          )}
+
+          {/* Title */}
+          <Link to={`/courses/${course.slug}`} className="block group-hover:text-[#B12B2B] transition-colors">
+            <h3 className="font-heading font-bold text-sm sm:text-base lg:text-[16px] text-[#1F2937] leading-snug line-clamp-2 min-h-[2.3rem] sm:min-h-[2.6rem]">
+              {cleanTitle}
+            </h3>
+          </Link>
+
+          {/* Description — hidden on mobile so action buttons stay visible above the fold */}
+          <p className="hidden sm:line-clamp-2 text-xs text-[#5C5148] leading-relaxed mt-1">
+            {course.description || course.subtitle || ''}
+          </p>
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-[#F0EBE4]" />
-
-        {/* Price + CTA row */}
-        <div className="flex items-center justify-between gap-3 pt-0.5">
-          {!hidePrice ? (
-            <div className="shrink-0 flex flex-col">
-              <span className="text-[11px] uppercase tracking-wider font-semibold text-[#6B7280]">
-                {isOnline ? 'Online Course Fee' : 'Branch Training Fee'}
-              </span>
-              {course.isFree ? (
-                <span className="font-heading font-bold text-lg text-emerald-600">Free</span>
-              ) : (
-                <div className="flex items-baseline gap-1.5">
-                  <span className="font-heading font-bold text-lg text-[#1F2937]">
-                    ₹{formattedPrice}
-                  </span>
-                  {course.originalPrice && course.originalPrice > course.price && (
-                    <span className="text-xs text-gray-400 line-through">
-                      ₹{course.originalPrice.toLocaleString('en-IN')}
+        {/* ── 3. Footer: Price + Dual Compact Action Buttons ── */}
+        <div className="pt-2 border-t border-[#F0EBE4] space-y-2">
+          {/* Price & Guarantee Row */}
+          {!hidePrice && (
+            <div className="flex items-baseline justify-between text-xs">
+              <div className="flex items-baseline gap-1.5">
+                {course.isFree ? (
+                  <span className="font-heading font-bold text-base text-emerald-600">Free Starter</span>
+                ) : (
+                  <>
+                    <span className="font-heading font-extrabold text-base sm:text-lg text-[#1F2937]">
+                      ₹{formattedPrice}
                     </span>
-                  )}
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="shrink-0">
-              {course.isFree && (
-                <span className="font-heading font-bold text-base text-emerald-600">Free Starter</span>
-              )}
+                    {course.originalPrice && course.originalPrice > course.price && (
+                      <span className="text-[11px] text-gray-400 line-through">
+                        ₹{course.originalPrice.toLocaleString('en-IN')}
+                      </span>
+                    )}
+                  </>
+                )}
+              </div>
+              <span className="text-[10px] text-[#7A6E65] font-medium">
+                {isOnline ? 'Lifetime Access' : 'Gurukulam Lineage'}
+              </span>
             </div>
           )}
 
-          {/* Action & Share Buttons */}
-          <div className="flex items-center gap-2">
-            <ShareButton
-              title={cleanTitle}
-              url={`/courses/${course.slug}`}
-              variant="icon"
-              iconSize={15}
-            />
+          {/* Dual Compact Action Buttons (50/50 Grid inspired by reference) */}
+          <div className="grid grid-cols-2 gap-2">
             <Link
               to={`/courses/${course.slug}`}
-              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#B12B2B] to-[#911B1B] hover:from-[#911B1B] hover:to-[#781515] text-white font-semibold text-xs sm:text-sm shadow-sm hover:shadow-md transition-all group-hover:translate-x-0.5"
+              className="inline-flex items-center justify-center py-1.5 sm:py-2 px-2.5 rounded-lg border border-[#E8DDD0] hover:border-[#B12B2B] hover:bg-[#FAF6F0] text-[#2B2521] hover:text-[#B12B2B] font-semibold text-xs transition-colors"
             >
-              <span>
-                {course.isFree
-                  ? 'Start Learning'
-                  : isOnline
-                  ? 'View Course'
-                  : 'Branch Details'}
-              </span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              More Info
+            </Link>
+            <Link
+              to={`/courses/${course.slug}`}
+              className="inline-flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2.5 rounded-lg bg-gradient-to-r from-[#B12B2B] to-[#911B1B] hover:from-[#911B1B] hover:to-[#781515] text-white font-semibold text-xs shadow-2xs hover:shadow-sm transition-all"
+            >
+              <span>{course.isFree ? 'Start Free' : 'Enroll'}</span>
+              <ArrowRight className="w-3 h-3" />
             </Link>
           </div>
         </div>
@@ -235,4 +208,3 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
     </div>
   );
 };
-

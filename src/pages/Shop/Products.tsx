@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { ShareButton } from '../../components/common/ShareButton';
+import { ProductCard } from '../../components/common/ProductCard';
 import { productApi } from '../../lib/api/productApi';
 import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -282,163 +283,17 @@ export const Products: React.FC = () => {
               )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => {
-                const isOutOfStock = product.stockQuantity <= 0;
-                const isJustAdded = addedIds[product.id];
-
-                return (
-                  <div
-                    key={product.id}
-                    className="bg-white rounded-2xl border border-gray-100 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col group overflow-hidden"
-                  >
-                    {/* Image Area */}
-                    <Link
-                      to={`/products/${product.slug}`}
-                      className="relative block w-full aspect-square bg-[#FAF6F0]/40 overflow-hidden flex items-center justify-center"
-                    >
-                      {product.images && product.images[0] ? (
-                        <ResponsiveImage
-                          src={product.images[0]}
-                          alt={product.name}
-                          width={500}
-                          height={500}
-                          aspectRatio="1/1"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                          <ShoppingBag className="w-12 h-12" />
-                        </div>
-                      )}
-
-                      {/* Stock Status Badge */}
-                      <div className="absolute top-3 right-3 z-10">
-                        {product.isDigital ? (
-                          <span className="bg-amber-600/95 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1">
-                            <BookOpen className="w-3 h-3" />
-                            <span>eBook ({product.fileType?.toUpperCase() || 'RAR'})</span>
-                          </span>
-                        ) : isOutOfStock ? (
-                          <span className="bg-red-600/90 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs">
-                            Out of Stock
-                          </span>
-                        ) : (
-                          <span className="bg-emerald-600/95 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                            {product.stockQuantity} in stock
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-
-                    {/* Content Area */}
-                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-                      <div className="space-y-2">
-                        {/* Title */}
-                        <Link to={`/products/${product.slug}`}>
-                          <h3 className="font-heading font-bold text-sm sm:text-base text-gray-900 line-clamp-2 hover:text-jadmaa-red transition">
-                            {product.name}
-                          </h3>
-                        </Link>
-
-                        {/* Stock Quantity / Digital Delivery Display */}
-                        <div>
-                          {product.isDigital ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded-md border border-amber-200/60">
-                              <BookOpen className="w-3.5 h-3.5 text-amber-700" />
-                              <span>Instant Download • {product.fileSize || '1.0 GB Archive'}</span>
-                            </span>
-                          ) : isOutOfStock ? (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-red-600 bg-red-50 px-2.5 py-0.5 rounded-md border border-red-200/60">
-                              <AlertCircle className="w-3.5 h-3.5 text-red-600" />
-                              <span>Out of stock</span>
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200/60">
-                              <Package className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Remaining Stock: {product.stockQuantity}</span>
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Short Description */}
-                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                          {product.description}
-                        </p>
-                      </div>
-
-                      {/* Price & Action */}
-                      <div className="pt-4 mt-4 border-t border-gray-100 flex items-center justify-between gap-3">
-                        <div>
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-lg font-extrabold text-jadmaa-charcoal">
-                              ₹{product.price.toLocaleString('en-IN')}
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-gray-400">Inclusive of all taxes</span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <ShareButton
-                            title={product.name}
-                            url={`/products/${product.slug}`}
-                            text={product.description || product.name}
-                            variant="icon"
-                            iconSize={14}
-                          />
-
-                          {isAdmin ? (
-                            <div className="flex items-center gap-1.5">
-                              <Link
-                                to={`/admin#products?edit=${product.id}`}
-                                onClick={(e) => e.stopPropagation()}
-                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-2xs"
-                                title="Edit in Admin Panel"
-                              >
-                                <Edit2 className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Edit</span>
-                              </Link>
-                              <button
-                                onClick={(e) => handleDeleteProduct(e, product)}
-                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 shadow-2xs cursor-pointer"
-                                title="Delete Product"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Delete</span>
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={(e) => handleAddToCart(e, product)}
-                              disabled={isOutOfStock}
-                              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
-                                isJustAdded
-                                  ? 'bg-emerald-600 text-white'
-                                  : 'bg-jadmaa-red hover:bg-red-700 text-white'
-                              }`}
-                              title={isOutOfStock ? 'Product is currently sold out' : 'Add to cart'}
-                            >
-                              {isJustAdded ? (
-                                <>
-                                  <Check className="w-3.5 h-3.5" />
-                                  <span>Added</span>
-                                </>
-                              ) : (
-                                <>
-                                  <ShoppingBag className="w-3.5 h-3.5" />
-                                  <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
-                                </>
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-5">
+              {products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  isAdmin={isAdmin}
+                  isJustAdded={!!addedIds[product.id]}
+                  onAddToCart={(prod) => handleAddToCart({ preventDefault: () => {}, stopPropagation: () => {} } as any, prod)}
+                  onDelete={(prod) => handleDeleteProduct({ preventDefault: () => {}, stopPropagation: () => {} } as any, prod)}
+                />
+              ))}
             </div>
           )}
         </div>

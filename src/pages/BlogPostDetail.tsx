@@ -343,9 +343,10 @@ export const BlogPostDetail: React.FC = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 items-stretch justify-items-center">
+            {/* Mobile Peek-Carousel / Desktop Compact Grid */}
+            <div className="flex overflow-x-auto snap-x snap-mandatory gap-3.5 sm:gap-5 pb-4 px-1 sm:px-0 no-scrollbar sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:overflow-visible">
               {relatedBlogs.map((item) => (
-                <div key={item.id} className="w-full flex justify-center">
+                <div key={item.id} className="w-[78vw] max-w-[295px] sm:w-auto sm:max-w-none shrink-0 snap-start flex justify-center">
                   <BlogCard blog={item} />
                 </div>
               ))}
