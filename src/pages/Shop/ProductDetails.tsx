@@ -26,10 +26,7 @@ import {
   ShieldCheck,
   FileText,
   Sparkles,
-  HelpCircle,
   Truck,
-  MessageCircle,
-  Zap,
   Layers,
 } from 'lucide-react';
 
@@ -231,10 +228,13 @@ export const ProductDetails: React.FC = () => {
   // Dynamic 3 concise bullet highlights (scannable in 2 seconds)
   const bullets = product.isDigital
     ? [
-        product.name.toLowerCase().includes('20') || product.name.toLowerCase().includes('manuscript')
+        product.name.toLowerCase().includes('book') ||
+        product.name.toLowerCase().includes('siddhar') ||
+        product.name.toLowerCase().includes('manuscript') ||
+        product.name.toLowerCase().includes('20')
           ? '20 Rare Siddhar Varma Manuscripts (1.0 GB Archive)'
           : 'Complete Authenticated Digital Reference Archive',
-        'Instant Digital Access After Payment (Direct Cloud Download)',
+        'Instant Digital Access After Payment',
         'Authentic JADMAA Varmakalai Lineage Resource',
       ]
     : [
@@ -381,9 +381,8 @@ export const ProductDetails: React.FC = () => {
                     type="button"
                     onClick={handleBuyNow}
                     disabled={isOutOfStock}
-                    className="px-3.5 sm:px-4 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="px-3.5 sm:px-4 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-bold rounded-lg transition shadow-2xs cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    <Zap className="w-3.5 h-3.5 fill-current" />
                     <span>Buy Now</span>
                   </button>
                 </div>
@@ -580,10 +579,7 @@ export const ProductDetails: React.FC = () => {
                   {/* Stock Notice */}
                   <div className="text-right">
                     {product.isDigital ? (
-                      <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700">
-                        <Zap className="w-3.5 h-3.5 fill-current" />
-                        <span>Instant Access</span>
-                      </span>
+                      <span className="text-xs font-bold text-emerald-700">Instant Access</span>
                     ) : isOutOfStock ? (
                       <span className="text-xs font-bold text-red-600">Currently Out of Stock</span>
                     ) : (
@@ -705,28 +701,11 @@ export const ProductDetails: React.FC = () => {
                         disabled={isOutOfStock}
                         className="h-12 px-6 bg-[#B12B2B] hover:bg-[#8F2020] text-white rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
-                        <Zap className="w-4 h-4 fill-current" />
                         <span>Buy Now</span>
                       </button>
                     </div>
                   </>
                 )}
-
-                {/* Trust Badges Row */}
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 text-[10px] text-gray-500 text-center font-medium">
-                  <div className="flex flex-col items-center gap-1">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span>Secure Checkout</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <Sparkles className="w-4 h-4 text-amber-600" />
-                    <span>Authentic Lineage</span>
-                  </div>
-                  <div className="flex flex-col items-center gap-1">
-                    <HelpCircle className="w-4 h-4 text-blue-600" />
-                    <span>WhatsApp Support</span>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -734,57 +713,20 @@ export const ProductDetails: React.FC = () => {
           {/* ── 3. BELOW-THE-FOLD SCROLLABLE CONTENT SECTIONS ── */}
           <div className="mt-12 sm:mt-16 space-y-12 sm:space-y-16">
             
-            {/* Section 1: Overview & Full Description */}
+            {/* Section 1: Overview & Description */}
             <section id="overview" className="scroll-mt-36">
               <div className="bg-white rounded-2xl sm:rounded-3xl border border-[#E8DDD0] p-6 sm:p-10 shadow-2xs space-y-6">
                 <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
                   <FileText className="w-5 h-5 text-[#B12B2B]" />
                   <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-[#2B2521]">
-                    Product Overview & Contents
+                    Product Overview & Description
                   </h2>
                 </div>
 
                 <div className="prose prose-sm sm:prose text-[#5C5148] max-w-none leading-relaxed whitespace-pre-line">
                   {product.description || (
-                    <p>
-                      This comprehensive resource from the JADMAA Varmakalai & Siddha Research
-                      Foundation provides authenticated training knowledge, anatomical diagrams, and
-                      traditional practices handed down through master lineages.
-                    </p>
+                    <p className="text-gray-400 italic">No description provided for this product.</p>
                   )}
-                </div>
-
-                {/* Key Pillars / Benefits Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-gray-100">
-                  <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#E8DDD0]/70 space-y-1.5">
-                    <span className="text-xs font-bold text-[#B12B2B] uppercase tracking-wider block">
-                      Preserved Heritage
-                    </span>
-                    <h4 className="text-sm font-bold text-[#2B2521]">Original Manuscript Lineage</h4>
-                    <p className="text-xs text-[#5C5148] leading-relaxed">
-                      Sourced from historical palm-leaf manuscripts and verified Siddha literature.
-                    </p>
-                  </div>
-
-                  <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#E8DDD0]/70 space-y-1.5">
-                    <span className="text-xs font-bold text-[#B12B2B] uppercase tracking-wider block">
-                      Practical Guidance
-                    </span>
-                    <h4 className="text-sm font-bold text-[#2B2521]">Comprehensive Insights</h4>
-                    <p className="text-xs text-[#5C5148] leading-relaxed">
-                      Detailed breakdowns of vital points, treatments, and traditional martial applications.
-                    </p>
-                  </div>
-
-                  <div className="bg-[#FAF6F0] p-4 rounded-xl border border-[#E8DDD0]/70 space-y-1.5">
-                    <span className="text-xs font-bold text-[#B12B2B] uppercase tracking-wider block">
-                      Lifetime Access
-                    </span>
-                    <h4 className="text-sm font-bold text-[#2B2521]">Instant Cloud Delivery</h4>
-                    <p className="text-xs text-[#5C5148] leading-relaxed">
-                      Permanent download access linked directly to your student registration profile.
-                    </p>
-                  </div>
                 </div>
               </div>
             </section>
@@ -922,7 +864,7 @@ export const ProductDetails: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Accordion 3: Help & WhatsApp Support */}
+                  {/* Accordion 3: Support & Queries Policy */}
                   <div className="border border-gray-200 rounded-xl overflow-hidden">
                     <button
                       type="button"
@@ -930,8 +872,8 @@ export const ProductDetails: React.FC = () => {
                       className="w-full p-4 bg-gray-50 hover:bg-gray-100/80 transition flex items-center justify-between text-left cursor-pointer"
                     >
                       <span className="font-bold text-xs sm:text-sm text-gray-900 flex items-center gap-2">
-                        <MessageCircle className="w-4 h-4 text-[#B12B2B]" />
-                        <span>Customer Support & Helpline</span>
+                        <ShieldCheck className="w-4 h-4 text-[#B12B2B]" />
+                        <span>Support & Replacement Policy</span>
                       </span>
                       <ChevronDown
                         className={`w-4 h-4 text-gray-500 transition-transform ${
@@ -940,28 +882,12 @@ export const ProductDetails: React.FC = () => {
                       />
                     </button>
                     {openPolicy === 'support' && (
-                      <div className="p-4 sm:p-5 bg-white text-xs sm:text-sm text-[#5C5148] leading-relaxed border-t border-gray-100 space-y-3">
+                      <div className="p-4 sm:p-5 bg-white text-xs sm:text-sm text-[#5C5148] leading-relaxed border-t border-gray-100 space-y-2">
                         <p>
-                          Need help opening your downloaded archive or have inquiries about traditional
-                          equipment? Our team is available on WhatsApp and email to assist you.
+                          For any queries regarding product downloads, delivery, or replacements, please contact our team via our{' '}
+                          <Link to="/contact" className="text-[#B12B2B] font-semibold underline">Contact page</Link> or email{' '}
+                          <a href="mailto:support@jadmaa.com" className="text-[#B12B2B] font-semibold underline">support@jadmaa.com</a>.
                         </p>
-                        <div className="flex flex-wrap gap-3 pt-1">
-                          <a
-                            href="https://wa.me/919944686996?text=Hi%20JADMAA%2C%20I%20have%20a%20question%20regarding%20a%20store%20product"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition shadow-2xs"
-                          >
-                            <MessageCircle className="w-4 h-4" />
-                            <span>WhatsApp Helpline (+91 99446 86996)</span>
-                          </a>
-                          <a
-                            href="mailto:support@jadmaa.com"
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs font-bold transition"
-                          >
-                            <span>support@jadmaa.com</span>
-                          </a>
-                        </div>
                       </div>
                     )}
                   </div>
@@ -1069,7 +995,6 @@ export const ProductDetails: React.FC = () => {
                 disabled={isOutOfStock}
                 className="px-5 py-2.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1.5 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <Zap className="w-3.5 h-3.5 fill-current" />
                 <span>Buy Now</span>
               </button>
             </>
