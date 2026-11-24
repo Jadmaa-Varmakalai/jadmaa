@@ -364,7 +364,10 @@ export const createInstructor = async (req: Request, res: Response) => {
     // Check if user exists
     let user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      const passwordHash = await bcrypt.hash(password || 'Jadmaa@123', 10);
+      if (!password || typeof password !== 'string' || password.length < 8) {
+        return res.status(400).json({ success: false, error: { message: 'Password is required and must be at least 8 characters' } });
+      }
+      const passwordHash = await bcrypt.hash(password, 10);
       user = await prisma.user.create({
         data: { name, email, phone, passwordHash, role: 'INSTRUCTOR', avatarUrl: avatarUrl || null }
       });
@@ -1476,7 +1479,10 @@ export const createAdministrator = async (req: Request, res: Response) => {
   try {
     const { email, password, name, role } = req.body;
     if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') throw new Error('Invalid role');
-    const passwordHash = await bcrypt.hash(password || 'Admin@123', 10);
+    if (!password || typeof password !== 'string' || password.length < 8) {
+      return res.status(400).json({ success: false, error: { message: 'Password is required and must be at least 8 characters' } });
+    }
+    const passwordHash = await bcrypt.hash(password, 10);
     const admin = await prisma.user.create({ data: { name, email, passwordHash, role } });
     await logAdminAction((req as any).user.id, 'CREATE_ADMIN', 'User', admin.id, { role }, req);
     res.json({ success: true, data: { id: admin.id, name: admin.name, email: admin.email, role: admin.role } });

@@ -9,12 +9,12 @@ for (const k in envConfig) {
 }
 
 const prisma = new PrismaClient({
-  datasourceUrl: process.env.DIRECT_URL
+  datasourceUrl: process.env.DATABASE_URL || process.env.DIRECT_URL
 });
 
 async function main() {
   const email = 'info@jadmaa.com';
-  const password = 'Jadmaa@2026';
+  const password = process.env.SEED_ADMIN_PASSWORD || 'ChangeMeImmediately123!';
   const passwordHash = await bcrypt.hash(password, 10);
 
   const existingUser = await prisma.user.findUnique({ where: { email } });

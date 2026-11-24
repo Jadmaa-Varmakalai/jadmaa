@@ -65,10 +65,9 @@ A `.env` file has already been prepared with the active Supabase PostgreSQL data
 
 ```env
 NODE_ENV=development
-DATABASE_URL="postgresql://postgres.kakomchteolqajcjjgtr:Jadmaa%402026@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.kakomchteolqajcjjgtr:Jadmaa%402026@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres"
-JWT_SECRET="supersecret_jwt_key_jadmaa_varmakalai_2026"
-JWT_REFRESH_SECRET="supersecret_refresh_key_jadmaa_varmakalai_2026"
+DATABASE_URL="postgresql://user:password@localhost:5432/jadmaa_db?schema=public"
+JWT_SECRET="your_secure_random_jwt_secret_min_32_chars"
+JWT_REFRESH_SECRET="your_secure_random_refresh_secret_min_32_chars"
 FRONTEND_URL="http://localhost:3000"
 API_BASE_URL="http://localhost:3000/api/v1"
 ```
