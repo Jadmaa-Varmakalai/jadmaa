@@ -1,2 +1,0 @@
-sed -i -e 's/to="\/dashboard"/to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "\/admin" : user?.role === "INSTRUCTOR" ? "\/instructor" : "\/dashboard"}/g' src/components/layout/Navbar.tsx
-sed -i -e 's/to="\/dashboard"/to={user?.role === "ADMIN" || user?.role === "SUPER_ADMIN" ? "\/admin" : user?.role === "INSTRUCTOR" ? "\/instructor" : "\/dashboard"}/g' src/components/layout/Footer.tsx
