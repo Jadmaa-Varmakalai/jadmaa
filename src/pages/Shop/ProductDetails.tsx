@@ -30,6 +30,7 @@ import {
   Truck,
   MessageCircle,
   Zap,
+  Layers,
 } from 'lucide-react';
 
 export const ProductDetails: React.FC = () => {
