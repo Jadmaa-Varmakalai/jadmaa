@@ -34,7 +34,7 @@ export const defaultCmsContent: Record<string, string> = {
   'home.hero.title': 'Learn the Ancient Science of Varmakalai',
   'home.hero.subtitle': 'Empower your body, sharpen your mind, and preserve a timeless tradition through professional Varmakalai (Varma Kalai) martial arts training.',
   'home.hero.cta1': 'Join Now',
-  'home.hero.cta2': 'Book Free Demo Class',
+  'home.hero.cta2': 'Book Demo',
   'home.hero.image': '/images/hero-kick-action-transparent.png',
   
   'home.stats.tradition': 'Years of Tradition',

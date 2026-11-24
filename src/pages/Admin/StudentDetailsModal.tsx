@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
-import { X, BookOpen, CreditCard } from 'lucide-react';
+import { X, BookOpen, CreditCard, CheckCircle2, PlayCircle } from 'lucide-react';
 
 interface StudentDetailsModalProps {
   studentId: string;
@@ -82,12 +82,57 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({ studen
                   <p className="text-sm text-gray-500 italic">No courses enrolled yet.</p>
                 ) : (
                   <ul className="space-y-3">
-                    {student.enrollments.map((enrollment: any, idx: number) => (
-                      <li key={idx} className="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                        <span className="font-semibold">{enrollment.course?.title}</span>
-                        <span className="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full font-bold">Enrolled</span>
-                      </li>
-                    ))}
+                    {student.enrollments.map((enrollment: any, idx: number) => {
+                      const progress = enrollment.progress || {};
+                      const isCompleted = progress.isCompleted || enrollment.status === 'COMPLETED' || progress.percentage === 100;
+                      const percentage = isCompleted ? 100 : (progress.percentage || 0);
+
+                      return (
+                        <li key={idx} className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 flex flex-col gap-2.5 transition-colors hover:bg-gray-50/80">
+                          <div className="flex justify-between items-start gap-3">
+                            <span className="font-semibold text-gray-900 leading-snug">{enrollment.course?.title}</span>
+                            {isCompleted ? (
+                              <span className="shrink-0 text-xs px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-full font-bold flex items-center gap-1 border border-emerald-200 shadow-2xs">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                Completed
+                              </span>
+                            ) : (
+                              <span className="shrink-0 text-xs px-2.5 py-1 bg-amber-100 text-amber-800 rounded-full font-bold border border-amber-200 shadow-2xs flex items-center gap-1">
+                                <PlayCircle className="w-3.5 h-3.5 text-amber-600" />
+                                {percentage > 0 ? `${percentage}% watched` : '0% seen'}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Progress Track */}
+                          <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                            <div
+                              className={`h-2 rounded-full transition-all duration-500 ${
+                                isCompleted
+                                  ? 'bg-emerald-500'
+                                  : percentage > 0
+                                  ? 'bg-amber-500'
+                                  : 'bg-gray-300'
+                              }`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+
+                          <div className="flex justify-between items-center text-xs text-gray-500 font-medium">
+                            <span>
+                              Status: <strong className={isCompleted ? 'text-emerald-700 font-bold' : 'text-gray-700'}>{isCompleted ? 'Completed' : 'In Progress'}</strong>
+                            </span>
+                            <span>
+                              {progress.totalLessons > 0 ? (
+                                `${progress.completedLessons || 0} of ${progress.totalLessons} lessons completed (${percentage}%)`
+                              ) : (
+                                `${percentage}% completed`
+                              )}
+                            </span>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </div>

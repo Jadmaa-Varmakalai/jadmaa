@@ -55,19 +55,20 @@ export const About: React.FC = () => {
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
               
-              {/* Left Image */}
-              <div className="lg:col-span-4 flex justify-center">
-                <div className="w-full max-w-[360px] overflow-hidden rounded-[14px]">
-                  <ResponsiveImage 
-                    src="/images/pose-dab-red-e1785095608624-653x1024.jpg" 
-                    alt="Varmakalai practitioner demonstrating a traditional stance" 
-                    priority={true}
-                    width={360}
-                    height={564}
-                    aspectRatio="653/1024"
-                    sizes="(max-width: 640px) 100vw, 360px"
-                    className="w-full h-auto object-cover rounded-[14px] hover:scale-105 transition-transform duration-500 ease-out"
-                  />
+              {/* Left Image - Transparent Martial Stance */}
+              <div className="lg:col-span-4 flex justify-center items-center relative">
+                <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-[#B12B2B]/5 blur-3xl pointer-events-none -z-0" />
+                <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px] flex justify-center">
+                  <picture>
+                    <source type="image/webp" srcSet="/images/pose-dab-red-transparent.webp" />
+                    <img 
+                      src="/images/pose-dab-red-transparent.png" 
+                      alt="Varmakalai practitioner demonstrating a traditional stance" 
+                      loading="lazy"
+                      decoding="async"
+                      className="max-h-[380px] sm:max-h-[440px] lg:max-h-[500px] w-auto mx-auto object-contain drop-shadow-[0_16px_36px_rgba(43,37,33,0.12)] hover:scale-[1.03] transition-transform duration-500 ease-out"
+                    />
+                  </picture>
                 </div>
               </div>
 
@@ -146,7 +147,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 4: Why Choose JADMAA Varmakalai? */}
-        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-6">
             <h2 className="font-heading font-medium text-2xl sm:text-3xl lg:text-[34px] text-[#2B2521] leading-[1.15]">
               Why Choose JADMAA Varmakalai?
@@ -166,7 +167,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 5: Vision & Mission (2 boxes side-by-side) */}
-        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#FAF6F0] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -193,7 +194,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 6: Your best choice & Learn from best instructors */}
-        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]" data-aos="fade-up">
+        <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               
@@ -231,7 +232,7 @@ export const About: React.FC = () => {
         </section>
 
         {/* Section 7: Join Now CTA */}
-        <section className="py-12 sm:py-16 bg-[#FAF6F0]" data-aos="fade-up">
+        <section className="py-12 sm:py-16 bg-[#FAF6F0]">
           <div className="max-w-[900px] mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-5">
             <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
               JADMAA Varmakalai welcomes everyone — from beginners taking their first step into martial arts to dedicated practitioners seeking advanced Varmakalai knowledge. Join us and become part of a community committed to preserving tradition while building strength for the future.

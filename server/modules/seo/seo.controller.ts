@@ -263,11 +263,13 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
   }
 
   try {
-    let pageTitle = 'JADMAA Varmakalai | Authentic Varmam Training & Traditional Medicine';
-    let pageDesc = 'Learn authentic Varmakalai, traditional Tamil martial arts, and Siddha healing from certified lineage masters in Thanjavur, Kumbakonam & Ariyalur.';
-    let pageImage = `${BASE_URL}/images/logo-1.png`;
-    let pageImageMime = 'image/png';
-    let pageCanonical = `${BASE_URL}${urlPath}`;
+    let pageTitle = 'JADMAA Varmakalai | Authentic Varmam Courses, Martial Arts & Siddha Therapy';
+    let pageDesc = 'Learn authentic Varmakalai, traditional Tamil martial arts, and Siddha vital points therapy. Certified lineage courses & clinical healing in Thanjavur, Kumbakonam & Ariyalur.';
+    let pageImage = `${BASE_URL}/images/jadmaa-hero-preview.jpg`;
+    let pageImageMime = 'image/jpeg';
+    let imageWidth = 1200;
+    let imageHeight = 630;
+    let pageCanonical = `${BASE_URL}${urlPath === '/' ? '' : urlPath}`;
     let pageType = 'website';
     let schemaJson: any = null;
 
@@ -284,6 +286,8 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
         pageDesc = course.metaDesc || course.subtitle || course.description.slice(0, 160).trim();
         pageImage = getAbsoluteImageUrl(course.thumbnailUrl);
         pageImageMime = getImageMimeType(pageImage);
+        imageWidth = 1200;
+        imageHeight = 630;
         pageCanonical = `${BASE_URL}/courses/${course.slug}`;
         pageType = 'article';
         schemaJson = {
@@ -333,9 +337,11 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
       if (blog) {
         pageTitle = blog.metaTitle || `${blog.title} | JADMAA Varmakalai`;
         pageDesc = blog.metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160).trim();
-        pageImage = getAbsoluteImageUrl(blog.thumbnailUrl);
-        pageImageMime = getImageMimeType(pageImage);
-        pageCanonical = `${BASE_URL}/blog/${blog.slug}`;
+        pageImage = `${BASE_URL}/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.png?v=3`;
+        pageImageMime = 'image/png';
+        imageWidth = 1200;
+        imageHeight = 630;
+        pageCanonical = `${BASE_URL}/blog/${encodeURIComponent(blog.slug)}`;
         pageType = 'article';
         schemaJson = {
           '@context': 'https://schema.org',
@@ -372,6 +378,8 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
         pageDesc = offer.metaDesc || offer.shortDescription || offer.description.slice(0, 160).trim();
         pageImage = getAbsoluteImageUrl(offer.bannerImageUrl);
         pageImageMime = getImageMimeType(pageImage);
+        imageWidth = 1200;
+        imageHeight = 630;
         pageCanonical = `${BASE_URL}/offers/${offer.slug}`;
         pageType = 'website';
       }
@@ -389,6 +397,8 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
         const firstImg = product.images && product.images.length > 0 ? product.images[0] : null;
         pageImage = getAbsoluteImageUrl(firstImg);
         pageImageMime = getImageMimeType(pageImage);
+        imageWidth = 1200;
+        imageHeight = 630;
         pageCanonical = `${BASE_URL}/shop/product/${product.slug}`;
         pageType = 'product';
       }
@@ -407,8 +417,8 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
     <meta property="og:description" content="${escapeXml(pageDesc)}" />
     <meta property="og:image" content="${escapeXml(pageImage)}" />
     <meta property="og:image:secure_url" content="${escapeXml(pageImage)}" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:image:width" content="${imageWidth}" />
+    <meta property="og:image:height" content="${imageHeight}" />
     <meta property="og:image:type" content="${pageImageMime}" />
     <meta property="og:url" content="${escapeXml(pageCanonical)}" />
 
@@ -423,8 +433,9 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
 
     // Try reading built index.html or fallback to root index.html
     const distHtml = path.resolve(process.cwd(), 'dist', 'index.html');
+    const vpsHtml = '/var/www/jadmaa/frontend/index.html';
     const rootHtml = path.resolve(process.cwd(), 'index.html');
-    const htmlPath = fs.existsSync(distHtml) ? distHtml : rootHtml;
+    const htmlPath = fs.existsSync(distHtml) ? distHtml : fs.existsSync(vpsHtml) ? vpsHtml : rootHtml;
 
     let html = '';
     if (fs.existsSync(htmlPath)) {

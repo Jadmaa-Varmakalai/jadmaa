@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
+import { ShareButton } from '../../components/common/ShareButton';
 import { productApi } from '../../lib/api/productApi';
 import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -17,6 +18,8 @@ import {
   Trash2,
   Edit2,
   BookOpen,
+  Search,
+  X,
 } from 'lucide-react';
 
 export const Products: React.FC = () => {
@@ -24,10 +27,31 @@ export const Products: React.FC = () => {
   const isAdmin = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get('q') || searchParams.get('search') || '');
   const [sortBy, setSortBy] = useState('featured');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [addedIds, setAddedIds] = useState<Record<string, boolean>>({});
+
+  // Synchronize state when URL query params change
+  useEffect(() => {
+    const q = searchParams.get('q') || searchParams.get('search') || '';
+    if (q !== searchQuery) {
+      setSearchQuery(q);
+    }
+  }, [searchParams]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    const newParams = new URLSearchParams(searchParams);
+    if (value.trim()) {
+      newParams.set('q', value.trim());
+    } else {
+      newParams.delete('q');
+      newParams.delete('search');
+    }
+    setSearchParams(newParams, { replace: true });
+  };
 
   const { addToCart } = useCart();
 
@@ -149,14 +173,38 @@ export const Products: React.FC = () => {
       <section className="py-10 bg-[#F2EDE4] min-h-screen text-left">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           
-          {/* Controls: Filter & Sort */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <span className="text-xs font-semibold text-gray-500 self-start sm:self-auto">
-              Showing {products.length} product{products.length === 1 ? '' : 's'}
-            </span>
+          {/* Controls: Search, Filter & Sort */}
+          <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
+            
+            {/* Search Input with Brand Search Icon */}
+            <div className="relative flex-1 w-full md:max-w-md">
+              <Search className="w-4 h-4 text-[#B12B2B] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="Search products, gear, equipment..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 text-xs sm:text-sm rounded-xl border border-[#E8DDD0] bg-[#FAF8F5] text-[#2B2521] placeholder-[#5C5148]/60 focus:bg-white focus:border-jadmaa-red focus:ring-1 focus:ring-jadmaa-red outline-none transition"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => handleSearchChange('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-jadmaa-red rounded-lg transition cursor-pointer"
+                  title="Clear search"
+                  aria-label="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
 
             {/* Sort & In-Stock Filter */}
-            <div className="flex items-center gap-3 flex-wrap self-end sm:self-auto">
+            <div className="flex items-center justify-between sm:justify-end gap-3 flex-wrap">
+              <span className="text-xs font-semibold text-gray-500 shrink-0">
+                Showing {products.length} product{products.length === 1 ? '' : 's'}
+              </span>
+
               <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 cursor-pointer select-none bg-gray-50 px-3 py-2 rounded-xl border border-gray-200/80 hover:bg-gray-100 transition">
                 <input
                   type="checkbox"
@@ -224,7 +272,7 @@ export const Products: React.FC = () => {
               ) : (
                 <button
                   onClick={() => {
-                    setSearchQuery('');
+                    handleSearchChange('');
                     setInStockOnly(false);
                   }}
                   className="px-5 py-2.5 bg-jadmaa-red hover:bg-red-700 text-white text-xs font-bold rounded-xl transition cursor-pointer"
@@ -247,17 +295,17 @@ export const Products: React.FC = () => {
                     {/* Image Area */}
                     <Link
                       to={`/products/${product.slug}`}
-                      className="relative block w-full h-56 bg-gray-50 overflow-hidden"
+                      className="relative block w-full aspect-square bg-[#FAF6F0]/40 overflow-hidden flex items-center justify-center"
                     >
                       {product.images && product.images[0] ? (
                         <ResponsiveImage
                           src={product.images[0]}
                           alt={product.name}
-                          width={360}
-                          height={224}
-                          aspectRatio="16/10"
+                          width={500}
+                          height={500}
+                          aspectRatio="1/1"
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300">
@@ -332,50 +380,60 @@ export const Products: React.FC = () => {
                           <span className="text-[10px] text-gray-400">Inclusive of all taxes</span>
                         </div>
 
-                        {isAdmin ? (
-                          <div className="flex items-center gap-1.5">
-                            <Link
-                              to={`/admin#products?edit=${product.id}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-2xs"
-                              title="Edit in Admin Panel"
-                            >
-                              <Edit2 className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Edit</span>
-                            </Link>
+                        <div className="flex items-center gap-1.5">
+                          <ShareButton
+                            title={product.name}
+                            url={`/products/${product.slug}`}
+                            text={product.description || product.name}
+                            variant="icon"
+                            iconSize={14}
+                          />
+
+                          {isAdmin ? (
+                            <div className="flex items-center gap-1.5">
+                              <Link
+                                to={`/admin#products?edit=${product.id}`}
+                                onClick={(e) => e.stopPropagation()}
+                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-700 shadow-2xs"
+                                title="Edit in Admin Panel"
+                              >
+                                <Edit2 className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Edit</span>
+                              </Link>
+                              <button
+                                onClick={(e) => handleDeleteProduct(e, product)}
+                                className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 shadow-2xs cursor-pointer"
+                                title="Delete Product"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Delete</span>
+                              </button>
+                            </div>
+                          ) : (
                             <button
-                              onClick={(e) => handleDeleteProduct(e, product)}
-                              className="px-2.5 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200/80 shadow-2xs cursor-pointer"
-                              title="Delete Product"
+                              onClick={(e) => handleAddToCart(e, product)}
+                              disabled={isOutOfStock}
+                              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
+                                isJustAdded
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-jadmaa-red hover:bg-red-700 text-white'
+                              }`}
+                              title={isOutOfStock ? 'Product is currently sold out' : 'Add to cart'}
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
-                              <span className="hidden sm:inline">Delete</span>
+                              {isJustAdded ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5" />
+                                  <span>Added</span>
+                                </>
+                              ) : (
+                                <>
+                                  <ShoppingBag className="w-3.5 h-3.5" />
+                                  <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
+                                </>
+                              )}
                             </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => handleAddToCart(e, product)}
-                            disabled={isOutOfStock}
-                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs ${
-                              isJustAdded
-                                ? 'bg-emerald-600 text-white'
-                                : 'bg-jadmaa-red hover:bg-red-700 text-white'
-                            }`}
-                            title={isOutOfStock ? 'Product is currently sold out' : 'Add to cart'}
-                          >
-                            {isJustAdded ? (
-                              <>
-                                <Check className="w-3.5 h-3.5" />
-                                <span>Added</span>
-                              </>
-                            ) : (
-                              <>
-                                <ShoppingBag className="w-3.5 h-3.5" />
-                                <span>{isOutOfStock ? 'Sold Out' : 'Add'}</span>
-                              </>
-                            )}
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

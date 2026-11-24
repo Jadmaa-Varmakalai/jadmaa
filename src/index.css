@@ -122,9 +122,9 @@ h1.font-black, h2.font-black {
   color: #ffffff;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 1.4;
-  padding: 13px 28px;
+  padding: 9px 18px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
@@ -132,6 +132,13 @@ h1.font-black, h2.font-black {
   transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
   border: 1px solid #B12B2B;
   box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+@media (min-width: 640px) {
+  .btn-jadmaa-primary {
+    font-size: 15px;
+    padding: 13px 28px;
+  }
 }
 
 .btn-jadmaa-primary:hover {
@@ -156,15 +163,22 @@ h1.font-black, h2.font-black {
   color: #B12B2B;
   font-family: 'Poppins', sans-serif;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 13.5px;
   line-height: 1.4;
-  padding: 12px 28px;
+  padding: 8px 18px;
   border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.25s ease;
   border: 2px solid #B12B2B;
+}
+
+@media (min-width: 640px) {
+  .btn-jadmaa-outline {
+    font-size: 15px;
+    padding: 12px 28px;
+  }
 }
 
 .btn-jadmaa-outline:hover {
@@ -254,14 +268,11 @@ h1.font-black, h2.font-black {
 }
 
 @keyframes jd-hero-float { 
-  0% { 
+  0%, 100% { 
     transform: translateY(0px); 
   }
   50% { 
-    transform: translateY(-12px); 
-  }
-  100% { 
-    transform: translateY(0px); 
+    transform: translateY(-5px); 
   }
 }
 
@@ -782,3 +793,27 @@ a[role="button"]:active {
   will-change: transform, opacity;
 }
 
+
+/* ==========================================
+   STATIC SECTION BACKGROUNDS
+   Section container backgrounds (including alternate #F2EDE4 / #FAF6F0)
+   must remain solid, fixed, and steady — never animate the section wrapper.
+   ========================================== */
+section,
+section[data-aos] {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* ==========================================
+   MOBILE DESKTOP SITE MODE
+   When 'Desktop site' is requested in a mobile browser,
+   maintain steady 1200px layout width without column collapse.
+   ========================================== */
+html.mobile-desktop-mode,
+html.mobile-desktop-mode body {
+  min-width: 1200px !important;
+  width: 1200px !important;
+}

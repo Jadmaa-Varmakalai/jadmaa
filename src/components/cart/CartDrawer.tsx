@@ -109,7 +109,7 @@ export const CartDrawer: React.FC = () => {
                         width={160}
                         height={160}
                         aspectRatio="1/1"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                         wrapperClassName="w-full h-full"
                       />
                     ) : (

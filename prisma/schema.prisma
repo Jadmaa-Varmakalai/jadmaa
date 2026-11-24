@@ -349,7 +349,7 @@ model UserSession {
   userAgent    String?
   ipAddress    String?
   lastActiveAt DateTime  @default(now())
-  expiresAt    DateTime  // Absolute cap: 14 days from creation
+  expiresAt    DateTime  // Absolute cap: 30 days from creation (monthly once)
   createdAt    DateTime  @default(now())
   revokedAt    DateTime?
 

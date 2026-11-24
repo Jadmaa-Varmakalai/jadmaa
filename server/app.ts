@@ -22,6 +22,7 @@ import instructorRoutes from './modules/instructor/instructor.routes.js';
 import productRoutes from './modules/products/product.routes.js';
 import orderRoutes from './modules/orders/order.routes.js';
 import offerRoutes, { adminRouter as offerAdminRoutes } from './modules/offers/offer.routes.js';
+import certificateRoutes from './modules/certificates/certificate.routes.js';
 import { getSitemapXml, getRobotsTxt, botPrerenderMiddleware } from './modules/seo/seo.controller.js';
 import { getOptimizedImage } from './modules/blog/blog.controller.js';
 import { initCourseAvailability } from './services/courseAvailability.service.js';
@@ -48,7 +49,7 @@ app.use(helmet({
   crossOriginResourcePolicy: false,
 }));
 
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/api/v1/health'], (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
@@ -57,6 +58,23 @@ import { prisma } from './db.js';
 let settingsCache: any = null;
 let settingsCacheTime = 0;
 const SETTINGS_CACHE_TTL = 1000 * 60 * 10; // 10 minutes
+
+// Explicit allowlist of approved public setting keys and prefixes for frontend CMS & display
+const APPROVED_PUBLIC_SETTING_PREFIXES = [
+  'site.',
+  'home.',
+  'about.',
+  'shop.',
+  'contact.',
+  'courses.',
+  'legal.',
+];
+
+const APPROVED_PUBLIC_SETTING_EXACT = [
+  'offer_popup_enabled',
+  'offer_popup_delay_seconds',
+  'unavailable_course_ids',
+];
 
 app.get('/api/v1/settings', async (req, res) => {
   try {
@@ -67,10 +85,33 @@ app.get('/api/v1/settings', async (req, res) => {
       return res.json({ success: true, data: settingsCache });
     }
 
-    const settings = await prisma.systemSetting.findMany();
-    settingsCache = settings;
+    // Security Hardening: Never expose internal configs, credentials, or instructor applications (PII)
+    const settings = await prisma.systemSetting.findMany({
+      where: {
+        OR: [
+          ...APPROVED_PUBLIC_SETTING_PREFIXES.map((prefix) => ({ key: { startsWith: prefix } })),
+          { key: { in: APPROVED_PUBLIC_SETTING_EXACT } },
+        ],
+      },
+      select: {
+        id: true,
+        key: true,
+        value: true,
+        description: true,
+        updatedAt: true,
+      },
+    });
+
+    const mappedSettings = settings.map((s) => {
+      if (s.key === 'home.hero.cta2' && (s.value === 'Book Demo Class' || !s.value)) {
+        return { ...s, value: 'Book Demo' };
+      }
+      return s;
+    });
+
+    settingsCache = mappedSettings;
     settingsCacheTime = Date.now();
-    res.json({ success: true, data: settings });
+    res.json({ success: true, data: mappedSettings });
   } catch (err: any) {
     console.error('[Settings] Error fetching settings:', err);
     if (settingsCache) {
@@ -80,7 +121,13 @@ app.get('/api/v1/settings', async (req, res) => {
   }
 });
 
-app.use('/uploads', express.static(path.join(process.cwd(), 'public', 'uploads'), {
+const uploadsDirectory = process.env.UPLOADS_DIR && fs.existsSync(process.env.UPLOADS_DIR)
+  ? process.env.UPLOADS_DIR
+  : fs.existsSync('/opt/jadmaa/uploads')
+    ? '/opt/jadmaa/uploads'
+    : path.join(process.cwd(), 'public', 'uploads');
+
+app.use('/uploads', express.static(uploadsDirectory, {
   maxAge: '30d',
   setHeaders: (res, filePath) => {
     if (/\.(webp|avif|png|jpe?g|svg)$/i.test(filePath)) {
@@ -125,6 +172,7 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/offers', offerRoutes);
 app.use('/api/v1/admin/offers', offerAdminRoutes);
+app.use('/api/v1/certificates', certificateRoutes);
 
 // Fallback handler for non-API routes (SPA index.html)
 // Only in production / serverless environments (in local dev, Vite middlewares handle SPA and modules)
@@ -132,8 +180,9 @@ if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
   app.use((req, res, next) => {
     if (req.method !== 'GET' || req.path.startsWith('/api/') || req.path.includes('.')) return next();
     const distHtml = path.resolve(process.cwd(), 'dist', 'index.html');
+    const vpsHtml = '/var/www/jadmaa/frontend/index.html';
     const rootHtml = path.resolve(process.cwd(), 'index.html');
-    const htmlPath = fs.existsSync(distHtml) ? distHtml : rootHtml;
+    const htmlPath = fs.existsSync(distHtml) ? distHtml : fs.existsSync(vpsHtml) ? vpsHtml : rootHtml;
     if (fs.existsSync(htmlPath)) {
       return res.sendFile(htmlPath);
     }

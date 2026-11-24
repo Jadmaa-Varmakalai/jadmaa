@@ -11,7 +11,10 @@ interface EditableTextProps {
 
 export const EditableText: React.FC<EditableTextProps> = ({ settingKey, defaultText, className = '', multiline = false }) => {
   const { settings, isEditing, stageSetting } = useSettings();
-  const text = settings[settingKey] || defaultText;
+  let text = settings[settingKey] || defaultText;
+  if (settingKey === 'home.hero.cta2' && (text === 'Book Demo Class' || !text)) {
+    text = 'Book Demo';
+  }
   const contentEditableRef = useRef<HTMLElement>(null);
 
   useEffect(() => {

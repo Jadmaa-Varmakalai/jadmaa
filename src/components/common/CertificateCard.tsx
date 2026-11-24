@@ -57,20 +57,24 @@ export const CertificateCard: React.FC<CertificateCardProps> = ({
       </div>
 
       <div className="flex items-center space-x-3 pt-2">
-        <button 
-          onClick={() => alert(`Certificate ID: ${certificateId} preview generated.`)}
+        <a 
+          href={`/api/v1/certificates/${encodeURIComponent(certificateId)}/view?print=true`}
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex-1 inline-flex items-center justify-center space-x-1.5 py-2.5 px-4 bg-jadmaa-red hover:bg-jadmaa-redDark text-white text-sm font-bold rounded-lg shadow transition-colors"
         >
           <Download className="w-4 h-4" />
           <span>Download Certificate</span>
-        </button>
-        <button 
-          onClick={() => alert(`Certificate verification URL: https://jadmaa.com/verify/${certificateId}`)}
-          className="py-2.5 px-3 bg-white border border-jadmaa-border hover:bg-jadmaa-cream text-jadmaa-charcoal text-sm font-bold rounded-lg transition-colors"
+        </a>
+        <a 
+          href={`/verify/${encodeURIComponent(certificateId)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="py-2.5 px-3 bg-white border border-jadmaa-border hover:bg-jadmaa-cream text-jadmaa-charcoal text-sm font-bold rounded-lg transition-colors flex items-center justify-center"
           title="Verify Credential"
         >
           <ExternalLink className="w-4 h-4" />
-        </button>
+        </a>
       </div>
     </div>
   );

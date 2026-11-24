@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
+import { ShareButton } from '../../components/common/ShareButton';
 import { productApi } from '../../lib/api/productApi';
 import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -187,7 +188,7 @@ export const ProductDetails: React.FC = () => {
               
               {/* Left Column: Gallery */}
               <div className="space-y-4">
-                <div className="relative aspect-square w-full bg-gray-50 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center">
+                <div className="relative aspect-square w-full bg-[#FAF6F0]/30 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center">
                   {currentImage ? (
                     <ResponsiveImage
                       src={currentImage}
@@ -196,7 +197,7 @@ export const ProductDetails: React.FC = () => {
                       width={600}
                       height={600}
                       aspectRatio="1/1"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   ) : (
                     <div className="text-gray-300 flex flex-col items-center">
@@ -217,7 +218,7 @@ export const ProductDetails: React.FC = () => {
                           selectedImageIndex === idx ? 'border-jadmaa-red shadow-xs' : 'border-gray-200 hover:border-gray-300'
                         }`}
                       >
-                        <ResponsiveImage src={img} alt={`thumb-${idx}`} width={80} height={80} aspectRatio="1/1" className="w-full h-full object-cover" />
+                        <ResponsiveImage src={img} alt={`thumb-${idx}`} width={80} height={80} aspectRatio="1/1" className="w-full h-full object-contain" />
                       </button>
                     ))}
                   </div>
@@ -227,10 +228,20 @@ export const ProductDetails: React.FC = () => {
               {/* Right Column: Info & Actions */}
               <div className="flex flex-col justify-between space-y-6">
                 <div className="space-y-4">
-                  {/* Title */}
-                  <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-jadmaa-charcoal leading-tight">
-                    {product.name}
-                  </h1>
+                  {/* Title & Share */}
+                  <div className="flex items-start justify-between gap-3">
+                    <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-jadmaa-charcoal leading-tight">
+                      {product.name}
+                    </h1>
+                    <ShareButton
+                      title={product.name}
+                      url={`/products/${product.slug}`}
+                      text={product.description || product.name}
+                      variant="button"
+                      buttonText="Share"
+                      className="shrink-0"
+                    />
+                  </div>
 
                   {/* Price */}
                   <div className="flex items-baseline gap-3 pt-1">
@@ -424,7 +435,7 @@ export const ProductDetails: React.FC = () => {
                   to={`/products/${rp.slug}`}
                   className="bg-white rounded-2xl border border-gray-100 shadow-xs hover:shadow-md transition p-4 flex flex-col group overflow-hidden"
                 >
-                  <div className="w-full h-44 bg-gray-50 rounded-xl overflow-hidden mb-3">
+                  <div className="w-full aspect-square bg-[#FAF6F0]/40 rounded-xl overflow-hidden mb-3 flex items-center justify-center">
                     {rp.images && rp.images[0] ? (
                       <ResponsiveImage
                         src={rp.images[0]}
@@ -432,7 +443,7 @@ export const ProductDetails: React.FC = () => {
                         width={240}
                         height={240}
                         aspectRatio="1/1"
-                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                        className="w-full h-full object-contain group-hover:scale-105 transition duration-300"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-300">

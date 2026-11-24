@@ -19,6 +19,13 @@ export const OPTIMIZED_IMAGE_MAP: Record<string, ImageDerivativeConfig> = {
     defaultHeight: 1024,
     aspectRatio: '386/1024',
   },
+  'wellness-transparent': {
+    baseName: 'wellness-transparent',
+    widths: [360, 480, 682, 1024],
+    defaultWidth: 1024,
+    defaultHeight: 1536,
+    aspectRatio: '2/3',
+  },
   'wellness-682x1024': {
     baseName: 'wellness-682x1024',
     widths: [360, 480, 682, 1024],
@@ -175,12 +182,12 @@ export function getOptimizedBlogThumbnail(slugOrUrl: string): {
     };
   }
 
-  // If it's a remote URL for a blog thumbnail or cover image
-  if (slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://')) {
+  // If it's a remote URL or local uploaded file for a blog thumbnail or cover image
+  if (slugOrUrl.startsWith('http://') || slugOrUrl.startsWith('https://') || slugOrUrl.startsWith('/uploads/')) {
     return {
       avif: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=avif`,
       webp: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=webp`,
-      jpg: `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=jpeg`,
+      jpg: slugOrUrl.startsWith('/uploads/') ? slugOrUrl : `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=480&format=jpeg`,
       srcSetWebp: [360, 480, 720, 1200]
         .map(w => `/api/v1/blogs/optimized-image?url=${encodeURIComponent(slugOrUrl)}&w=${w}&format=webp ${w}w`)
         .join(', '),

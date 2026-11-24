@@ -98,7 +98,7 @@ export const BlogManager: React.FC = () => {
               <span className={`text-xs font-semibold ${
                 (currentBlog.title?.length || 0) > 50 ? 'text-red-600' : 'text-gray-500'
               }`}>
-                {currentBlog.title?.length || 0} / 50 characters
+                {currentBlog.title?.length || 0} of 50 chars
               </span>
             </div>
             <input 
@@ -122,7 +122,12 @@ export const BlogManager: React.FC = () => {
             </p>
           </div>
           <div>
-            <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Topic / Category (Appears on Card)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-jadmaa-charcoal">Topic / Category (Appears on Card)</label>
+              <span className="text-xs font-semibold text-gray-500">
+                {currentBlog.topic?.length || 0} of 50 chars
+              </span>
+            </div>
             <input 
               type="text" 
               maxLength={50}
@@ -155,11 +160,18 @@ export const BlogManager: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Excerpt</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-jadmaa-charcoal">Excerpt</label>
+              <span className="text-xs font-semibold text-gray-500">
+                {currentBlog.excerpt?.length || 0} of 160 chars
+              </span>
+            </div>
             <textarea 
               rows={2}
+              maxLength={160}
+              placeholder="Short summary of article (max 160 chars)..."
               value={currentBlog.excerpt || ''}
-              onChange={(e) => setCurrentBlog({...currentBlog, excerpt: e.target.value})}
+              onChange={(e) => setCurrentBlog({...currentBlog, excerpt: e.target.value.slice(0, 160)})}
               className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
             />
           </div>
@@ -168,12 +180,18 @@ export const BlogManager: React.FC = () => {
             <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Search Engine Optimization (SEO)</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <div>
-                <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Meta Title</label>
+                <div className="flex items-center justify-between mb-0.5">
+                  <label className="block text-[11px] font-semibold text-gray-600">Meta Title</label>
+                  <span className="text-[10px] font-semibold text-gray-500">
+                    {((currentBlog as any).metaTitle?.length || 0)} of 60 chars
+                  </span>
+                </div>
                 <input
                   type="text"
+                  maxLength={60}
                   placeholder="Appears in Google search results"
                   value={(currentBlog as any).metaTitle || ''}
-                  onChange={(e) => setCurrentBlog({...currentBlog, metaTitle: e.target.value})}
+                  onChange={(e) => setCurrentBlog({...currentBlog, metaTitle: e.target.value.slice(0, 60)})}
                   className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
                 />
               </div>
@@ -189,23 +207,29 @@ export const BlogManager: React.FC = () => {
               </div>
             </div>
             <div>
-              <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Meta Description</label>
+              <div className="flex items-center justify-between mb-0.5">
+                <label className="block text-[11px] font-semibold text-gray-600">Meta Description</label>
+                <span className="text-[10px] font-semibold text-gray-500">
+                  {((currentBlog as any).metaDesc?.length || 0)} of 160 chars
+                </span>
+              </div>
               <textarea
                 rows={2}
+                maxLength={160}
                 placeholder="150-160 characters search snippet..."
                 value={(currentBlog as any).metaDesc || ''}
-                onChange={(e) => setCurrentBlog({...currentBlog, metaDesc: e.target.value})}
+                onChange={(e) => setCurrentBlog({...currentBlog, metaDesc: e.target.value.slice(0, 160)})}
                 className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
               />
             </div>
           </div>
           <ImageUpload 
-            label="Thumbnail Image (Fixed 1:1 Square Proportion)"
+            label="Cover Image (1:1 Template)"
             value={currentBlog.thumbnailUrl || ''}
             onChange={(url) => setCurrentBlog({...currentBlog, thumbnailUrl: url})}
             aspectRatio="square"
-            requiredRatio={{ width: 1, height: 1, label: '1:1 Square (e.g. 800×800 px)' }}
-            helperText="Fixed 1:1 square ratio (e.g., 800×800px) required so thumbnails are never cropped in blog cards."
+            disableCrop={true}
+            helperText="1:1 square template. Any image uploaded here will fit cleanly inside without being cropped."
           />
           <div>
             <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Content (Markdown)</label>

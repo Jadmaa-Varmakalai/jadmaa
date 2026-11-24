@@ -2,14 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { SEO, buildArticleSchema } from '../components/common/SEO';
 import { BlogCard } from '../components/common/BlogCard';
-import { ImageCropModal } from '../components/common/ImageCropModal';
+import { BlogCoverTemplate } from '../components/common/BlogCoverTemplate';
+import { ShareButton } from '../components/common/ShareButton';
 import { getOptimizedBlogThumbnail } from '../utils/imageUtils';
-import { ResponsiveImage } from '../components/common/ResponsiveImage';
 import { blogApi, cleanSlug } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
 import { useAuth } from '../context/AuthContext';
 import ReactMarkdown from 'react-markdown';
-import { Crop, Check, RotateCcw } from 'lucide-react';
 
 interface FaqItem {
   question: string;
@@ -139,25 +138,6 @@ export const BlogPostDetail: React.FC = () => {
     return '/images/course-basic.jpg';
   }, [blog]);
 
-  // Determine if this blog has an inside cropped image
-  const isCropped = useMemo(() => {
-    if (blog?.insideImageUrl && blog.insideImageUrl.trim()) return true;
-    if (blog?.content && /<!--insideImage:.*?-->/.test(blog.content)) return true;
-    return false;
-  }, [blog]);
-
-  // Inside banner image: use insideImageUrl if cropped, else fallback to original thumbnail
-  const insideBannerUrl = useMemo(() => {
-    if (blog?.insideImageUrl && blog.insideImageUrl.trim()) {
-      return blog.insideImageUrl;
-    }
-    const match = blog?.content?.match(/<!--insideImage:(.*?)-->/);
-    if (match && match[1]?.trim()) {
-      return match[1].trim();
-    }
-    return featuredImageUrl;
-  }, [blog, featuredImageUrl]);
-
   // Extract topic/category
   const displayTopic = useMemo(() => {
     if (!blog) return null;
@@ -165,57 +145,6 @@ export const BlogPostDetail: React.FC = () => {
     const match = blog.content?.match(/^<!--topic:(.*?)-->\s*/);
     return match ? match[1] : null;
   }, [blog]);
-
-  // Blog title for thumbnail template (up to 50 characters, matching BlogCard)
-  const templateTitle = useMemo(() => {
-    const raw = (blog?.title || '').trim();
-    if (raw.length <= 50) return raw;
-    if (typeof Intl !== 'undefined' && (Intl as any).Segmenter) {
-      try {
-        const segmenter = new (Intl as any).Segmenter('ta', { granularity: 'grapheme' });
-        const graphemes = Array.from(segmenter.segment(raw), (s: any) => s.segment);
-        if (graphemes.length <= 50) return raw;
-        return graphemes.slice(0, 50).join('').trim();
-      } catch (_) {}
-    }
-    return raw.slice(0, 50).trim();
-  }, [blog?.title]);
-
-  // Handle saving newly cropped or adjusted image (AFFECTS ONLY INSIDE BLOG IMAGE, NOT CARD THUMBNAIL)
-  const handleSaveCrop = async (newUrl: string) => {
-    if (!blog) return;
-    try {
-      const res = await blogApi.updateBlogThumbnail(blog.id, newUrl, { insideOnly: true });
-      const savedInside = (res as any)?.data?.insideImageUrl || (res as any)?.insideImageUrl || newUrl;
-      setBlog((prev) => prev ? { ...prev, insideImageUrl: savedInside } : null);
-      setCropSuccessMessage('Inside blog image cropped & saved!');
-      setTimeout(() => setCropSuccessMessage(null), 4000);
-    } catch (err: any) {
-      console.warn('Failed to update blog with cropped image:', err);
-      // Still update local state for immediate feedback
-      setBlog((prev) => prev ? { ...prev, insideImageUrl: newUrl } : null);
-      setCropSuccessMessage('Inside image updated in view.');
-      setTimeout(() => setCropSuccessMessage(null), 4000);
-    }
-  };
-
-  // Revert back to original uncropped image with blur fit
-  const handleResetCrop = async () => {
-    if (!blog) return;
-    try {
-      await blogApi.updateBlogThumbnail(blog.id, '', { insideOnly: true, resetCrop: true });
-      setBlog((prev) => {
-        if (!prev) return null;
-        const cleaned = (prev.content || '').replace(/<!--insideImage:.*?-->\s*/g, '');
-        return { ...prev, insideImageUrl: null, content: cleaned };
-      });
-      setCropSuccessMessage('Reverted to original uncropped image with blur fit.');
-      setTimeout(() => setCropSuccessMessage(null), 4000);
-    } catch (err: any) {
-      console.warn('Failed to reset crop:', err);
-      setBlog((prev) => prev ? { ...prev, insideImageUrl: null } : null);
-    }
-  };
 
   if (loading) {
     return (
@@ -242,7 +171,7 @@ export const BlogPostDetail: React.FC = () => {
         title={(blog as any).metaTitle || `${blog.title} | JADMAA Varmakalai`}
         description={(blog as any).metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160)}
         keywords={(blog as any).keywords || 'varmakalai, varma therapy, traditional healing, martial arts'}
-        image={insideBannerUrl || featuredImageUrl}
+        image={featuredImageUrl}
         url={`/blog/${encodeURIComponent(blog.slug)}`}
         type="article"
         schema={buildArticleSchema({
@@ -252,7 +181,7 @@ export const BlogPostDetail: React.FC = () => {
           authorName: blog.author?.name || 'Aasan Bojagarajan',
           datePublished: blog.createdAt,
           dateModified: blog.updatedAt,
-          imageUrl: insideBannerUrl || featuredImageUrl,
+          imageUrl: featuredImageUrl,
         })}
       />
 
@@ -267,117 +196,41 @@ export const BlogPostDetail: React.FC = () => {
                 {blog.title}
               </h1>
 
-              {/* 2. Featured Image / Inside Banner — Unified Outside Split Thumbnail Template */}
-              {insideBannerUrl && (
-                <div className="w-full mb-6 relative group/banner">
-                  <div className="w-full flex h-[210px] sm:h-[280px] md:h-[340px] overflow-hidden rounded-xl sm:rounded-2xl border border-[#E8DDD0] bg-white shadow-2xs">
-                    {/* LEFT — Thumbnail Artwork (Cream Background) */}
-                    <div className="w-1/2 overflow-hidden bg-[#FAF6F0] flex items-center justify-center relative">
-                      <ResponsiveImage
-                        key={insideBannerUrl}
-                        src={insideBannerUrl}
-                        alt={blog.title}
-                        priority={true}
-                        width={640}
-                        height={340}
-                        aspectRatio="1/1"
-                        isBlog={true}
-                        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 45vw, 420px"
-                        className="w-full h-full object-cover object-center transition-transform duration-500 hover:scale-105"
-                        fallbackSrc={featuredImageUrl}
-                        wrapperClassName="w-full h-full"
-                      />
-                    </div>
-
-                    {/* RIGHT — Blog Title at Top + Fixed Logo + Brand Text + Tagline */}
-                    <div className="w-1/2 bg-white flex flex-col justify-between items-center px-3 py-3 sm:px-5 sm:py-4 md:px-7 md:py-6 text-center overflow-hidden border-l border-[#E8DDD0]">
-                      {/* 1. Blog title at the top */}
-                      <div className="w-full flex items-start justify-center pt-0.5 sm:pt-1">
-                        <p className="text-[#2B2521] text-[12px] sm:text-[15px] md:text-[18px] font-bold leading-[1.3] line-clamp-3 text-center">
-                          {templateTitle}
-                        </p>
-                      </div>
-
-                      {/* 2 & 3. Fixed JADMAA logo + branding + tagline below */}
-                      <div className="flex flex-col items-center justify-center my-auto pt-1 pb-0.5">
-                        <img
-                          src="/logo.png"
-                          alt="JADMAA Varmakalai"
-                          className="h-[52px] sm:h-[68px] md:h-[82px] w-auto max-w-[85%] object-contain transition-transform duration-300 hover:scale-105"
-                          loading="eager"
-                        />
-                        <div className="mt-1.5 sm:mt-2 text-center leading-none">
-                          <div>
-                            <span className="text-[#2B2521] text-[9.5px] sm:text-[12px] md:text-[13.5px] font-extrabold tracking-[0.14em] uppercase">
-                              JADMAA{' '}
-                            </span>
-                            <span className="text-[#B12B2B] text-[9.5px] sm:text-[12px] md:text-[13.5px] font-bold tracking-[0.14em] uppercase">
-                              VARMAKALAI
-                            </span>
-                          </div>
-                          <p className="mt-1 sm:mt-1.5 text-[#5C5148] text-[7.5px] sm:text-[9.5px] md:text-[11px] font-semibold tracking-[0.06em] uppercase">
-                            Ancient Power. Modern Training.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Clean Crop Image Option Toolbar (Admins) */}
-                  {canManage && (
-                    <div className="mt-2.5 flex items-center justify-between gap-2 px-1">
-                      {cropSuccessMessage ? (
-                        <span className="text-xs text-emerald-700 font-semibold flex items-center gap-1 animate-fade-in">
-                          <Check className="w-3.5 h-3.5 text-emerald-600" />
-                          <span>{cropSuccessMessage}</span>
-                        </span>
-                      ) : (
-                        <div />
-                      )}
-
-                      <div className="flex items-center gap-2">
-                        {isCropped && (
-                          <button
-                            type="button"
-                            onClick={handleResetCrop}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#FAF6F0] text-gray-600 hover:text-red-700 border border-gray-200 hover:border-red-300 rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer"
-                            title="Reset to original uncropped image with blur fit"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" />
-                            <span>Reset to Original</span>
-                          </button>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => setIsCropModalOpen(true)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-[#FAF6F0] text-[#7A2E2E] hover:text-[#B12B2B] border border-[#E8DDD0] hover:border-[#B12B2B] rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer"
-                          title="Crop inside blog image without affecting blog card thumbnail"
-                        >
-                          <Crop className="w-3.5 h-3.5 text-[#B12B2B]" />
-                          <span>{isCropped ? 'Re-Crop Inside Image' : 'Crop Image'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+              {/* 2. Featured Image / Inside Banner — Unified 1:1 BlogCard Template (Never Cropped) */}
+              {featuredImageUrl && (
+                <div className="w-full mb-6">
+                  <BlogCoverTemplate
+                    title={blog.title}
+                    imageUrl={featuredImageUrl}
+                    priority={true}
+                  />
                 </div>
               )}
 
               {/* 3. Blog Category, Author, and Publication Information */}
-              <div className="flex flex-wrap items-center gap-2 text-[12px] sm:text-[13px] text-[#5C5148] font-medium leading-[1.45] mb-8 pb-4 border-b border-[#F0F0F0]">
-                {displayTopic && (
-                  <>
-                    <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#B12B2B]/10 text-[#B12B2B] font-bold text-[11px] uppercase tracking-wider">
-                      {displayTopic}
-                    </span>
-                    <span className="text-[#E8DDD0]">•</span>
-                  </>
-                )}
-                <span>By <strong className="text-[#2B2521] font-semibold">{blog.author?.name || 'info@jadmaa.com'}</strong></span>
-                <span className="text-[#E8DDD0]">•</span>
-                <time dateTime={blog.createdAt} className="text-[#7A6E65]">
-                  {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                </time>
+              <div className="flex flex-wrap items-center justify-between gap-3 text-[12px] sm:text-[13px] text-[#5C5148] font-medium leading-[1.45] mb-8 pb-4 border-b border-[#F0F0F0]">
+                <div className="flex flex-wrap items-center gap-2">
+                  {displayTopic && (
+                    <>
+                      <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#B12B2B]/10 text-[#B12B2B] font-bold text-[11px] uppercase tracking-wider">
+                        {displayTopic}
+                      </span>
+                      <span className="text-[#E8DDD0]">•</span>
+                    </>
+                  )}
+                  <span>By <strong className="text-[#2B2521] font-semibold">{blog.author?.name || 'info@jadmaa.com'}</strong></span>
+                  <span className="text-[#E8DDD0]">•</span>
+                  <time dateTime={blog.createdAt} className="text-[#7A6E65]">
+                    {new Date(blog.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                  </time>
+                </div>
+                <ShareButton
+                  title={blog.title}
+                  url={`/blog/${encodeURIComponent(blog.slug)}`}
+                  text={blog.excerpt || blog.title}
+                  variant="pill"
+                  buttonText="Share"
+                />
               </div>
 
               {/* 4. Blog Article Content */}
@@ -476,26 +329,18 @@ export const BlogPostDetail: React.FC = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 items-stretch justify-items-center">
               {relatedBlogs.map((item) => (
-                <BlogCard key={item.id} blog={item} />
+                <div key={item.id} className="w-full flex justify-center">
+                  <BlogCard blog={item} />
+                </div>
               ))}
             </div>
           </div>
         </section>
       )}
 
-      {/* Interactive Crop & Position Modal */}
-      {isCropModalOpen && featuredImageUrl && (
-        <ImageCropModal
-          isOpen={isCropModalOpen}
-          imageUrl={featuredImageUrl}
-          title={`Crop Featured Image: ${blog.title}`}
-          aspectRatioPreset="16:9"
-          onClose={() => setIsCropModalOpen(false)}
-          onSave={handleSaveCrop}
-        />
-      )}
+
     </>
   );
 };

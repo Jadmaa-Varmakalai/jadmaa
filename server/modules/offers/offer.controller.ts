@@ -740,8 +740,8 @@ export const verifyOfferPayment = async (req: Request, res: Response) => {
       return { updatedPayment, enrollment, updatedBooking };
     });
 
-    // Send admin notification email asynchronously (safe fallback)
-    sendCoursePurchaseAdminNotificationEmail({
+    // Send admin notification email before returning response
+    await sendCoursePurchaseAdminNotificationEmail({
       userName: user.name || 'Student',
       userEmail: user.email || '',
       courseTitle: payment.course?.title || payment.offer?.title || 'Promotional Campaign Booking',

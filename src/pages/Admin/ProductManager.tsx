@@ -131,7 +131,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
     setStockQuantity('10');
     setDescription('');
     setImages([]);
-    setNewImageUrl('');
     setIsActive(true);
     setFormError('');
     setIsDigital(false);
@@ -153,7 +152,6 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
     setStockQuantity(prod.stockQuantity.toString());
     setDescription(prod.description);
     setImages(prod.images || []);
-    setNewImageUrl('');
     setIsActive(prod.isActive);
     setFormError('');
     const isEbookCat = Boolean(
@@ -185,7 +183,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
         setFileSize(res.data.fileSize);
         setFileType(res.data.fileType as any);
       } else {
-        alert(res.error?.message || 'Failed to upload eBook file.');
+        alert((res as any).error?.message || 'Failed to upload eBook file.');
       }
     } catch (err: any) {
       console.error('Failed to upload eBook file:', err);
@@ -615,11 +613,17 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
 
               {/* Product Name */}
               <div>
-                <label className="block font-bold text-gray-700 mb-1">Product Name *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold text-gray-700">Product Name *</label>
+                  <span className="text-xs font-semibold text-gray-500">
+                    {name.length} of 80 chars
+                  </span>
+                </div>
                 <input
                   type="text"
+                  maxLength={80}
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value.slice(0, 80))}
                   placeholder="e.g. Traditional Books / Uniform / Gear"
                   required
                   className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-jadmaa-red text-sm"

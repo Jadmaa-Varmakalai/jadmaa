@@ -133,7 +133,7 @@ export const Cart: React.FC = () => {
                             width={180}
                             height={180}
                             aspectRatio="1/1"
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain"
                             wrapperClassName="w-full h-full"
                           />
                         ) : (

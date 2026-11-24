@@ -55,6 +55,40 @@ interface CachedImageEntry {
 const memoryImageCache = new Map<string, CachedImageEntry>();
 const MAX_MEMORY_CACHE_ITEMS = 100;
 
+export function resolveLocalImagePath(rawUrl: string): string | null {
+  if (!rawUrl) return null;
+  let cleanUrl = rawUrl.split('?')[0].trim();
+  // Strip protocol and hostname if URL points to jadmaa.com, server IP, or localhost
+  cleanUrl = cleanUrl.replace(/^https?:\/\/(?:www\.)?(?:jadmaa\.com|jadmaavarmakalai\.com|129\.121\.147\.213(?::\d+)?|localhost(?::\d+)?|127\.0\.0\.1(?::\d+)?)/i, '');
+  const cleanPath = cleanUrl.replace(/^\//, '');
+  const candidates: string[] = [];
+
+  if (cleanUrl.startsWith('/uploads/') || cleanUrl.startsWith('uploads/')) {
+    const filename = cleanUrl.replace(/^\/?uploads\//, '');
+    if (process.env.UPLOADS_DIR) candidates.push(path.join(process.env.UPLOADS_DIR, filename));
+    candidates.push(path.join('/opt/jadmaa/uploads', filename));
+    candidates.push(path.join(process.cwd(), 'public', 'uploads', filename));
+    candidates.push(path.join(process.cwd(), 'uploads', filename));
+  } else if (cleanUrl.startsWith('/images/') || cleanUrl.startsWith('images/')) {
+    const filename = cleanUrl.replace(/^\/?images\//, '');
+    candidates.push(path.join('/var/www/jadmaa/frontend/images', filename));
+    candidates.push(path.join(process.cwd(), 'public', 'images', filename));
+    candidates.push(path.join(process.cwd(), 'dist', 'images', filename));
+  }
+
+  candidates.push(path.join('/var/www/jadmaa/frontend', cleanPath));
+  candidates.push(path.join(process.cwd(), 'public', cleanPath));
+  candidates.push(path.join(process.cwd(), 'dist', cleanPath));
+  candidates.push(path.join(process.cwd(), cleanPath));
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  return null;
+}
+
 /**
  * High-performance on-demand image optimization and caching.
  * Transforms remote and local images to modern responsive WebP/AVIF formats,
@@ -119,6 +153,7 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
     }
 
     let inputBuffer: Buffer;
+    let resolvedLocalPath: string | null = null;
     if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
       const response = await fetch(rawUrl, {
         headers: { 'User-Agent': 'JADMAA-ImageOptimizer/1.0' },
@@ -129,12 +164,11 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
       }
       inputBuffer = Buffer.from(await response.arrayBuffer());
     } else {
-      const cleanPath = rawUrl.replace(/^\//, '');
-      const localFilePath = path.join(process.cwd(), 'public', cleanPath);
-      if (!fs.existsSync(localFilePath)) {
-        throw new Error(`Local file not found: ${localFilePath}`);
+      resolvedLocalPath = resolveLocalImagePath(rawUrl);
+      if (!resolvedLocalPath) {
+        throw new Error(`Local file not found for path: ${rawUrl}`);
       }
-      inputBuffer = await fs.promises.readFile(localFilePath);
+      inputBuffer = await fs.promises.readFile(resolvedLocalPath);
     }
 
     let pipeline = sharp(inputBuffer).resize(width, height, {
@@ -175,12 +209,328 @@ export const getOptimizedImage = async (req: Request, res: Response) => {
     if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
       return res.redirect(302, rawUrl);
     }
-    const cleanPath = rawUrl.replace(/^\//, '');
-    const localFallback = path.join(process.cwd(), 'public', cleanPath);
-    if (fs.existsSync(localFallback)) {
-      return res.sendFile(localFallback);
+    const resolvedFallback = resolveLocalImagePath(rawUrl);
+    if (resolvedFallback) {
+      return res.sendFile(resolvedFallback);
     }
-    return res.status(500).send('Image optimization failed');
+    if (rawUrl.startsWith('/')) {
+      return res.redirect(302, rawUrl);
+    }
+    return res.status(404).send('Image not found');
+  }
+};
+
+let cachedTamilFontBase64: string | null = null;
+function getEmbeddedTamilFontBase64(): string {
+  if (cachedTamilFontBase64 !== null) return cachedTamilFontBase64;
+  const candidates = [
+    path.join(process.cwd(), 'public', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.join('/opt/jadmaa/backend', 'public', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.join('/var/www/jadmaa/frontend', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.join(__dirname, '..', '..', '..', 'public', 'fonts', 'NotoSansTamil-Bold.ttf'),
+    path.resolve(process.cwd(), '..', 'public', 'fonts', 'NotoSansTamil-Bold.ttf')
+  ];
+  for (const p of candidates) {
+    if (fs.existsSync(p)) {
+      try {
+        cachedTamilFontBase64 = fs.readFileSync(p).toString('base64');
+        return cachedTamilFontBase64;
+      } catch (e) {
+        console.warn('Failed reading Tamil font from', p, e);
+      }
+    }
+  }
+  cachedTamilFontBase64 = '';
+  return cachedTamilFontBase64;
+}
+
+function wrapBlogTitle(text: string, maxCharsPerLine = 20, maxLines = 3): string[] {
+  const words = (text || '').trim().split(/\s+/);
+  if (!words.length || !words[0]) return ['JADMAA Blog'];
+  const lines: string[] = [];
+  let currentLine = '';
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    if (lines.length === maxLines - 1) {
+      // Last allowed line, join all remaining words
+      const rest = words.slice(i).join(' ');
+      currentLine = currentLine ? `${currentLine} ${rest}` : rest;
+      break;
+    }
+    if (!currentLine) {
+      currentLine = word;
+    } else if ((currentLine + ' ' + word).length <= maxCharsPerLine) {
+      currentLine += ' ' + word;
+    } else {
+      lines.push(currentLine);
+      currentLine = word;
+    }
+  }
+  if (currentLine && lines.length < maxLines) {
+    lines.push(currentLine);
+  }
+  return lines;
+}
+
+/**
+ * Dynamic OpenGraph / Social Link Preview Image for Blogs.
+ * Composes a landscape 1.91:1 (1200x630) image matching WhatsApp's large banner card:
+ * - Left 50% (600x630): Full-bleed grayscale/monochrome blog cover photo.
+ * - Right 50% (600x630): Crisp white panel (#FFFFFF) with 1px vertical divider (#E8DDD0):
+ *     - Top half: Centered Tamil/English blog title in bold dark charcoal (#2B2825).
+ *     - Bottom half: Centered JADMAA emblem logo, bold brand wordmark (JADMAA VARMAKALAI),
+ *       and tagline (ANCIENT POWER. MODERN TRAINING.).
+ */
+export const getBlogOgImage = async (req: Request, res: Response) => {
+  try {
+    const rawParam = (req.params.slug || '').trim();
+    if (!rawParam) {
+      return res.status(400).send('Missing blog slug');
+    }
+
+    const isPng = rawParam.toLowerCase().endsWith('.png');
+    const rawSlug = rawParam.replace(/\.(png|jpe?g|webp)$/i, '');
+    const decodedSlug = decodeURIComponent(rawSlug).trim();
+    const transliterated = transliterateTamilToEnglish(decodedSlug).toLowerCase().replace(/[\s_-]+/g, '-');
+
+    const blog = await prisma.blogPost.findFirst({
+      where: {
+        OR: [
+          { slug: rawSlug },
+          { slug: decodedSlug },
+          { slug: transliterated },
+          { id: rawSlug },
+          ...(decodedSlug.includes('வர்ம-சிகிச்சை') || rawSlug.includes('%E0%AE%B5%E0%AE%B0%E0%AF%8D%E0%AE%AE')
+            ? [{ slug: 'varma-sikissai-enraal-enna-alikkappatum-muraikal' }]
+            : []),
+          ...(decodedSlug.includes('யார்-வர்ம') || rawSlug.includes('%E0%AE%AF%E0%AE%BE%E0%AE%B0%E0%AF%8D')
+            ? [{ slug: 'yaar-varma-aasaan-yaar-varmaani-virivaana-vilakkam' }]
+            : [])
+        ]
+      },
+      select: {
+        id: true,
+        title: true,
+        thumbnailUrl: true,
+        createdAt: true,
+        updatedAt: true,
+        author: { select: { name: true } }
+      }
+    });
+
+    if (!blog) {
+      return res.status(404).send('Blog not found');
+    }
+
+    const outputFormat = isPng ? 'png' : 'jpeg';
+    const contentType = isPng ? 'image/png' : 'image/jpeg';
+    const cacheKey = `og_blog_v3_${blog.id}_${outputFormat}`;
+    const memCached = memoryImageCache.get(cacheKey);
+    if (memCached) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+      res.setHeader('Content-Type', contentType);
+      return res.send(memCached.buffer);
+    }
+
+    // Exact 1.91:1 large banner dimensions (1200 x 630)
+    const width = 1200;
+    const height = 630;
+    const leftWidth = 600;
+    const rightWidth = 600;
+
+    // 1. Process thumbnail on left side: full-bleed grayscale monochrome cover photo
+    let thumbBuf: Buffer;
+    const rawThumb = (blog.thumbnailUrl || '').trim();
+    const localThumbPath = resolveLocalImagePath(rawThumb);
+
+    if (localThumbPath && fs.existsSync(localThumbPath)) {
+      thumbBuf = await sharp(localThumbPath)
+        .grayscale()
+        .resize(leftWidth, height, { fit: 'cover' })
+        .toBuffer();
+    } else if (rawThumb.startsWith('http://') || rawThumb.startsWith('https://')) {
+      const isPrivateOrLocal = /^(https?:\/\/)?(localhost|127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|169\.254\.|::1)/i.test(rawThumb);
+      if (!isPrivateOrLocal) {
+        try {
+          const resp = await fetch(rawThumb, {
+            headers: { 'User-Agent': 'JADMAA-OGImage-Bot/1.0' },
+            signal: AbortSignal.timeout(6000)
+          });
+          if (resp.ok) {
+            const arr = await resp.arrayBuffer();
+            thumbBuf = await sharp(Buffer.from(arr))
+              .grayscale()
+              .resize(leftWidth, height, { fit: 'cover' })
+              .toBuffer();
+          } else {
+            throw new Error('Remote thumb failed');
+          }
+        } catch {
+          const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
+          thumbBuf = await sharp(fallback)
+            .grayscale()
+            .resize(leftWidth, height, { fit: 'cover' })
+            .toBuffer();
+        }
+      } else {
+        const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
+        thumbBuf = await sharp(fallback)
+          .grayscale()
+          .resize(leftWidth, height, { fit: 'cover' })
+          .toBuffer();
+      }
+    } else {
+      const fallback = resolveLocalImagePath('/images/course-basic.jpg') || path.join(process.cwd(), 'public', 'images', 'course-basic.jpg');
+      thumbBuf = await sharp(fallback)
+        .grayscale()
+        .resize(leftWidth, height, { fit: 'cover' })
+        .toBuffer();
+    }
+
+    // 2. Load JADMAA logo
+    let logoBuf: Buffer | null = null;
+    const logoSize = 115;
+    const logoCandidates = [
+      path.join(process.cwd(), 'public', 'logo.png'),
+      path.join(process.cwd(), 'public', 'images', 'logo-1.png'),
+      '/var/www/jadmaa/frontend/logo.png',
+      '/var/www/jadmaa/frontend/images/logo-1.png',
+      resolveLocalImagePath('/images/logo-1.png') || ''
+    ];
+    for (const lp of logoCandidates) {
+      if (lp && fs.existsSync(lp)) {
+        try {
+          logoBuf = await sharp(lp)
+            .resize(logoSize, logoSize, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+            .toBuffer();
+          break;
+        } catch {}
+      }
+    }
+
+    // 3. Prepare Right Panel Typography
+    const rawTitle = (blog.title || '').trim();
+    const lines = wrapBlogTitle(rawTitle, 20, 3);
+    const fontSize = lines.length <= 2 ? 36 : 32;
+    const lineHeight = Math.round(fontSize * 1.4);
+    const totalTextHeight = lines.length * lineHeight;
+    const startY = Math.round(165 - totalTextHeight / 2 + fontSize * 0.85);
+
+    const tspanLines = lines.map((line, idx) => {
+      const escaped = line.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '\'': '&apos;', '"': '&quot;' }[c] || c));
+      return `<tspan x="300" y="${startY + idx * lineHeight}">${escaped}</tspan>`;
+    }).join('\n');
+
+    const fontBase64 = getEmbeddedTamilFontBase64();
+    const fontFaceCss = fontBase64 ? `
+      @font-face {
+        font-family: 'Noto Sans Tamil Embedded';
+        src: url('data:font/truetype;charset=utf-8;base64,${fontBase64}') format('truetype');
+        font-weight: bold;
+        font-style: normal;
+      }
+    ` : '';
+
+    const rightSvg = Buffer.from(`
+      <svg width="${rightWidth}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style>
+            ${fontFaceCss}
+            .title-text {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', 'Lohit Tamil', sans-serif;
+              font-size: ${fontSize}px;
+              font-weight: bold;
+              fill: #2B2825;
+              text-anchor: middle;
+            }
+            .brand-jadmaa {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
+              font-size: 23px;
+              font-weight: 800;
+              letter-spacing: 3.5px;
+              fill: #2B2825;
+            }
+            .brand-varmakalai {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
+              font-size: 23px;
+              font-weight: 800;
+              letter-spacing: 3.5px;
+              fill: #B12B2B;
+            }
+            .tagline {
+              font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
+              font-size: 11.5px;
+              font-weight: 600;
+              letter-spacing: 2px;
+              fill: #5C5148;
+              text-anchor: middle;
+            }
+          </style>
+        </defs>
+        <rect width="${rightWidth}" height="${height}" fill="#FFFFFF" />
+        <line x1="0" y1="0" x2="0" y2="${height}" stroke="#E8DDD0" stroke-width="1.5" />
+
+        <!-- Top Half: Centered Blog Title -->
+        <text class="title-text">
+          ${tspanLines}
+        </text>
+
+        <!-- Bottom Half: Branding below logo (logo is at y=365, height=115 -> bottom 480) -->
+        <text x="300" y="525" text-anchor="middle">
+          <tspan class="brand-jadmaa">JADMAA </tspan><tspan dx="8" class="brand-varmakalai">VARMAKALAI</tspan>
+        </text>
+        <text x="300" y="555" class="tagline">ANCIENT POWER. MODERN TRAINING.</text>
+      </svg>
+    `);
+
+    const composites: sharp.OverlayOptions[] = [
+      { input: thumbBuf, top: 0, left: 0 },
+      { input: rightSvg, top: 0, left: leftWidth }
+    ];
+
+    if (logoBuf) {
+      composites.push({
+        input: logoBuf,
+        top: 365,
+        left: leftWidth + Math.round((rightWidth - logoSize) / 2)
+      });
+    }
+
+    let outputBuf: Buffer;
+    if (isPng) {
+      outputBuf = await sharp({
+        create: {
+          width,
+          height,
+          channels: 4,
+          background: { r: 255, g: 255, b: 255, alpha: 1 }
+        }
+      })
+        .composite(composites)
+        .png({ quality: 85, palette: true, compressionLevel: 9 })
+        .toBuffer();
+    } else {
+      outputBuf = await sharp({
+        create: {
+          width,
+          height,
+          channels: 3,
+          background: { r: 255, g: 255, b: 255 }
+        }
+      })
+        .composite(composites)
+        .jpeg({ quality: 85, mozjpeg: true })
+        .toBuffer();
+    }
+
+    memoryImageCache.set(cacheKey, { buffer: outputBuf, contentType });
+    res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
+    res.setHeader('Content-Type', contentType);
+    return res.send(outputBuf);
+  } catch (err: any) {
+    console.error('getBlogOgImage error:', err);
+    res.status(500).send('Error generating OG image');
   }
 };
 

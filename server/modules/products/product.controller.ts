@@ -729,11 +729,31 @@ export const downloadProductFile = async (req: Request, res: Response) => {
 
     // Local file delivery
     const sanitizedRelative = downloadTarget.replace(/^\/+/, '');
-    const localFilePath = path.join(process.cwd(), 'public', sanitizedRelative);
+    const cleanFilename = sanitizedRelative.replace(/^uploads\/?/, '');
 
-    if (fs.existsSync(localFilePath)) {
-      const exportName = product.fileName || path.basename(localFilePath);
-      return res.download(localFilePath, exportName);
+    const candidates = [
+      path.join('/opt/jadmaa/uploads', cleanFilename),
+      path.join('/opt/jadmaa/uploads', sanitizedRelative),
+      path.join(process.cwd(), 'public', sanitizedRelative),
+      path.join(process.cwd(), sanitizedRelative),
+      path.join(process.cwd(), 'uploads', cleanFilename),
+    ];
+    if (process.env.UPLOADS_DIR) {
+      candidates.unshift(path.join(process.env.UPLOADS_DIR, cleanFilename));
+      candidates.unshift(path.join(process.env.UPLOADS_DIR, sanitizedRelative));
+    }
+
+    let resolvedPath: string | null = null;
+    for (const cand of candidates) {
+      if (fs.existsSync(cand)) {
+        resolvedPath = cand;
+        break;
+      }
+    }
+
+    if (resolvedPath) {
+      const exportName = product.fileName || path.basename(resolvedPath);
+      return res.download(resolvedPath, exportName);
     }
 
     return res.status(404).json({
@@ -756,7 +776,12 @@ export const adminUploadEbookFile = async (req: Request, res: Response) => {
       return res.status(403).json({ success: false, error: { message: 'Admin access required' } });
     }
 
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads', 'ebooks');
+    const baseUploadsDir = process.env.UPLOADS_DIR && fs.existsSync(process.env.UPLOADS_DIR)
+      ? process.env.UPLOADS_DIR
+      : fs.existsSync('/opt/jadmaa/uploads')
+        ? '/opt/jadmaa/uploads'
+        : path.join(process.cwd(), 'public', 'uploads');
+    const uploadsDir = path.join(baseUploadsDir, 'ebooks');
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }

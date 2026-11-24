@@ -236,20 +236,27 @@ export const updateLessonProgress = async (req: Request, res: Response) => {
           data: { status: 'COMPLETED', completedAt: new Date() }
         });
         
-        // Generate Certificate
-        if (course?.certificateEnabled) {
-          const certNumber = `JADMAA-${Date.now().toString().slice(-6)}-${user.id.slice(-4).toUpperCase()}`;
-          const verifyCode = `V-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-          
-          await prisma.certificate.create({
-            data: {
-              userId: user.id,
-              courseId: course.id,
-              certificateNumber: certNumber,
-              verificationCode: verifyCode,
-              status: 'ISSUED'
-            }
+        // Generate Certificate ONLY for paid courses where certificates are enabled
+        const isPaidCourse = !course?.isFree && (course?.price || 0) > 0;
+        if (course?.certificateEnabled && isPaidCourse) {
+          const existingCert = await prisma.certificate.findFirst({
+            where: { userId: user.id, courseId: course.id }
           });
+
+          if (!existingCert) {
+            const certNumber = `JADMAA-${Date.now().toString().slice(-6)}-${user.id.slice(-4).toUpperCase()}`;
+            const verifyCode = `V-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+            
+            await prisma.certificate.create({
+              data: {
+                userId: user.id,
+                courseId: course.id,
+                certificateNumber: certNumber,
+                verificationCode: verifyCode,
+                status: 'ISSUED'
+              }
+            });
+          }
         }
       }
     }
@@ -299,7 +306,10 @@ export const getDashboard = async (req: Request, res: Response) => {
         orderBy: { updatedAt: 'desc' }
       }),
       prisma.certificate.findMany({
-        where: { userId: user.id },
+        where: { 
+          userId: user.id,
+          course: { isFree: false, price: { gt: 0 } }
+        },
         include: { course: { select: { title: true } } },
         orderBy: { issuedAt: 'desc' },
         take: 5
@@ -397,9 +407,21 @@ export const getCertificates = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
     const certificates = await prisma.certificate.findMany({
-      where: { userId: user.id },
+      where: { 
+        userId: user.id,
+        course: { isFree: false, price: { gt: 0 } }
+      },
       include: {
-        course: { select: { title: true, thumbnailUrl: true } }
+        course: { 
+          select: { 
+            id: true,
+            title: true, 
+            thumbnailUrl: true,
+            isFree: true,
+            price: true,
+            instructor: { select: { displayName: true } }
+          } 
+        }
       },
       orderBy: { issuedAt: 'desc' }
     });

@@ -608,14 +608,20 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
-                  Campaign Title <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-gray-700">
+                    Campaign Title <span className="text-red-500">*</span>
+                  </label>
+                  <span className="text-xs font-semibold text-gray-500">
+                    {title.length} of 80 chars
+                  </span>
+                </div>
                 <input
                   type="text"
                   required
+                  maxLength={80}
                   value={title}
-                  onChange={(e) => handleTitleChange(e.target.value)}
+                  onChange={(e) => handleTitleChange(e.target.value.slice(0, 80))}
                   placeholder="e.g. Special Varma Therapy Session 50% Off"
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600 font-medium"
                 />
@@ -643,13 +649,19 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Short Description (For Popups & Summaries)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Short Description (For Popups & Summaries)
+                    </label>
+                    <span className="text-[10px] font-semibold text-gray-500">
+                      {shortDescription.length} of 160 chars
+                    </span>
+                  </div>
                   <input
                     type="text"
+                    maxLength={160}
                     value={shortDescription}
-                    onChange={(e) => setShortDescription(e.target.value)}
+                    onChange={(e) => setShortDescription(e.target.value.slice(0, 160))}
                     placeholder="Short punchy summary for the offer popup"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-red-600"
                   />
@@ -783,13 +795,19 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Editorial Campaign Headline (Serif Master Heading)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Editorial Campaign Headline (Serif Master Heading)
+                    </label>
+                    <span className="text-[10px] font-semibold text-gray-500">
+                      {headline.length} of 100 chars
+                    </span>
+                  </div>
                   <textarea
                     rows={2}
+                    maxLength={100}
                     value={headline}
-                    onChange={(e) => setHeadline(e.target.value)}
+                    onChange={(e) => setHeadline(e.target.value.slice(0, 100))}
                     placeholder="e.g. A Healthier&#10;Stronger You"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-serif focus:outline-none focus:border-red-600 resize-none"
                   />
@@ -799,13 +817,19 @@ export const OfferEditorModal: React.FC<OfferEditorModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    Image Tagline (Top-Right Italic Overlay on Photograph)
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-xs font-semibold text-gray-700">
+                      Image Tagline (Top-Right Italic Overlay on Photograph)
+                    </label>
+                    <span className="text-[10px] font-semibold text-gray-500">
+                      {imageTagline.length} of 60 chars
+                    </span>
+                  </div>
                   <input
                     type="text"
+                    maxLength={60}
                     value={imageTagline}
-                    onChange={(e) => setImageTagline(e.target.value)}
+                    onChange={(e) => setImageTagline(e.target.value.slice(0, 60))}
                     placeholder="e.g. Empowering your wellness naturally"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm italic focus:outline-none focus:border-red-600"
                   />

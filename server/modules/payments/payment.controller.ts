@@ -329,8 +329,8 @@ export const verifyRazorpayPayment = async (req: Request, res: Response) => {
     invalidateUserCache(payment.userId);
     invalidateProgressCache(payment.userId);
 
-    // Notify administrators asynchronously about the new course purchase
-    sendCoursePurchaseAdminNotificationEmail({
+    // Notify administrators about the new course purchase before returning
+    await sendCoursePurchaseAdminNotificationEmail({
       userName: user.name || 'Student',
       userEmail: user.email || '',
       courseTitle: payment.course?.title || 'Course',
@@ -546,7 +546,7 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
         }
 
         if (purchaseInfo) {
-          sendCoursePurchaseAdminNotificationEmail({
+          await sendCoursePurchaseAdminNotificationEmail({
             userName: purchaseInfo.userName,
             userEmail: purchaseInfo.userEmail,
             courseTitle: purchaseInfo.courseTitle,
@@ -561,7 +561,7 @@ export const razorpayWebhook = async (req: Request, res: Response) => {
         }
 
         if (productOrderInfo) {
-          sendProductOrderAdminNotificationEmail(productOrderInfo).catch((err) => {
+          await sendProductOrderAdminNotificationEmail(productOrderInfo).catch((err) => {
             console.error('[Webhook] Failed to send admin product order notification email:', err);
           });
         }

@@ -118,7 +118,7 @@ export const Contact: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Banner Section */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left" data-aos="fade-up">
+        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
           <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
             <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
               <EditableText settingKey="contact.hero.eyebrow" defaultText="Get In Touch" />

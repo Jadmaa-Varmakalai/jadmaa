@@ -18,7 +18,7 @@ export const Home: React.FC = () => {
   // Read stats from settings with rock-solid defaults matching JADMAA tradition
   const traditionValue = parseInt(settings['home.stats.tradition.value'] || '1000', 10) || 1000;
   const branchesValue = parseInt(settings['home.stats.branches.value'] || '3', 10) || 3;
-  const coursesValue = parseInt(settings['home.stats.courses.value'] || '7', 10) || 7;
+  const coursesValue = parseInt(settings['home.stats.courses.value'] || '5', 10) || 5;
   const experienceValue = parseInt(settings['home.stats.experience.value'] || '10', 10) || 10;
 
   const [featuredCourses, setFeaturedCourses] = useState<Course[]>(() => {
@@ -254,7 +254,7 @@ export const Home: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             {/* Left Column */}
-            <div className="lg:col-span-7 space-y-5 text-left">
+            <div className="lg:col-span-7 space-y-4 text-left relative z-20">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -275,65 +275,72 @@ export const Home: React.FC = () => {
                 />
               </p>
 
-              <div className="flex flex-wrap items-center gap-3.5 pt-1">
-                <Link to="/contact" className="btn-jadmaa-primary">
+              {/* Hero CTA Buttons - Mobile-only compact sizing: identical dimensions, single row, minimal gap */}
+              <div className="flex flex-row items-center justify-start gap-2 sm:gap-3 pt-1">
+                <Link 
+                  to="/contact" 
+                  className="btn-jadmaa-primary w-[130px] sm:w-[160px] h-[36px] sm:h-[42px] text-[12.5px] sm:text-[14px] !py-0 !px-2.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
+                >
                   <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
                 </Link>
-                <Link to="/contact" className="btn-jadmaa-outline">
-                  <EditableText settingKey="home.hero.cta2" defaultText="Book Free Demo Class" />
+                <Link 
+                  to="/contact" 
+                  className="btn-jadmaa-outline w-[130px] sm:w-[160px] h-[36px] sm:h-[42px] text-[12.5px] sm:text-[14px] !py-0 !px-2.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
+                >
+                  <EditableText settingKey="home.hero.cta2" defaultText="Book Demo" />
                 </Link>
               </div>
 
-              {/* Hero Stats Row - All 4 in single row on mobile (exact jadmaa.com match) */}
-              <div className="pt-6 sm:pt-8 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
+              {/* Hero Stats Row - All 4 authority counts in single horizontal row on mobile with restored large text */}
+              <div className="pt-4 sm:pt-6 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.tradition.value" defaultText="1000" />
                     ) : (
                       <CountUp end={traditionValue} suffix="+" />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.branches.value" defaultText="3" />
                     ) : (
                       <CountUp end={branchesValue} />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.branches" defaultText="Branches" />
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
-                      <EditableText settingKey="home.stats.courses.value" defaultText="7" />
+                      <EditableText settingKey="home.stats.courses.value" defaultText="5" />
                     ) : (
                       <CountUp end={coursesValue} />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
                   </div>
                 </div>
 
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.experience.value" defaultText="10" />
                     ) : (
                       <CountUp end={experienceValue} suffix="+" />
                     )}
                   </div>
-                  <div className="font-body text-[10px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
                     <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
                   </div>
                 </div>
@@ -341,9 +348,9 @@ export const Home: React.FC = () => {
 
             </div>
 
-            {/* Right Column: Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative min-h-[380px] sm:min-h-[440px] pt-2 lg:pt-0" data-aos="fade-up" data-aos-delay="100">
-              <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center">
+            {/* Right Column: Hero Practitioner Kick Image (stable reserved space, zero overlap with counts) */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[340px] sm:min-h-[420px] lg:min-h-[520px] mt-6 sm:mt-8 lg:mt-0 pt-3 lg:pt-0">
+              <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center will-change-transform contain-layout">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />
                   <source type="image/webp" srcSet="/images/optimized/hero-kick-action-transparent-386w.webp 386w, /images/optimized/hero-kick-action-transparent.webp 386w" />
@@ -353,7 +360,7 @@ export const Home: React.FC = () => {
                     fetchPriority="high"
                     loading="eager"
                     decoding="async"
-                    className="max-h-[440px] sm:max-h-[500px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.25)] hover:scale-105 transition-transform duration-700 ease-out animate-jd-hero-float"
+                    className="max-h-[360px] sm:max-h-[440px] lg:max-h-[600px] xl:max-h-[650px] w-auto object-contain object-bottom drop-shadow-[0_20px_40px_rgba(177,43,43,0.22)] hover:scale-105 transition-transform duration-500 ease-out"
                   />
                 </picture>
               </div>
@@ -405,14 +412,17 @@ export const Home: React.FC = () => {
             <div className="lg:col-span-4 flex justify-center items-center relative">
               {/* Subtle ambient aura behind martial stance */}
               <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-[#B12B2B]/5 blur-3xl pointer-events-none -z-0" />
-              <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px]">
-                <img 
-                  src="/images/pose-dab-red-transparent.png" 
-                  alt="Varmakalai practitioner demonstrating a traditional stance" 
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-auto object-contain drop-shadow-[0_12px_28px_rgba(0,0,0,0.06)] hover:scale-[1.03] transition-transform duration-500 ease-out"
-                />
+              <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px] flex justify-center">
+                <picture>
+                  <source type="image/webp" srcSet="/images/pose-dab-red-transparent.webp" />
+                  <img 
+                    src="/images/pose-dab-red-transparent.png" 
+                    alt="Varmakalai practitioner demonstrating a traditional stance" 
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-[380px] sm:max-h-[440px] lg:max-h-[500px] w-auto mx-auto object-contain drop-shadow-[0_16px_36px_rgba(43,37,33,0.12)] hover:scale-[1.03] transition-transform duration-500 ease-out"
+                  />
+                </picture>
               </div>
             </div>
 
@@ -747,18 +757,30 @@ export const Home: React.FC = () => {
             <EditableText settingKey="home.wellness.title" defaultText="Varma Treatment & Traditional Wellness" />
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             
-            {/* Left Image - Full size matching section height */}
-            <div className="lg:col-span-4 flex flex-col h-full">
-              <div className="w-full h-full min-h-[460px] lg:min-h-full overflow-hidden rounded-[14px] shadow-sm flex flex-col bg-white">
-                <img 
-                  src="/images/wellness-682x1024.png" 
-                  alt="Traditional Varma therapy session at JADMAA Varmakalai" 
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full h-full min-h-[460px] lg:min-h-[540px] object-cover object-top rounded-[14px] hover:scale-105 transition-transform duration-700 ease-out"
-                />
+            {/* Left Image - Transparent subject without enclosing card */}
+            <div className="lg:col-span-4 flex justify-center items-center relative" data-aos="fade-up">
+              <div className="relative group text-center max-w-[360px] sm:max-w-[420px] lg:max-w-full">
+                <picture>
+                  <source
+                    type="image/avif"
+                    srcSet="/images/optimized/wellness-transparent-360w.avif 360w, /images/optimized/wellness-transparent-480w.avif 480w, /images/optimized/wellness-transparent-682w.avif 682w, /images/optimized/wellness-transparent.avif 1024w"
+                    sizes="(max-width: 640px) 360px, (max-width: 1024px) 480px, 420px"
+                  />
+                  <source
+                    type="image/webp"
+                    srcSet="/images/optimized/wellness-transparent-360w.webp 360w, /images/optimized/wellness-transparent-480w.webp 480w, /images/optimized/wellness-transparent-682w.webp 682w, /images/optimized/wellness-transparent.webp 1024w"
+                    sizes="(max-width: 640px) 360px, (max-width: 1024px) 480px, 420px"
+                  />
+                  <img 
+                    src="/images/wellness-transparent.png" 
+                    alt="Traditional Varma therapy session at JADMAA Varmakalai" 
+                    loading="lazy"
+                    decoding="async"
+                    className="max-h-[420px] sm:max-h-[480px] lg:max-h-[520px] w-auto mx-auto object-contain drop-shadow-[0_16px_32px_rgba(43,37,33,0.14)] hover:scale-[1.03] transition-transform duration-500 ease-out"
+                  />
+                </picture>
               </div>
             </div>
 

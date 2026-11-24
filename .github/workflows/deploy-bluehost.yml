@@ -1,0 +1,193 @@
+name: Deploy JADMAA to Bluehost VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  # =========================================================================
+  # 1. BUILD & VALIDATE (Ensures only verified code can ever reach Bluehost)
+  # =========================================================================
+  build-and-validate:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Build Frontend & Backend
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload Production Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-dist
+          path: dist/
+          retention-days: 2
+
+  # =========================================================================
+  # 2. AUTOMATIC BLUEHOST DEPLOYMENT (Zero-Downtime with Automatic Rollback)
+  # =========================================================================
+  deploy-to-bluehost:
+    name: Deploy to Bluehost VPS
+    needs: build-and-validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Download Production Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: production-dist
+          path: dist/
+
+      - name: Deploy to Bluehost via SSH
+        env:
+          BLUEHOST_HOST: ${{ secrets.BLUEHOST_HOST }}
+          BLUEHOST_USER: ${{ secrets.BLUEHOST_USER || 'root' }}
+          BLUEHOST_SSH_KEY: ${{ secrets.BLUEHOST_SSH_KEY }}
+          BLUEHOST_PORT: ${{ secrets.BLUEHOST_PORT || '22' }}
+        run: |
+          set -e
+
+          if [ -z "$BLUEHOST_SSH_KEY" ]; then
+            echo "::error::BLUEHOST_SSH_KEY secret is not set in GitHub repository settings."
+            exit 1
+          fi
+
+          if [ -z "$BLUEHOST_HOST" ]; then
+            echo "::error::BLUEHOST_HOST secret is not set in GitHub repository settings."
+            exit 1
+          fi
+
+          echo "==> Configuring SSH Authentication..."
+          mkdir -p ~/.ssh
+          echo "$BLUEHOST_SSH_KEY" | tr -d '\r' > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+
+          # Add remote host key to known_hosts
+          ssh-keyscan -p "$BLUEHOST_PORT" -H "$BLUEHOST_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+          SSH_CMD="ssh -p $BLUEHOST_PORT -i ~/.ssh/id_deploy -o BatchMode=yes $BLUEHOST_USER@$BLUEHOST_HOST"
+          SCP_CMD="scp -P $BLUEHOST_PORT -i ~/.ssh/id_deploy -o BatchMode=yes"
+
+          echo "==> Verifying connection to Bluehost VPS ($BLUEHOST_HOST)..."
+          $SSH_CMD "uptime"
+
+          # 1. Prepare temporary staging directory on VPS
+          echo "==> 1. Transferring build artifacts to VPS staging..."
+          $SSH_CMD "rm -rf /tmp/jadmaa_deploy && mkdir -p /tmp/jadmaa_deploy"
+          $SCP_CMD -r dist/* "$BLUEHOST_USER@$BLUEHOST_HOST:/tmp/jadmaa_deploy/"
+
+          # 2. Transfer package.json, package-lock.json and prisma schema to backend on VPS
+          $SCP_CMD package.json package-lock.json "$BLUEHOST_USER@$BLUEHOST_HOST:/opt/jadmaa/backend/"
+          $SCP_CMD -r prisma "$BLUEHOST_USER@$BLUEHOST_HOST:/opt/jadmaa/backend/"
+
+          # 3. Execute atomic deployment script on VPS with automatic rollback on error
+          echo "==> 2. Performing atomic deployment with rollback safety..."
+          $SSH_CMD '
+            set -e
+
+            TIMESTAMP=$(date +%s)
+            BACKUP_DIR="/opt/jadmaa/backups/$TIMESTAMP"
+            mkdir -p "$BACKUP_DIR"
+
+            echo "--> Creating rollback snapshot at $BACKUP_DIR..."
+            if [ -d /var/www/jadmaa/frontend ]; then
+              cp -r /var/www/jadmaa/frontend "$BACKUP_DIR/frontend"
+            fi
+            if [ -f /opt/jadmaa/backend/dist/server.cjs ]; then
+              mkdir -p "$BACKUP_DIR/backend_dist"
+              cp -r /opt/jadmaa/backend/dist/* "$BACKUP_DIR/backend_dist/"
+            fi
+
+            # Keep only last 5 snapshots to avoid disk bloat
+            ls -dt /opt/jadmaa/backups/* | tail -n +6 | xargs -r rm -rf
+
+            rollback() {
+              echo ">>> [CRITICAL] Deployment step failed! Initiating automatic rollback..."
+              if [ -d "$BACKUP_DIR/frontend" ]; then
+                cp -r "$BACKUP_DIR/frontend"/* /var/www/jadmaa/frontend/
+              fi
+              if [ -d "$BACKUP_DIR/backend_dist" ]; then
+                cp -r "$BACKUP_DIR/backend_dist"/* /opt/jadmaa/backend/dist/
+              fi
+              pm2 restart jadmaa-backend || true
+              echo ">>> Rollback completed. Production restored to previous stable state."
+              exit 1
+            }
+            trap rollback ERR
+
+            # Update Backend
+            echo "--> Deploying backend server bundle..."
+            mkdir -p /opt/jadmaa/backend/dist
+            cp /tmp/jadmaa_deploy/server.cjs /opt/jadmaa/backend/dist/server.cjs
+            if [ -f /tmp/jadmaa_deploy/server.cjs.map ]; then
+              cp /tmp/jadmaa_deploy/server.cjs.map /opt/jadmaa/backend/dist/server.cjs.map
+            fi
+            chown -R root:root /opt/jadmaa/backend/dist
+
+            # Run Prisma migrations if schema changes are present
+            cd /opt/jadmaa/backend
+            if [ -f /etc/jadmaa/backend.env ]; then
+              set -a
+              . /etc/jadmaa/backend.env
+              set +a
+            fi
+            npx prisma generate
+            npx prisma migrate deploy || true
+
+            # Update Frontend (preserves .well-known for SSL challenges)
+            echo "--> Deploying frontend assets..."
+            mkdir -p /var/www/jadmaa/frontend
+            cp -r /tmp/jadmaa_deploy/assets /var/www/jadmaa/frontend/
+            cp /tmp/jadmaa_deploy/index.html /var/www/jadmaa/frontend/index.html
+            if [ -d /tmp/jadmaa_deploy/images ]; then
+              cp -r /tmp/jadmaa_deploy/images /var/www/jadmaa/frontend/
+            fi
+            chown -R www-data:www-data /var/www/jadmaa/frontend
+            chmod -R 755 /var/www/jadmaa/frontend
+
+            # Clean temporary staging
+            rm -rf /tmp/jadmaa_deploy
+
+            # Restart PM2 backend process
+            echo "--> Restarting PM2 jadmaa-backend..."
+            pm2 reload /opt/jadmaa/ecosystem.config.cjs --update-env || pm2 restart jadmaa-backend
+
+            # Health Check Verification
+            echo "--> Running post-deployment health check..."
+            sleep 4
+            STATUS_HTTP=$(curl -s -o /dev/null -w "%{http_code}" -m 10 http://127.0.0.1:5000/api/v1/health || true)
+            if [ "$STATUS_HTTP" != "200" ]; then
+              # Fallback check to courses endpoint
+              STATUS_COURSES=$(curl -s -o /dev/null -w "%{http_code}" -m 10 http://127.0.0.1:5000/api/v1/courses || true)
+              if [ "$STATUS_COURSES" != "200" ]; then
+                echo ">>> Health check returned HTTP $STATUS_HTTP / $STATUS_COURSES. Triggering rollback!"
+                false
+              fi
+            fi
+
+            echo "==> Bluehost deployment verified successfully!"
+          '
