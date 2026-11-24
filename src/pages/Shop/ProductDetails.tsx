@@ -616,7 +616,7 @@ export const ProductDetails: React.FC = () => {
 
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-50 border border-gray-100">
                     <span className="text-gray-500 font-medium">Language</span>
-                    <span className="font-bold text-gray-900">Tamil & English Commentary</span>
+                    <span className="font-bold text-gray-900">Tamil</span>
                   </div>
 
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-50 border border-gray-100">
@@ -627,7 +627,7 @@ export const ProductDetails: React.FC = () => {
                   <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-50 border border-gray-100">
                     <span className="text-gray-500 font-medium">Access Type</span>
                     <span className="font-bold text-gray-900">
-                      {product.isDigital ? 'Permanent Cloud Download' : 'Dispatched via Courier'}
+                      {product.isDigital ? 'Direct Download' : 'Dispatched via Courier'}
                     </span>
                   </div>
 
