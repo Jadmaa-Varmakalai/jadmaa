@@ -253,8 +253,8 @@ export const Home: React.FC = () => {
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
-            {/* Right Column (on desktop): Hero Content */}
-            <div className="lg:col-span-7 lg:order-2 space-y-4 text-left relative z-20">
+            {/* Left Column (on desktop): Hero Content */}
+            <div className="lg:col-span-7 space-y-4 text-left relative z-20">
               
               <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
@@ -348,8 +348,8 @@ export const Home: React.FC = () => {
 
             </div>
 
-            {/* Left Column (on desktop): Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 lg:order-1 flex justify-center lg:justify-start items-end relative z-10 min-h-[340px] sm:min-h-[420px] lg:min-h-[520px] mt-6 sm:mt-8 lg:mt-0 pt-3 lg:pt-0">
+            {/* Right Column (on desktop): Hero Practitioner Kick Image */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[340px] sm:min-h-[420px] lg:min-h-[520px] mt-6 sm:mt-8 lg:mt-0 pt-3 lg:pt-0">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center will-change-transform contain-layout">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />
@@ -375,7 +375,8 @@ export const Home: React.FC = () => {
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             
-            <div className="lg:col-span-8 space-y-5">
+            {/* Right Column (on desktop): About Content */}
+            <div className="lg:col-span-8 order-1 lg:order-2 space-y-5">
               <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.4px] font-body block">
                 <EditableText settingKey="home.about.eyebrow" defaultText="About JADMAA Varmakalai" />
               </span>
@@ -409,7 +410,8 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            <div className="lg:col-span-4 flex justify-center items-center relative">
+            {/* Left Column (on desktop): Martial Stance Image */}
+            <div className="lg:col-span-4 order-2 lg:order-1 flex justify-center items-center relative">
               {/* Subtle ambient aura behind martial stance */}
               <div className="absolute w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-[#B12B2B]/5 blur-3xl pointer-events-none -z-0" />
               <div className="relative z-10 w-full max-w-[340px] sm:max-w-[380px] flex justify-center">
@@ -490,8 +492,8 @@ export const Home: React.FC = () => {
           {/* Top Row: Left Image & Right Section Content */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            {/* Left: Big Martial Arts Stance Image (1st on mobile) */}
-            <div className="lg:col-span-5 flex justify-center items-center" data-aos="fade-up">
+            {/* Right Column (on desktop): Big Martial Arts Stance Image */}
+            <div className="lg:col-span-5 order-2 lg:order-2 flex justify-center items-center" data-aos="fade-up">
               <div className="relative group text-center">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/training-stance-576w.avif 576w, /images/optimized/training-stance.avif 576w" />
@@ -507,8 +509,8 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Right: Section Heading, Subtitle & Additional Content */}
-            <div className="lg:col-span-7 space-y-4" data-aos="fade-up" data-aos-delay="100">
+            {/* Left Column (on desktop): Section Heading, Subtitle & Content */}
+            <div className="lg:col-span-7 order-1 lg:order-1 space-y-4" data-aos="fade-up" data-aos-delay="100">
               <span className="text-[12px] md:text-[13px] font-bold text-[#B12B2B] uppercase tracking-[1.2px] font-body block">
                 <EditableText settingKey="home.training.eyebrow" defaultText="ACADEMY SYLLABUS" />
               </span>
@@ -759,8 +761,8 @@ export const Home: React.FC = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             
-            {/* Right Image (on desktop) - Transparent subject without enclosing card */}
-            <div className="lg:col-span-4 order-2 lg:order-2 flex justify-center items-center relative" data-aos="fade-up">
+            {/* Left Column (on desktop): Therapy Session Image */}
+            <div className="lg:col-span-4 order-2 lg:order-1 flex justify-center items-center relative" data-aos="fade-up">
               <div className="relative group text-center max-w-[360px] sm:max-w-[420px] lg:max-w-full">
                 <picture>
                   <source
@@ -784,8 +786,8 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
-            {/* Left Content (on desktop) */}
-            <div className="lg:col-span-8 order-1 lg:order-1 space-y-5 flex flex-col" data-aos="fade-up" data-aos-delay="100">
+            {/* Right Column (on desktop): Wellness Content */}
+            <div className="lg:col-span-8 order-1 lg:order-2 space-y-5 flex flex-col" data-aos="fade-up" data-aos-delay="100">
               <p className="font-body text-[16px] text-[#5C5148] leading-[1.6]">
                 <EditableText 
                   settingKey="home.wellness.description" 
