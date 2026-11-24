@@ -397,7 +397,6 @@ export const ProductDetails: React.FC = () => {
 
               {/* ── HIGHLIGHTED PRICE & ACTION BOX ── */}
               <div
-                ref={heroCtaRef}
                 className="bg-white border border-[#E8DDD0] rounded-2xl p-4 sm:p-5 shadow-xs space-y-4"
               >
                 {/* Price Display */}
