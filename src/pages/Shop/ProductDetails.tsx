@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
@@ -43,11 +43,7 @@ export const ProductDetails: React.FC = () => {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [added, setAdded] = useState(false);
-  const [activeTab, setActiveTab] = useState<'overview' | 'specs' | 'policies'>('overview');
   const [openPolicy, setOpenPolicy] = useState<string | null>('download');
-  const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
-
-  const heroCtaRef = useRef<HTMLDivElement>(null);
 
   const [downloadAccess, setDownloadAccess] = useState<{
     hasAccess: boolean;
@@ -63,24 +59,6 @@ export const ProductDetails: React.FC = () => {
       window.scrollTo(0, 0);
     }
   }, [slug]);
-
-  // Observer to track when hero CTA leaves the viewport
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsScrolledPastHero(!entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-
-    if (heroCtaRef.current) {
-      observer.observe(heroCtaRef.current);
-    }
-
-    return () => {
-      observer.disconnect();
-    };
-  }, [product]);
 
   const loadProduct = async (productSlug: string) => {
     try {
@@ -159,16 +137,6 @@ export const ProductDetails: React.FC = () => {
     } catch (err: any) {
       console.error('Delete product error', err);
       alert(err?.message || 'Failed to delete product');
-    }
-  };
-
-  const scrollToSection = (id: 'overview' | 'specs' | 'policies') => {
-    setActiveTab(id);
-    const element = document.getElementById(id);
-    if (element) {
-      const yOffset = -130; // accounts for main navbar + sticky sub-header
-      const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
     }
   };
 
@@ -271,129 +239,8 @@ export const ProductDetails: React.FC = () => {
         }}
       />
 
-      {/* ── 1. STICKY PRODUCT SUB-HEADER BAR (SAMSUNG STYLE) ── */}
-      <div className="sticky top-[56px] sm:top-[64px] lg:top-[68px] z-30 bg-white/95 backdrop-blur-md border-b border-[#E8DDD0] shadow-2xs transition-all duration-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-13 sm:h-14 gap-3">
-            {/* Left: Product Title + Quick Anchor Navigation */}
-            <div className="flex items-center gap-6 min-w-0">
-              <div className="min-w-0 flex flex-col justify-center">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#B12B2B] hidden md:block">
-                  {categoryName}
-                </span>
-                <h2 className="text-xs sm:text-sm font-bold text-[#2B2521] truncate max-w-[200px] sm:max-w-xs md:max-w-sm lg:max-w-md">
-                  {product.name}
-                </h2>
-              </div>
-
-              {/* Desktop Anchor Tabs */}
-              <nav className="hidden md:flex items-center space-x-1 lg:space-x-2 text-xs font-semibold">
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('overview')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                    activeTab === 'overview'
-                      ? 'bg-[#FAF6F0] text-[#B12B2B] font-bold'
-                      : 'text-[#5C5148] hover:text-[#2B2521]'
-                  }`}
-                >
-                  Overview
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('specs')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                    activeTab === 'specs'
-                      ? 'bg-[#FAF6F0] text-[#B12B2B] font-bold'
-                      : 'text-[#5C5148] hover:text-[#2B2521]'
-                  }`}
-                >
-                  Details & Specs
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollToSection('policies')}
-                  className={`px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-                    activeTab === 'policies'
-                      ? 'bg-[#FAF6F0] text-[#B12B2B] font-bold'
-                      : 'text-[#5C5148] hover:text-[#2B2521]'
-                  }`}
-                >
-                  Policies & Support
-                </button>
-              </nav>
-            </div>
-
-            {/* Right: Price + Compact Primary CTA */}
-            <div className="flex items-center gap-3 shrink-0">
-              <div className="text-right">
-                <div className="flex items-baseline gap-1.5">
-                  <span className="text-sm sm:text-base font-extrabold text-[#2B2521]">
-                    ₹{product.price.toLocaleString('en-IN')}
-                  </span>
-                  {hasDiscount && (
-                    <span className="text-[10px] text-gray-400 line-through hidden sm:inline">
-                      ₹{product.compareAtPrice?.toLocaleString('en-IN')}
-                    </span>
-                  )}
-                </div>
-                {hasDiscount && (
-                  <span className="text-[9px] text-emerald-700 font-bold block sm:hidden">
-                    Save ₹{savingsAmount}
-                  </span>
-                )}
-              </div>
-
-              {/* Compact CTA */}
-              {isAdmin ? (
-                <Link
-                  to={`/admin#products?edit=${product.id}`}
-                  className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-bold rounded-lg transition flex items-center gap-1"
-                >
-                  <Edit2 className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">Edit in Admin</span>
-                </Link>
-              ) : product.isDigital && downloadAccess?.hasAccess ? (
-                <a
-                  href={productApi.getDownloadUrl(product.id)}
-                  download={product.fileName || 'Rare_Siddhar_Varma_20_Books_Collection.rar'}
-                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Download</span>
-                </a>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    disabled={isOutOfStock}
-                    className={`hidden sm:inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed ${
-                      added
-                        ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                        : 'border-[#B12B2B] text-[#B12B2B] hover:bg-red-50'
-                    }`}
-                  >
-                    {added ? <Check className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
-                    <span>{added ? 'Added' : 'Add to Cart'}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleBuyNow}
-                    disabled={isOutOfStock}
-                    className="px-3.5 sm:px-4 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-bold rounded-lg transition shadow-2xs cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <span>Buy Now</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── 2. FULL-VIEWPORT EDITORIAL PAGE CANVAS (NO BOXED WRAPPER) ── */}
-      <div className="bg-[#FAF6F0] min-h-screen text-left pb-24 md:pb-16">
+      {/* ── FULL-VIEWPORT EDITORIAL PAGE CANVAS (NO BOXED WRAPPER) ── */}
+      <div className="bg-[#FAF6F0] min-h-screen text-left pb-12 sm:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-3 sm:pt-6">
           
           {/* Breadcrumbs */}
@@ -671,12 +518,12 @@ export const ProductDetails: React.FC = () => {
                     )}
 
                     {/* Primary Action Buttons (Add to Cart & Buy Now) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                       <button
                         type="button"
                         onClick={handleAddToCart}
                         disabled={isOutOfStock}
-                        className={`h-12 px-4 rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed ${
+                        className={`h-9 sm:h-10 px-3.5 sm:px-4 rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs disabled:opacity-40 disabled:cursor-not-allowed ${
                           added
                             ? 'bg-emerald-600 text-white'
                             : 'bg-white border-2 border-[#B12B2B] text-[#B12B2B] hover:bg-red-50'
@@ -684,12 +531,12 @@ export const ProductDetails: React.FC = () => {
                       >
                         {added ? (
                           <>
-                            <Check className="w-4 h-4" />
+                            <Check className="w-3.5 h-3.5" />
                             <span>Added to Cart!</span>
                           </>
                         ) : (
                           <>
-                            <ShoppingBag className="w-4 h-4" />
+                            <ShoppingBag className="w-3.5 h-3.5" />
                             <span>Add to Cart</span>
                           </>
                         )}
@@ -699,7 +546,7 @@ export const ProductDetails: React.FC = () => {
                         type="button"
                         onClick={handleBuyNow}
                         disabled={isOutOfStock}
-                        className="h-12 px-6 bg-[#B12B2B] hover:bg-[#8F2020] text-white rounded-xl text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm hover:shadow active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="h-9 sm:h-10 px-4 sm:px-5 bg-[#B12B2B] hover:bg-[#8F2020] text-white rounded-lg sm:rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs hover:shadow active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <span>Buy Now</span>
                       </button>
@@ -938,69 +785,6 @@ export const ProductDetails: React.FC = () => {
           </div>
         </section>
       )}
-
-      {/* ── 5. MOBILE FIXED BOTTOM ACTION BAR (STICKY THUMB REACH) ── */}
-      <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E8DDD0] px-4 py-2.5 pb-[max(0.65rem,env(safe-area-inset-bottom))] shadow-2xl flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-base font-extrabold text-[#2B2521]">
-              ₹{product.price.toLocaleString('en-IN')}
-            </span>
-            {hasDiscount && (
-              <span className="text-[11px] text-gray-400 line-through">
-                ₹{product.compareAtPrice?.toLocaleString('en-IN')}
-              </span>
-            )}
-          </div>
-          <span className="text-[10px] text-emerald-700 font-bold block truncate">
-            {product.isDigital ? 'Instant Digital Download' : 'Tracked Delivery'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {isAdmin ? (
-            <Link
-              to={`/admin#products?edit=${product.id}`}
-              className="px-4 py-2.5 bg-[#B12B2B] text-white text-xs font-bold rounded-xl shadow-xs"
-            >
-              Edit Item
-            </Link>
-          ) : product.isDigital && downloadAccess?.hasAccess ? (
-            <a
-              href={productApi.getDownloadUrl(product.id)}
-              download={product.fileName || 'Rare_Siddhar_Varma_20_Books_Collection.rar'}
-              className="px-4 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download</span>
-            </a>
-          ) : (
-            <>
-              <button
-                type="button"
-                onClick={handleAddToCart}
-                disabled={isOutOfStock}
-                className={`p-2.5 rounded-xl border text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed ${
-                  added
-                    ? 'bg-emerald-50 border-emerald-500 text-emerald-700'
-                    : 'border-[#B12B2B] text-[#B12B2B] bg-white'
-                }`}
-                aria-label="Add to cart"
-              >
-                {added ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={handleBuyNow}
-                disabled={isOutOfStock}
-                className="px-5 py-2.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center gap-1.5 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <span>Buy Now</span>
-              </button>
-            </>
-          )}
-        </div>
-      </div>
     </>
   );
 };
