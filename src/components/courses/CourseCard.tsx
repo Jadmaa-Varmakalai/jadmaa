@@ -212,7 +212,6 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
             <ShareButton
               title={cleanTitle}
               url={`/courses/${course.slug}`}
-              text={course.description || course.subtitle || cleanTitle}
               variant="icon"
               iconSize={15}
             />

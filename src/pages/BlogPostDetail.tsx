@@ -171,7 +171,7 @@ export const BlogPostDetail: React.FC = () => {
         title={(blog as any).metaTitle || `${blog.title} | JADMAA Varmakalai`}
         description={(blog as any).metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160)}
         keywords={(blog as any).keywords || 'varmakalai, varma therapy, traditional healing, martial arts'}
-        image={featuredImageUrl}
+        image={`https://jadmaa.com/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.jpg`}
         url={`/blog/${encodeURIComponent(blog.slug)}`}
         type="article"
         schema={buildArticleSchema({
@@ -181,7 +181,7 @@ export const BlogPostDetail: React.FC = () => {
           authorName: blog.author?.name || 'Aasan Bojagarajan',
           datePublished: blog.createdAt,
           dateModified: blog.updatedAt,
-          imageUrl: featuredImageUrl,
+          imageUrl: `https://jadmaa.com/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.jpg`,
         })}
       />
 
@@ -227,7 +227,6 @@ export const BlogPostDetail: React.FC = () => {
                 <ShareButton
                   title={blog.title}
                   url={`/blog/${encodeURIComponent(blog.slug)}`}
-                  text={blog.excerpt || blog.title}
                   variant="pill"
                   buttonText="Share"
                 />
@@ -245,6 +244,21 @@ export const BlogPostDetail: React.FC = () => {
                     <ReactMarkdown>{cleanedContent}</ReactMarkdown>
                   </div>
                 )}
+              </div>
+
+              {/* Bottom Social Share Bar */}
+              <div className="mt-8 pt-6 border-t border-[#F0F0F0] flex flex-col sm:flex-row items-center justify-between gap-4">
+                <span className="text-sm font-bold text-[#2B2521] uppercase tracking-wider">
+                  Share this article:
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <ShareButton
+                    title={blog.title}
+                    url={`/blog/${encodeURIComponent(blog.slug)}`}
+                    variant="button"
+                    buttonText="Share Link"
+                  />
+                </div>
               </div>
 
               {/* FAQ Section */}

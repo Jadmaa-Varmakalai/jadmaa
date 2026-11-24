@@ -1,8 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { prisma } from '../../db.js';
 import { transliterateTamilToEnglish } from '../../utils/slugify.js';
+import defaultBlogsData from '../../../src/data/jadmaa_blogs.js';
 import fs from 'fs';
 import path from 'path';
+
+const defaultBlogs: any[] = defaultBlogsData as unknown as any[];
 
 const BASE_URL = process.env.FRONTEND_URL || 'https://jadmaa.com';
 
@@ -316,7 +319,7 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
       const decodedSlug = decodeURIComponent(rawSlug).trim();
       const transliterated = transliterateTamilToEnglish(decodedSlug).toLowerCase().replace(/[\s_-]+/g, '-');
 
-      const blog = await prisma.blogPost.findFirst({
+      let blog = await prisma.blogPost.findFirst({
         where: {
           OR: [
             { slug: rawSlug },
@@ -334,13 +337,31 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
         include: { author: true }
       });
 
+      if (!blog) {
+        const defaultMatch = defaultBlogs.find((d: any) =>
+          d.slug === rawSlug ||
+          d.slug === decodedSlug ||
+          d.slug === transliterated ||
+          d.id === rawSlug
+        );
+        if (defaultMatch) {
+          blog = {
+            ...defaultMatch,
+            author: { name: 'Varma Aasan Mr. Bojagarajan' },
+            createdAt: new Date('2026-10-20'),
+            updatedAt: new Date()
+          } as any;
+        }
+      }
+
       if (blog) {
         pageTitle = blog.metaTitle || `${blog.title} | JADMAA Varmakalai`;
         pageDesc = blog.metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160).trim();
-        pageImage = `${BASE_URL}/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.png?v=3`;
-        pageImageMime = 'image/png';
+        const absoluteJpgImageUrl = `${BASE_URL}/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.jpg`;
+        pageImage = absoluteJpgImageUrl;
+        pageImageMime = 'image/jpeg';
         imageWidth = 1200;
-        imageHeight = 630;
+        imageHeight = 800;
         pageCanonical = `${BASE_URL}/blog/${encodeURIComponent(blog.slug)}`;
         pageType = 'article';
         schemaJson = {
@@ -405,29 +426,26 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
     }
 
     // Build OpenGraph & Twitter Card tags according to exact social platform specs
+    // Ordered specifically for WhatsApp / Meta crawlers to parse large preview banners instantly
     const metaTags = `
     <title>${escapeXml(pageTitle)}</title>
     <meta name="description" content="${escapeXml(pageDesc)}" />
-    <link rel="canonical" href="${escapeXml(pageCanonical)}" />
-
-    <!-- OpenGraph / Facebook / WhatsApp / Instagram / LinkedIn Rich Link Preview -->
-    <meta property="og:type" content="${pageType}" />
     <meta property="og:site_name" content="JADMAA Varmakalai" />
+    <meta property="og:type" content="${pageType}" />
+    <meta property="og:url" content="${escapeXml(pageCanonical)}" />
     <meta property="og:title" content="${escapeXml(pageTitle)}" />
     <meta property="og:description" content="${escapeXml(pageDesc)}" />
     <meta property="og:image" content="${escapeXml(pageImage)}" />
     <meta property="og:image:secure_url" content="${escapeXml(pageImage)}" />
+    <meta property="og:image:type" content="${pageImageMime}" />
     <meta property="og:image:width" content="${imageWidth}" />
     <meta property="og:image:height" content="${imageHeight}" />
-    <meta property="og:image:type" content="${pageImageMime}" />
-    <meta property="og:url" content="${escapeXml(pageCanonical)}" />
-
-    <!-- Twitter / X / Social App Large Image Card Preview -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@Jadmaavarmakalai" />
     <meta name="twitter:title" content="${escapeXml(pageTitle)}" />
     <meta name="twitter:description" content="${escapeXml(pageDesc)}" />
     <meta name="twitter:image" content="${escapeXml(pageImage)}" />
+    <link rel="canonical" href="${escapeXml(pageCanonical)}" />
     ${schemaJson ? `<script type="application/ld+json">${JSON.stringify(schemaJson)}</script>` : ''}
     `;
 

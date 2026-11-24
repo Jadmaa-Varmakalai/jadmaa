@@ -391,7 +391,6 @@ export const CourseDetails: React.FC = () => {
                 <ShareButton
                   title={course.title}
                   url={`/courses/${course.slug}`}
-                  text={(course as any).metaDesc || course.subtitle || course.description}
                   variant="button"
                   buttonText="Share Course"
                 />

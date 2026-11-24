@@ -236,7 +236,6 @@ export const ProductDetails: React.FC = () => {
                     <ShareButton
                       title={product.name}
                       url={`/products/${product.slug}`}
-                      text={product.description || product.name}
                       variant="button"
                       buttonText="Share"
                       className="shrink-0"

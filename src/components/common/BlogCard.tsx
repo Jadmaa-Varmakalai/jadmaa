@@ -166,7 +166,6 @@ export const BlogCard: React.FC<BlogCardProps> = ({ blog, isAdmin, priority = fa
             <ShareButton
               title={blog.title}
               url={`/blog/${blog.slug}`}
-              text={blog.excerpt || blog.title}
               variant="icon"
               iconSize={14}
             />

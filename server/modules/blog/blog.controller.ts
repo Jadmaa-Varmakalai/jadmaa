@@ -294,7 +294,7 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
     const decodedSlug = decodeURIComponent(rawSlug).trim();
     const transliterated = transliterateTamilToEnglish(decodedSlug).toLowerCase().replace(/[\s_-]+/g, '-');
 
-    const blog = await prisma.blogPost.findFirst({
+    let blog = await prisma.blogPost.findFirst({
       where: {
         OR: [
           { slug: rawSlug },
@@ -320,12 +320,31 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
     });
 
     if (!blog) {
+      const defaultMatch = defaultBlogs.find((d: any) =>
+        d.slug === rawSlug ||
+        d.slug === decodedSlug ||
+        d.slug === transliterated ||
+        d.id === rawSlug
+      );
+      if (defaultMatch) {
+        blog = {
+          id: defaultMatch.id,
+          title: defaultMatch.title,
+          thumbnailUrl: defaultMatch.thumbnailUrl,
+          createdAt: new Date('2026-10-20'),
+          updatedAt: new Date(),
+          author: { name: 'Varma Aasan Mr. Bojagarajan' }
+        } as any;
+      }
+    }
+
+    if (!blog) {
       return res.status(404).send('Blog not found');
     }
 
     const outputFormat = isPng ? 'png' : 'jpeg';
     const contentType = isPng ? 'image/png' : 'image/jpeg';
-    const cacheKey = `og_blog_v3_${blog.id}_${outputFormat}`;
+    const cacheKey = `og_blog_v4_${blog.id}_${outputFormat}`;
     const memCached = memoryImageCache.get(cacheKey);
     if (memCached) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, s-maxage=31536000, immutable');
@@ -333,9 +352,9 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
       return res.send(memCached.buffer);
     }
 
-    // Exact 1.91:1 large banner dimensions (1200 x 630)
+    // High-resolution 1200 x 800 dimensions (ideal wide banner ratio for WhatsApp Channels & Mobile Previews)
     const width = 1200;
-    const height = 630;
+    const height = 800;
     const leftWidth = 600;
     const rightWidth = 600;
 
@@ -390,7 +409,7 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
 
     // 2. Load JADMAA logo
     let logoBuf: Buffer | null = null;
-    const logoSize = 115;
+    const logoSize = 130;
     const logoCandidates = [
       path.join(process.cwd(), 'public', 'logo.png'),
       path.join(process.cwd(), 'public', 'images', 'logo-1.png'),
@@ -411,11 +430,11 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
 
     // 3. Prepare Right Panel Typography
     const rawTitle = (blog.title || '').trim();
-    const lines = wrapBlogTitle(rawTitle, 20, 3);
-    const fontSize = lines.length <= 2 ? 36 : 32;
-    const lineHeight = Math.round(fontSize * 1.4);
+    const lines = wrapBlogTitle(rawTitle, 22, 4);
+    const fontSize = lines.length <= 2 ? 38 : 32;
+    const lineHeight = Math.round(fontSize * 1.45);
     const totalTextHeight = lines.length * lineHeight;
-    const startY = Math.round(165 - totalTextHeight / 2 + fontSize * 0.85);
+    const startY = Math.round(210 - totalTextHeight / 2 + fontSize * 0.85);
 
     const tspanLines = lines.map((line, idx) => {
       const escaped = line.replace(/[<>&'"]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '\'': '&apos;', '"': '&quot;' }[c] || c));
@@ -446,21 +465,21 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
             }
             .brand-jadmaa {
               font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
-              font-size: 23px;
+              font-size: 24px;
               font-weight: 800;
               letter-spacing: 3.5px;
               fill: #2B2825;
             }
             .brand-varmakalai {
               font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
-              font-size: 23px;
+              font-size: 24px;
               font-weight: 800;
               letter-spacing: 3.5px;
               fill: #B12B2B;
             }
             .tagline {
               font-family: 'Noto Sans Tamil Embedded', 'Noto Sans Tamil', sans-serif;
-              font-size: 11.5px;
+              font-size: 12px;
               font-weight: 600;
               letter-spacing: 2px;
               fill: #5C5148;
@@ -476,11 +495,11 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
           ${tspanLines}
         </text>
 
-        <!-- Bottom Half: Branding below logo (logo is at y=365, height=115 -> bottom 480) -->
-        <text x="300" y="525" text-anchor="middle">
+        <!-- Bottom Half: Branding below logo (logo is at y=480, height=130 -> bottom 610) -->
+        <text x="300" y="650" text-anchor="middle">
           <tspan class="brand-jadmaa">JADMAA </tspan><tspan dx="8" class="brand-varmakalai">VARMAKALAI</tspan>
         </text>
-        <text x="300" y="555" class="tagline">ANCIENT POWER. MODERN TRAINING.</text>
+        <text x="300" y="685" class="tagline">ANCIENT POWER. MODERN TRAINING.</text>
       </svg>
     `);
 
@@ -492,7 +511,7 @@ export const getBlogOgImage = async (req: Request, res: Response) => {
     if (logoBuf) {
       composites.push({
         input: logoBuf,
-        top: 365,
+        top: 480,
         left: leftWidth + Math.round((rightWidth - logoSize) / 2)
       });
     }

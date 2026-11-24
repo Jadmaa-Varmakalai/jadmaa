@@ -57,21 +57,13 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:description" content={description} />
       <meta property="og:image" content={resolvedImage} />
       <meta property="og:image:secure_url" content={resolvedImage} />
+      <meta property="og:image:type" content={/\.png($|\?)/i.test(resolvedImage) ? 'image/png' : 'image/jpeg'} />
       <meta property="og:image:width" content="1200" />
-      <meta property="og:image:height" content="630" />
-      <meta
-        property="og:image:type"
-        content={
-          /\.png($|\?)/i.test(resolvedImage)
-            ? 'image/png'
-            : /\.webp($|\?)/i.test(resolvedImage)
-            ? 'image/webp'
-            : 'image/jpeg'
-        }
-      />
+      <meta property="og:image:height" content="800" />
 
-      {/* Twitter */}
+      {/* Twitter / X Large Summary Card */}
       <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:site" content="@Jadmaavarmakalai" />
       <meta name="twitter:url" content={canonicalUrl} />
       <meta name="twitter:title" content={fullTitle} />
       <meta name="twitter:description" content={description} />
