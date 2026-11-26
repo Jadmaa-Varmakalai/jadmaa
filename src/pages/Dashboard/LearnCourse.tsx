@@ -14,8 +14,6 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronUp,
-  ListVideo,
-  Bookmark,
   LayoutDashboard,
   BookOpen,
   LogOut,
@@ -27,77 +25,10 @@ import {
   CustomCourseVideoPlayer,
   type CustomVideoPlayerHandle,
 } from '../../components/courses/CustomCourseVideoPlayer';
+import { CurriculumAccordion } from '../../components/courses/CurriculumAccordion';
 import { ItemReviewsSection } from '../../components/common/ItemReviewsSection';
 import { extractYouTubeVideoId } from '../../utils/youtube';
-
-interface TimestampItem {
-  seconds: number;
-  timeLabel: string;
-  label: string;
-}
-
-const formatDurationLabel = (seconds?: number, fallbackStr?: string): string => {
-  if (seconds && seconds > 0) {
-    const rounded = Math.round(seconds);
-    if (rounded < 60) return `${rounded} sec`;
-    const mins = Math.floor(rounded / 60);
-    const secs = rounded % 60;
-    return secs > 0 ? `${mins} min ${secs} sec` : `${mins} min`;
-  }
-  return fallbackStr || '';
-};
-
-const parseTimeToSeconds = (timeStr: string): number => {
-  const parts = timeStr.split(':').map((n) => parseInt(n, 10));
-  if (parts.some(isNaN)) return 0;
-  if (parts.length === 3) {
-    return parts[0] * 3600 + parts[1] * 60 + parts[2];
-  }
-  if (parts.length === 2) {
-    return parts[0] * 60 + parts[1];
-  }
-  return 0;
-};
-
-const parseTimestamps = (text?: string, chapters?: any[]): TimestampItem[] => {
-  const items: TimestampItem[] = [];
-  const seen = new Set<number>();
-
-  if (Array.isArray(chapters)) {
-    for (const ch of chapters) {
-      const secs =
-        typeof ch.seconds === 'number'
-          ? ch.seconds
-          : ch.time
-          ? parseTimeToSeconds(String(ch.time))
-          : 0;
-      const label = ch.title || ch.label || 'Chapter';
-      const timeLabel = ch.time || `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
-      if (!seen.has(secs)) {
-        seen.add(secs);
-        items.push({ seconds: secs, timeLabel, label });
-      }
-    }
-  }
-
-  if (text) {
-    const lines = text.split('\n');
-    const regex = /\b((?:\d{1,2}:)?\d{1,2}:\d{2})\b(?:\s*[-–—|:]?\s*(.+))?/;
-    for (const line of lines) {
-      const m = line.match(regex);
-      if (m && m[1]) {
-        const secs = parseTimeToSeconds(m[1]);
-        if (!seen.has(secs)) {
-          seen.add(secs);
-          const cleanLabel = (m[2] || 'Jump to section').trim();
-          items.push({ seconds: secs, timeLabel: m[1], label: cleanLabel });
-        }
-      }
-    }
-  }
-
-  return items.sort((a, b) => a.seconds - b.seconds);
-};
+import { parseTimeToSeconds } from '../../utils/curriculum';
 
 export const LearnCourse: React.FC = () => {
   const { courseId } = useParams();
@@ -118,7 +49,6 @@ export const LearnCourse: React.FC = () => {
   const [currentPlaybackTime, setCurrentPlaybackTime] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
-  const [sidebarTab, setSidebarTab] = useState<'lessons' | 'timestamps'>('lessons');
   const [mobileSectionTab, setMobileSectionTab] = useState<'curriculum' | 'overview'>('curriculum');
   const [descExpanded, setDescExpanded] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -371,28 +301,21 @@ export const LearnCourse: React.FC = () => {
   const nextLesson =
     activeIdx >= 0 && activeIdx < allLessons.length - 1 ? allLessons[activeIdx + 1].lesson : null;
 
-  const lessonTimestamps = useMemo(
-    () =>
-      parseTimestamps(
-        `${activeLesson?.summary || ''}\n${activeLesson?.description || ''}\n${course?.description || ''}`,
-        activeLesson?.chapters
-      ),
-    [activeLesson, course?.description]
-  );
-
-  const activeTimestampSeconds = useMemo(() => {
-    let activeSec = -1;
-    for (const ts of lessonTimestamps) {
-      if (ts.seconds <= currentPlaybackTime + 0.5) {
-        activeSec = ts.seconds;
-      }
-    }
-    return activeSec;
-  }, [lessonTimestamps, currentPlaybackTime]);
-
   const handleSeekTimestamp = (seconds: number) => {
     setCurrentPlaybackTime(seconds);
     playerRef.current?.seekTo(seconds);
+  };
+
+  const handleAccordionSeek = (lessonId: string, seconds: number) => {
+    if (lessonId !== activeLessonId) {
+      setActiveLessonId(lessonId);
+      setTimeout(() => {
+        setCurrentPlaybackTime(seconds);
+        playerRef.current?.seekTo(seconds);
+      }, 450);
+    } else {
+      handleSeekTimestamp(seconds);
+    }
   };
 
   const renderDescriptionWithTimestamps = (text: string) => {
@@ -805,11 +728,11 @@ export const LearnCourse: React.FC = () => {
             }`}
           >
             {/* Sidebar Header */}
-            <div className="p-4 border-b border-[#E8DDD0] bg-[#FAF6F0]/60 space-y-3 shrink-0">
+            <div className="p-4 border-b border-[#E8DDD0] bg-[#FAF6F0]/60 space-y-2.5 shrink-0">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h3 className="font-bold text-sm sm:text-base text-[#2B2521] truncate">
-                    {course.title}
+                    Course Content
                   </h3>
                   <p className="text-[11px] text-[#5C5148] mb-0">
                     Lesson {activeIdx >= 0 ? activeIdx + 1 : 1} of {allLessons.length}
@@ -827,179 +750,22 @@ export const LearnCourse: React.FC = () => {
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
-
-              {/* Filter / View Tabs */}
-              <div className="grid grid-cols-2 gap-1.5 bg-[#E8DDD0]/50 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setSidebarTab('lessons')}
-                  className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                    sidebarTab === 'lessons'
-                      ? 'bg-white text-[#2B2521] shadow-2xs'
-                      : 'text-[#5C5148] hover:text-[#2B2521]'
-                  }`}
-                >
-                  <ListVideo className="w-3.5 h-3.5 text-[#B12B2B]" />
-                  <span>Lessons</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSidebarTab('timestamps')}
-                  className={`py-1.5 px-2.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer ${
-                    sidebarTab === 'timestamps'
-                      ? 'bg-white text-[#2B2521] shadow-2xs'
-                      : 'text-[#5C5148] hover:text-[#2B2521]'
-                  }`}
-                >
-                  <Bookmark className="w-3.5 h-3.5 text-[#B12B2B]" />
-                  <span>Timestamps</span>
-                </button>
-              </div>
             </div>
 
-            {/* Sidebar Scrollable Body */}
-            <div className="overflow-y-auto flex-1 divide-y divide-[#E8DDD0]/60">
-              {sidebarTab === 'lessons' ? (
-                course.modules?.map((m: any, mIndex: number) => (
-                  <div key={m.id}>
-                    <div className="px-4 py-2.5 bg-[#FAF6F0]/70 text-xs font-bold text-[#2B2521] border-b border-[#E8DDD0]/50">
-                      Module {mIndex + 1}: {m.title}
-                    </div>
-                    <div className="divide-y divide-[#E8DDD0]/40">
-                      {(m.lessons || []).map((l: any, lIndex: number) => {
-                        const isCompleted = completedLessons[l.id];
-                        const isActive = l.id === activeLessonId;
-                        const durationText = formatDurationLabel(
-                          actualDurations[l.id] || l.durationSeconds,
-                          l.duration
-                        );
-
-                        return (
-                          <div
-                            key={l.id}
-                            className={`transition ${
-                              isActive
-                                ? 'bg-red-50/70 border-l-4 border-[#B12B2B]'
-                                : 'hover:bg-[#FAF6F0]/50 border-l-4 border-transparent'
-                            }`}
-                          >
-                            <button
-                              type="button"
-                              onClick={() => setActiveLessonId(l.id)}
-                              className="w-full text-left px-3.5 py-3 flex items-start gap-2.5 text-xs sm:text-sm cursor-pointer"
-                            >
-                              <div className="mt-0.5 shrink-0">
-                                {isCompleted ? (
-                                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                                ) : isActive ? (
-                                  <PlayCircle className="w-4 h-4 text-[#B12B2B]" />
-                                ) : (
-                                  <span className="w-4 h-4 rounded-full border border-gray-300 text-[10px] font-semibold text-gray-400 flex items-center justify-center">
-                                    {lIndex + 1}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <span
-                                  className={`block leading-snug ${
-                                    isActive
-                                      ? 'font-bold text-[#B12B2B]'
-                                      : 'font-medium text-[#2B2521]'
-                                  }`}
-                                >
-                                  {l.title}
-                                </span>
-                                {durationText && (
-                                  <span className="inline-flex items-center gap-1 text-[11px] text-[#5C5148] mt-1">
-                                    <Clock className="w-3 h-3" />
-                                    {durationText}
-                                  </span>
-                                )}
-                              </div>
-                            </button>
-
-                            {/* Nested Timestamp Chips on Active Lesson */}
-                            {isActive && lessonTimestamps.length > 0 && (
-                              <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-                                {lessonTimestamps.map((ts, tsIdx) => {
-                                  const isTsActive = ts.seconds === activeTimestampSeconds;
-                                  return (
-                                    <button
-                                      key={tsIdx}
-                                      type="button"
-                                      onClick={() => handleSeekTimestamp(ts.seconds)}
-                                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition cursor-pointer ${
-                                        isTsActive
-                                          ? 'bg-[#B12B2B] border-[#B12B2B] text-white font-semibold'
-                                          : 'bg-white border-[#E8DDD0] hover:border-[#B12B2B] text-[#2B2521] hover:text-[#B12B2B]'
-                                      }`}
-                                    >
-                                      <span
-                                        className={`font-mono font-bold ${
-                                          isTsActive ? 'text-white' : 'text-[#B12B2B]'
-                                        }`}
-                                      >
-                                        {ts.timeLabel}
-                                      </span>
-                                      <span className="truncate max-w-[140px]">{ts.label}</span>
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="p-4 space-y-2">
-                  {lessonTimestamps.length > 0 ? (
-                    lessonTimestamps.map((ts, idx) => {
-                      const isTsActive = ts.seconds === activeTimestampSeconds;
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          onClick={() => handleSeekTimestamp(ts.seconds)}
-                          className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 cursor-pointer ${
-                            isTsActive
-                              ? 'bg-red-50 border-[#B12B2B] shadow-2xs'
-                              : 'border-[#E8DDD0] hover:border-[#B12B2B] hover:bg-[#FAF6F0]'
-                          }`}
-                        >
-                          <span
-                            className={`px-2 py-1 rounded-md font-mono text-xs font-bold shrink-0 ${
-                              isTsActive
-                                ? 'bg-[#B12B2B] text-white'
-                                : 'bg-[#B12B2B]/10 text-[#B12B2B]'
-                            }`}
-                          >
-                            {ts.timeLabel}
-                          </span>
-                          <span
-                            className={`text-xs sm:text-sm truncate ${
-                              isTsActive
-                                ? 'font-bold text-[#B12B2B]'
-                                : 'font-medium text-[#2B2521]'
-                            }`}
-                          >
-                            {ts.label}
-                          </span>
-                        </button>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center py-8 px-4 space-y-1.5">
-                      <Clock className="w-8 h-8 text-gray-300 mx-auto" />
-                      <p className="text-xs text-[#5C5148] mb-0">
-                        No chapter timestamps listed for this lesson. Add timestamps in the Admin Curriculum Manager or use the player seek bar.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
+            {/* Sidebar Scrollable Body — Udemy-Style Hierarchical Accordion */}
+            <div className="overflow-y-auto flex-1 p-3">
+              <CurriculumAccordion
+                modules={course.modules || []}
+                mode="player"
+                activeLessonId={activeLessonId}
+                currentPlaybackTime={currentPlaybackTime}
+                completedLessons={completedLessons}
+                actualDurations={actualDurations}
+                courseDescription={course.description || ''}
+                compactHeader={true}
+                onSelectLesson={(lessonId) => setActiveLessonId(lessonId)}
+                onSeekTimestamp={handleAccordionSeek}
+              />
             </div>
           </aside>
         </div>
