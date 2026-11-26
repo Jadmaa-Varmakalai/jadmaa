@@ -19,8 +19,11 @@ export const CertificatesPage: React.FC = () => {
     const fetchCerts = async () => {
       try {
         const res = await progressApi.getCertificates();
-        if (res.success) {
-          setCertificates(res.data);
+        if (res.success && Array.isArray(res.data)) {
+          const paidCerts = res.data.filter(
+            (c: any) => !c.course?.isFree && Number(c.course?.price || 0) > 0
+          );
+          setCertificates(paidCerts);
         }
       } catch (err) {
         console.error("Failed to load certificates");

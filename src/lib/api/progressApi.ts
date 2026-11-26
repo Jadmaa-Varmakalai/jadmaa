@@ -31,7 +31,12 @@ export const progressApi = {
   },
 
   getMyEnrollments: async (forceRefresh = false) => {
-    if (!forceRefresh) {
+    if (forceRefresh) {
+      memoryEnrollmentsCache = null;
+      try {
+        sessionStorage.removeItem('jadmaa_enrollments_cache');
+      } catch (_) {}
+    } else {
       const cached = progressApi.getCachedEnrollments();
       if (cached.length > 0) {
         // Revalidate in background

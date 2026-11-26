@@ -8,6 +8,7 @@ interface ItemReviewsSectionProps {
   targetType: ReviewTargetType;
   targetId: string;
   title?: string;
+  starsOnly?: boolean;
   onStatsChange?: (stats: { averageRating: number; totalRatings: number }) => void;
 }
 
@@ -15,6 +16,7 @@ export const ItemReviewsSection: React.FC<ItemReviewsSectionProps> = ({
   targetType,
   targetId,
   title = 'Ratings & Reviews',
+  starsOnly = false,
   onStatsChange,
 }) => {
   const { user, isLoggedIn } = useAuth();
@@ -85,6 +87,25 @@ export const ItemReviewsSection: React.FC<ItemReviewsSectionProps> = ({
     }
   };
 
+  const handleStarClick = async (star: number) => {
+    setSelectedRating(star);
+    if (starsOnly && isLoggedIn) {
+      setSubmitting(true);
+      setStatusMsg(null);
+      try {
+        const res = await reviewsApi.submitItemReview(targetType, targetId, star, '');
+        if (res?.success) {
+          setStatusMsg(myExistingReview ? 'Your rating was updated!' : 'Thank you for rating!');
+          await loadReviews();
+        }
+      } catch (err: any) {
+        setStatusMsg(err?.message || 'Failed to submit rating.');
+      } finally {
+        setSubmitting(false);
+      }
+    }
+  };
+
   const handleDelete = async (reviewId: string) => {
     if (!window.confirm('Delete this review?')) return;
     try {
@@ -128,141 +149,196 @@ export const ItemReviewsSection: React.FC<ItemReviewsSectionProps> = ({
         </div>
       </div>
 
-      {/* Review Submission Form */}
-      {isLoggedIn ? (
-        <form onSubmit={handleSubmit} className="bg-[#FAF6F0]/70 border border-[#E8DDD0] rounded-xl p-4 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs font-bold text-[#2B2521] flex items-center gap-1.5">
-              <MessageSquarePlus className="w-4 h-4 text-[#B12B2B]" />
-              <span>{myExistingReview ? 'Update Your Rating & Review' : 'Rate & Write a Review'}</span>
+      {/* If starsOnly mode: render only the interactive star picker, suppress review text & list */}
+      {starsOnly ? (
+        <div className="bg-[#FAF6F0]/70 border border-[#E8DDD0] rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <span className="text-xs font-bold text-[#2B2521] block">
+              {myExistingReview ? 'Your Current Rating:' : 'Tap a star to rate this article:'}
             </span>
+            {statusMsg && (
+              <span className="text-xs text-emerald-700 font-semibold block">{statusMsg}</span>
+            )}
+          </div>
 
-            <div className="flex items-center gap-1">
+          {isLoggedIn ? (
+            <div className="flex items-center gap-1.5">
               {[1, 2, 3, 4, 5].map((star) => {
                 const active = (hoverRating || selectedRating) >= star;
                 return (
                   <button
                     key={star}
                     type="button"
+                    disabled={submitting}
                     onMouseEnter={() => setHoverRating(star)}
                     onMouseLeave={() => setHoverRating(0)}
-                    onClick={() => setSelectedRating(star)}
-                    aria-label={`Rate ${star} stars`}
-                    className="p-0.5 cursor-pointer transition-transform hover:scale-110"
+                    onClick={() => handleStarClick(star)}
+                    aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                    className="p-1 cursor-pointer transition-transform hover:scale-125 disabled:opacity-50"
                   >
                     <Star
-                      className={`w-5 h-5 ${
+                      className={`w-6 h-6 transition-colors ${
                         active ? 'text-amber-500 fill-current' : 'text-gray-300'
                       }`}
                     />
                   </button>
                 );
               })}
+              <span className="text-xs font-mono font-bold text-[#5C5148] ml-1.5 tabular-nums">
+                {selectedRating}/5
+              </span>
             </div>
-          </div>
-
-          <textarea
-            rows={2}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Share your honest experience (optional)..."
-            className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-[#E8DDD0] rounded-xl focus:outline-none focus:border-[#B12B2B] resize-none"
-          />
-
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs text-emerald-700 font-medium">{statusMsg || ''}</span>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="px-4 py-2 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-semibold rounded-xl transition cursor-pointer disabled:opacity-50"
-            >
-              {submitting ? 'Saving...' : myExistingReview ? 'Update Review' : 'Submit Review'}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <div className="bg-[#FAF6F0]/70 border border-[#E8DDD0] rounded-xl p-3.5 flex items-center justify-between gap-3 text-xs">
-          <span className="text-[#5C5148]">Sign in to rate and write a review.</span>
-          <Link
-            to="/login"
-            className="px-3.5 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white font-semibold rounded-lg transition shrink-0"
-          >
-            Sign In
-          </Link>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#5C5148]">Sign in to rate:</span>
+              <Link
+                to="/login"
+                className="px-3.5 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-semibold rounded-lg transition"
+              >
+                Sign In
+              </Link>
+            </div>
+          )}
         </div>
-      )}
-
-      {/* Reviews List */}
-      {loading ? (
-        <p className="text-xs text-[#5C5148] mb-0">Loading reviews...</p>
-      ) : reviews.length === 0 ? (
-        <p className="text-xs sm:text-sm text-[#5C5148] italic mb-0">
-          No reviews yet. Be the first to share your feedback!
-        </p>
       ) : (
-        <div className="divide-y divide-[#E8DDD0]/60">
-          {reviews.map((rev) => {
-            const canDelete = user?.id === rev.userId || isAdmin;
-            return (
-              <div key={rev.id} className="py-3.5 first:pt-0 last:pb-0 space-y-1.5">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    {rev.user?.avatarUrl ? (
-                      <img
-                        src={rev.user.avatarUrl}
-                        alt={rev.user.name}
-                        className="w-8 h-8 rounded-full object-cover border border-[#E8DDD0]"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-[#B12B2B]/10 text-[#B12B2B] font-bold text-xs flex items-center justify-center shrink-0">
-                        {(rev.user?.name || 'U').charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <span className="text-xs sm:text-sm font-bold text-[#2B2521] block truncate">
-                        {rev.user?.name || 'Member'}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center text-amber-500">
-                          {[1, 2, 3, 4, 5].map((s) => (
-                            <Star
-                              key={s}
-                              className={`w-3 h-3 ${s <= rev.rating ? 'fill-current' : 'text-gray-300'}`}
-                            />
-                          ))}
-                        </div>
-                        <span className="text-[10px] text-[#5C5148]">
-                          {new Date(rev.updatedAt || rev.createdAt).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+        <>
+          {/* Review Submission Form */}
+          {isLoggedIn ? (
+            <form onSubmit={handleSubmit} className="bg-[#FAF6F0]/70 border border-[#E8DDD0] rounded-xl p-4 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-bold text-[#2B2521] flex items-center gap-1.5">
+                  <MessageSquarePlus className="w-4 h-4 text-[#B12B2B]" />
+                  <span>{myExistingReview ? 'Update Your Rating & Review' : 'Rate & Write a Review'}</span>
+                </span>
 
-                  {canDelete && (
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(rev.id)}
-                      title="Delete review"
-                      className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => {
+                    const active = (hoverRating || selectedRating) >= star;
+                    return (
+                      <button
+                        key={star}
+                        type="button"
+                        onMouseEnter={() => setHoverRating(star)}
+                        onMouseLeave={() => setHoverRating(0)}
+                        onClick={() => setSelectedRating(star)}
+                        aria-label={`Rate ${star} stars`}
+                        className="p-0.5 cursor-pointer transition-transform hover:scale-110"
+                      >
+                        <Star
+                          className={`w-5 h-5 ${
+                            active ? 'text-amber-500 fill-current' : 'text-gray-300'
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
                 </div>
-
-                {rev.comment && (
-                  <p className="text-xs sm:text-sm text-[#5C5148] leading-relaxed pl-10 mb-0">
-                    {rev.comment}
-                  </p>
-                )}
               </div>
-            );
-          })}
-        </div>
+
+              <textarea
+                rows={2}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Share your honest experience (optional)..."
+                className="w-full px-3 py-2 text-xs sm:text-sm bg-white border border-[#E8DDD0] rounded-xl focus:outline-none focus:border-[#B12B2B] resize-none"
+              />
+
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-emerald-700 font-medium">{statusMsg || ''}</span>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="px-4 py-2 bg-[#B12B2B] hover:bg-[#8F2020] text-white text-xs font-semibold rounded-xl transition cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? 'Saving...' : myExistingReview ? 'Update Review' : 'Submit Review'}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="bg-[#FAF6F0]/70 border border-[#E8DDD0] rounded-xl p-3.5 flex items-center justify-between gap-3 text-xs">
+              <span className="text-[#5C5148]">Sign in to rate and write a review.</span>
+              <Link
+                to="/login"
+                className="px-3.5 py-1.5 bg-[#B12B2B] hover:bg-[#8F2020] text-white font-semibold rounded-lg transition shrink-0"
+              >
+                Sign In
+              </Link>
+            </div>
+          )}
+
+          {/* Reviews List */}
+          {loading ? (
+            <p className="text-xs text-[#5C5148] mb-0">Loading reviews...</p>
+          ) : reviews.length === 0 ? (
+            <p className="text-xs sm:text-sm text-[#5C5148] italic mb-0">
+              No reviews yet. Be the first to share your feedback!
+            </p>
+          ) : (
+            <div className="divide-y divide-[#E8DDD0]/60">
+              {reviews.map((rev) => {
+                const canDelete = user?.id === rev.userId || isAdmin;
+                return (
+                  <div key={rev.id} className="py-3.5 first:pt-0 last:pb-0 space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {rev.user?.avatarUrl ? (
+                          <img
+                            src={rev.user.avatarUrl}
+                            alt={rev.user.name}
+                            className="w-8 h-8 rounded-full object-cover border border-[#E8DDD0]"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-[#B12B2B]/10 text-[#B12B2B] font-bold text-xs flex items-center justify-center shrink-0">
+                            {(rev.user?.name || 'U').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <span className="text-xs sm:text-sm font-bold text-[#2B2521] block truncate">
+                            {rev.user?.name || 'Member'}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <div className="flex items-center text-amber-500">
+                              {[1, 2, 3, 4, 5].map((s) => (
+                                <Star
+                                  key={s}
+                                  className={`w-3 h-3 ${s <= rev.rating ? 'fill-current' : 'text-gray-300'}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-[10px] text-[#5C5148]">
+                              {new Date(rev.updatedAt || rev.createdAt).toLocaleDateString('en-IN', {
+                                day: 'numeric',
+                                month: 'short',
+                                year: 'numeric',
+                              })}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {canDelete && (
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(rev.id)}
+                          title="Delete review"
+                          className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {rev.comment && (
+                      <p className="text-xs sm:text-sm text-[#5C5148] leading-relaxed pl-10 mb-0">
+                        {rev.comment}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

@@ -381,6 +381,8 @@ export const LearnCourse: React.FC = () => {
     course.instructor?.displayName || course.instructor?.name || 'JADMAA Master';
   const instructorTitle = course.instructor?.title || 'JADMAA Varmakalai Lineage';
   const instructorAvatar = course.instructor?.avatarUrl || course.instructor?.avatar;
+  const isFreeCourse =
+    Number(course.price || 0) === 0 || course.isFree === true || course.certificateEnabled === false;
   const watermarkIdentity = user
     ? `${user.name || 'Student'} • ${user.email || user.id}`
     : 'JADMAA Protected Stream';
@@ -583,9 +585,9 @@ export const LearnCourse: React.FC = () => {
                     <span>Previous</span>
                   </button>
 
-                  {progressPercent === 100 ? (
+                  {progressPercent === 100 && !isFreeCourse ? (
                     <Link
-                      to="/certificates"
+                      to="/student/certificates"
                       className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition min-h-[40px] shadow-2xs"
                     >
                       <Award className="w-4 h-4" />
@@ -797,9 +799,9 @@ export const LearnCourse: React.FC = () => {
           {activeIdx >= 0 ? activeIdx + 1 : 1} / {allLessons.length}
         </span>
 
-        {progressPercent === 100 ? (
+        {progressPercent === 100 && !isFreeCourse ? (
           <Link
-            to="/certificates"
+            to="/student/certificates"
             className="flex items-center justify-center gap-1.5 min-h-[44px] px-4 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-xs"
           >
             <Award className="w-4 h-4" />

@@ -21,7 +21,7 @@ export const MyCourses: React.FC = () => {
     }
     const fetchEnrollments = async () => {
       try {
-        const res = await progressApi.getMyEnrollments();
+        const res = await progressApi.getMyEnrollments(true);
         if (res.success && res.data) {
           setEnrolledList(res.data);
         }
@@ -32,6 +32,13 @@ export const MyCourses: React.FC = () => {
       }
     };
     fetchEnrollments();
+
+    // Re-fetch on window focus when user returns from the course player
+    const handleFocus = () => {
+      fetchEnrollments();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, [isLoggedIn, navigate]);
 
   const filteredCourses = useMemo(() => {
@@ -131,50 +138,94 @@ export const MyCourses: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredCourses.map((item) => {
                 const { course, progress, status } = item;
-                const isCompleted = status === 'COMPLETED';
-                
+                const isCompleted = status === 'COMPLETED' || progress === 100;
+                const isFreeCourse =
+                  Number(course.price || 0) === 0 ||
+                  course.isFree === true ||
+                  course.certificateEnabled === false;
+
                 return (
-                  <div key={course.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group">
+                  <div
+                    key={course.id}
+                    onClick={() => navigate(`/learn/${course.id}`)}
+                    className="bg-white border border-[#E8DDD0] rounded-2xl overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col group cursor-pointer"
+                  >
                     <div className="aspect-video bg-gray-100 overflow-hidden relative">
-                      <ResponsiveImage src={course.thumbnailUrl || '/images/course-basic.jpg'} alt={course.title} width={360} height={202} aspectRatio="16/9" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                      <ResponsiveImage
+                        src={course.thumbnailUrl || '/images/course-basic.jpg'}
+                        alt={course.title}
+                        width={360}
+                        height={202}
+                        aspectRatio="16/9"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
                       {isCompleted && (
-                        <div className="absolute top-2 right-2 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm flex items-center gap-1">
+                        <div className="absolute top-2 right-2 bg-emerald-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-xs flex items-center gap-1">
                           <CheckCircle className="w-3 h-3" />
-                          COMPLETED
+                          <span>COMPLETED</span>
+                        </div>
+                      )}
+                      {isFreeCourse && (
+                        <div className="absolute top-2 left-2 bg-[#2B2521]/80 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded shadow-xs">
+                          FREE COURSE
                         </div>
                       )}
                     </div>
+
                     <div className="p-5 flex flex-col flex-grow">
-                      <h3 className="font-heading font-bold text-lg text-gray-900 line-clamp-2 mb-1">{course.title}</h3>
+                      <h3 className="font-heading font-bold text-lg text-gray-900 line-clamp-2 mb-1 group-hover:text-[#B12B2B] transition-colors">
+                        {course.title}
+                      </h3>
                       <p className="text-xs text-gray-500 mb-4">{course.instructor?.displayName || 'JADMAA Master'}</p>
-                      
+
                       <div className="mt-auto space-y-4">
                         <div className="space-y-1.5">
                           <div className="flex justify-between text-xs font-semibold">
                             <span className="text-gray-600">{progress}% completed</span>
                           </div>
                           <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                            <div className={`h-1.5 rounded-full animate-progress-fill ${isCompleted ? 'bg-green-500' : 'bg-jadmaa-red'}`} style={{ width: `${progress}%` }}></div>
+                            <div
+                              className={`h-1.5 rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-[#B12B2B]'}`}
+                              style={{ width: `${progress}%` }}
+                            />
                           </div>
                         </div>
-                        
-                        {isCompleted ? (
-                           <Link
-                             to="/certificates"
-                             className="w-full inline-flex items-center justify-center gap-2 py-2.5 border border-gray-300 hover:border-gray-400 text-gray-700 text-sm font-semibold rounded-lg transition-colors"
-                           >
-                             <Award className="w-4 h-4" />
-                             <span>View Certificate</span>
-                           </Link>
-                        ) : (
-                          <Link
-                            to={`/learn/${course.id}`}
-                            className="w-full inline-flex items-center justify-center gap-2 py-2.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold rounded-lg transition-colors"
+
+                        {/* Action buttons: Primary enters course, secondary opens certificate for paid courses */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/learn/${course.id}`);
+                            }}
+                            className="flex-1 inline-flex items-center justify-center gap-2 py-2.5 bg-gray-900 hover:bg-[#B12B2B] text-white text-xs sm:text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs"
                           >
                             <PlayCircle className="w-4 h-4" />
-                            <span>{progress === 0 ? 'Start Course' : 'Continue Learning'}</span>
-                          </Link>
-                        )}
+                            <span>
+                              {progress === 0
+                                ? 'Start Course'
+                                : isCompleted
+                                ? 'Review Course'
+                                : 'Continue Learning'}
+                            </span>
+                          </button>
+
+                          {!isFreeCourse && isCompleted && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/student/certificates');
+                              }}
+                              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 border border-emerald-600 hover:bg-emerald-50 text-emerald-700 text-xs sm:text-sm font-semibold rounded-xl transition-colors cursor-pointer shadow-2xs shrink-0"
+                              title="View Certificate"
+                            >
+                              <Award className="w-4 h-4" />
+                              <span className="hidden xs:inline">Certificate</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

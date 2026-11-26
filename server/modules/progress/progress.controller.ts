@@ -43,6 +43,9 @@ export const getMyEnrollments = async (req: Request, res: Response) => {
               category: true,
               level: true,
               duration: true,
+              price: true,
+              isFree: true,
+              certificateEnabled: true,
               instructor: { select: { displayName: true, avatarUrl: true } },
               modules: {
                 select: {
@@ -72,10 +75,14 @@ export const getMyEnrollments = async (req: Request, res: Response) => {
         totalLessons += m._count?.lessons || 0;
       });
       const progressCount = completedCountMap.get(e.courseId) || 0;
-      const percentage = totalLessons > 0 ? Math.round((progressCount / totalLessons) * 100) : 0;
+      let percentage = totalLessons > 0 ? Math.round((progressCount / totalLessons) * 100) : 0;
+      if (e.status === 'COMPLETED' || (totalLessons > 0 && progressCount >= totalLessons)) {
+        percentage = 100;
+      }
       
       return {
         ...e,
+        status: percentage === 100 ? 'COMPLETED' : e.status,
         course: e.course,
         progress: percentage
       };
@@ -306,6 +313,9 @@ export const getDashboard = async (req: Request, res: Response) => {
               title: true,
               thumbnailUrl: true,
               slug: true,
+              price: true,
+              isFree: true,
+              certificateEnabled: true,
               instructor: { select: { displayName: true } },
               modules: {
                 select: {
@@ -351,9 +361,13 @@ export const getDashboard = async (req: Request, res: Response) => {
       let totalLessons = 0;
       e.course?.modules?.forEach((m: any) => totalLessons += (m._count?.lessons || 0));
       const progressCount = completedCountMap.get(e.courseId) || 0;
-      const percentage = totalLessons > 0 ? Math.round((progressCount / totalLessons) * 100) : 0;
+      let percentage = totalLessons > 0 ? Math.round((progressCount / totalLessons) * 100) : 0;
+      if (e.status === 'COMPLETED' || (totalLessons > 0 && progressCount >= totalLessons)) {
+        percentage = 100;
+      }
       
-      if (e.status === 'COMPLETED') completedCourses++;
+      const currentStatus = percentage === 100 ? 'COMPLETED' : e.status;
+      if (currentStatus === 'COMPLETED') completedCourses++;
       totalProgressSum += percentage;
 
       const formatted = {
@@ -362,7 +376,10 @@ export const getDashboard = async (req: Request, res: Response) => {
         thumbnail: e.course.thumbnailUrl,
         instructor: e.course.instructor.displayName,
         progress: percentage,
-        status: e.status,
+        status: currentStatus,
+        price: e.course.price,
+        isFree: e.course.isFree,
+        certificateEnabled: e.course.certificateEnabled,
         enrolledAt: e.enrolledAt,
         completedAt: e.completedAt,
         slug: e.course.slug

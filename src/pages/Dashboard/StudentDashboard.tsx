@@ -186,28 +186,63 @@ export const StudentDashboard: React.FC = () => {
                     </Link>
                   </div>
                   <div className="space-y-3">
-                    {recentCourses.map((c: any) => (
-                      <div key={c.id} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex items-center gap-4 hover:border-gray-300 transition group">
-                        <div className="w-20 h-16 rounded overflow-hidden flex-shrink-0 bg-gray-100 hidden sm:block">
-                          <ResponsiveImage src={c.thumbnail || '/images/course-basic.jpg'} alt={c.title} width={80} height={64} aspectRatio="5/4" className="w-full h-full object-cover" />
-                        </div>
-                        <div className="flex-grow min-w-0">
-                          <h4 className="font-bold text-gray-900 text-sm truncate">{c.title}</h4>
-                          <div className="flex items-center gap-3 mt-1.5">
-                            <div className="flex-grow bg-gray-100 rounded-full h-1.5 max-w-[120px]">
-                              <div className={`h-1.5 rounded-full ${c.status === 'COMPLETED' ? 'bg-green-500' : 'bg-jadmaa-red'}`} style={{ width: `${c.progress}%` }}></div>
+                    {recentCourses.map((c: any) => {
+                      const isFreeCourse =
+                        Number(c.price || 0) === 0 || c.isFree === true || c.certificateEnabled === false;
+                      const isCompleted = c.status === 'COMPLETED' || c.progress === 100;
+
+                      return (
+                        <div
+                          key={c.id}
+                          onClick={() => navigate(`/learn/${c.id}`)}
+                          className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs flex items-center gap-4 hover:border-gray-300 transition group cursor-pointer"
+                        >
+                          <div className="w-20 h-16 rounded overflow-hidden shrink-0 bg-gray-100 hidden sm:block">
+                            <ResponsiveImage
+                              src={c.thumbnail || '/images/course-basic.jpg'}
+                              alt={c.title}
+                              width={80}
+                              height={64}
+                              aspectRatio="5/4"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </div>
+                          <div className="grow min-w-0">
+                            <h4 className="font-bold text-gray-900 text-sm truncate group-hover:text-[#B12B2B] transition-colors">
+                              {c.title}
+                            </h4>
+                            <div className="flex items-center gap-3 mt-1.5">
+                              <div className="grow bg-gray-100 rounded-full h-1.5 max-w-[120px]">
+                                <div
+                                  className={`h-1.5 rounded-full ${isCompleted ? 'bg-emerald-500' : 'bg-[#B12B2B]'}`}
+                                  style={{ width: `${c.progress}%` }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-500 font-medium">{c.progress}%</span>
                             </div>
-                            <span className="text-xs text-gray-500 font-medium">{c.progress}%</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Link
+                              to={`/learn/${c.id}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="px-3.5 py-1.5 bg-gray-900 hover:bg-[#B12B2B] text-white text-xs font-semibold rounded-lg transition whitespace-nowrap shadow-2xs"
+                            >
+                              {isCompleted ? 'Review' : c.progress === 0 ? 'Start' : 'Continue'}
+                            </Link>
+                            {!isFreeCourse && isCompleted && (
+                              <Link
+                                to="/student/certificates"
+                                onClick={(e) => e.stopPropagation()}
+                                className="px-3 py-1.5 border border-emerald-600 hover:bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-lg transition whitespace-nowrap"
+                                title="View Certificate"
+                              >
+                                Certificate
+                              </Link>
+                            )}
                           </div>
                         </div>
-                        <Link 
-                          to={c.status === 'COMPLETED' ? `/certificates` : `/learn/${c.id}`}
-                          className="px-4 py-2 border border-gray-200 group-hover:border-gray-300 text-gray-700 text-xs font-semibold rounded transition whitespace-nowrap"
-                        >
-                          {c.status === 'COMPLETED' ? 'Certificate' : c.progress === 0 ? 'Start' : 'Continue'}
-                        </Link>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
