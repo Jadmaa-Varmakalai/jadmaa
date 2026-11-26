@@ -20,7 +20,6 @@ import {
   Lock,
   CheckCircle2,
   ArrowRight,
-  Sparkles,
 } from 'lucide-react';
 import { extractYouTubeVideoId, isYouTubeShort } from '../../utils/youtube';
 
@@ -118,7 +117,27 @@ export const JadmaaVideoPlayer = forwardRef<
 
   // Clean 11-char ID
   const cleanId = extractYouTubeVideoId(rawVideoId) || rawVideoId;
-  const isShortDetected = explicitIsShort ?? (isYouTubeShort(rawVideoId) || false);
+  const [oembedIsShort, setOembedIsShort] = useState(false);
+  const isShortDetected = Boolean(explicitIsShort || isYouTubeShort(rawVideoId) || oembedIsShort);
+
+  // Detect YouTube Shorts stored as raw 11-char IDs via oEmbed dimensions
+  useEffect(() => {
+    setOembedIsShort(false);
+    if (!cleanId || explicitIsShort || isYouTubeShort(rawVideoId)) return;
+    let active = true;
+    fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${encodeURIComponent(cleanId)}&format=json`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!active || !data) return;
+        if (data.width && data.height && data.height / data.width > 0.65) {
+          setOembedIsShort(true);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [cleanId, explicitIsShort, rawVideoId]);
 
   const [isReady, setIsReady] = useState(false);
   const [facadeState, setFacadeState] = useState<FacadeState>('initial');
@@ -491,9 +510,13 @@ export const JadmaaVideoPlayer = forwardRef<
       {/* Top Banner Mask */}
       <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black via-black/90 to-transparent z-10 pointer-events-none" />
 
-      {/* Side Masks for vertical short letterbox margins */}
-      <div className="absolute inset-y-0 left-0 w-[24%] bg-black z-10 pointer-events-none" />
-      <div className="absolute inset-y-0 right-0 w-[24%] bg-black z-10 pointer-events-none" />
+      {/* Side Masks for vertical short letterbox margins (hides Shorts UI without cropping 16:9 videos) */}
+      {isShortDetected && (
+        <>
+          <div className="absolute inset-y-0 left-0 w-[24%] bg-black z-10 pointer-events-none" />
+          <div className="absolute inset-y-0 right-0 w-[24%] bg-black z-10 pointer-events-none" />
+        </>
+      )}
 
       {/* Bottom Gradient Mask behind controls */}
       <div className="absolute bottom-0 inset-x-0 h-16 bg-gradient-to-t from-black via-black/90 to-transparent z-10 pointer-events-none" />

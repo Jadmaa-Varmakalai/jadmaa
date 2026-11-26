@@ -2,6 +2,15 @@ import { fetchApi } from './apiClient';
 
 export type ReviewTargetType = 'COURSE' | 'PRODUCT' | 'BLOG';
 
+export interface Testimonial {
+  id: string;
+  name: string;
+  role: string;
+  content: string;
+  rating: number;
+  avatar: string;
+}
+
 export interface ItemReview {
   id: string;
   targetType: ReviewTargetType;
@@ -39,6 +48,16 @@ export interface BlogCommentItem {
 }
 
 export const reviewsApi = {
+  getReviews: async (): Promise<Testimonial[]> => {
+    try {
+      const response = await fetchApi<{ success: boolean; data: Testimonial[] }>('/reviews');
+      return response.data || [];
+    } catch (error) {
+      console.error('Failed to fetch reviews:', error);
+      return [];
+    }
+  },
+
   getItemReviews: async (targetType: ReviewTargetType, targetId: string) => {
     return fetchApi<{ success: boolean; data: ItemReviewsResponse }>(
       `/reviews/item/${targetType}/${encodeURIComponent(targetId)}`

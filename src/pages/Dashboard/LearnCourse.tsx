@@ -3,14 +3,12 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { SEO } from '../../components/common/SEO';
 import {
   ChevronLeft,
-  PlayCircle,
   CheckCircle2,
   Award,
   ArrowLeft,
   ArrowRight,
   Star,
   Users,
-  Clock,
   ShieldCheck,
   ChevronDown,
   ChevronUp,
@@ -27,7 +25,7 @@ import {
 } from '../../components/courses/CustomCourseVideoPlayer';
 import { CurriculumAccordion } from '../../components/courses/CurriculumAccordion';
 import { ItemReviewsSection } from '../../components/common/ItemReviewsSection';
-import { extractYouTubeVideoId } from '../../utils/youtube';
+import { extractYouTubeVideoId, isYouTubeShort } from '../../utils/youtube';
 import { parseTimeToSeconds } from '../../utils/curriculum';
 
 export const LearnCourse: React.FC = () => {
@@ -286,9 +284,7 @@ export const LearnCourse: React.FC = () => {
   const activeModuleTitle = activeEntry?.moduleTitle || '';
   const rawLessonVideo = activeLesson?.youtubeVideoId || activeLesson?.videoUrl || '';
   const cleanVideoId = extractYouTubeVideoId(rawLessonVideo) || rawLessonVideo || '';
-  const isShortVideo =
-    isYouTubeShort(rawLessonVideo) ||
-    Boolean(actualDurations[activeLesson?.id] && actualDurations[activeLesson?.id] <= 60);
+  const isShortVideo = isYouTubeShort(rawLessonVideo);
 
   // Auto-complete text-only lessons (no video) after 3 seconds
   useEffect(() => {
