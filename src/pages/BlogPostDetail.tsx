@@ -4,6 +4,8 @@ import { SEO, buildArticleSchema } from '../components/common/SEO';
 import { BlogCard } from '../components/common/BlogCard';
 import { BlogCoverTemplate } from '../components/common/BlogCoverTemplate';
 import { ShareButton } from '../components/common/ShareButton';
+import { ItemReviewsSection } from '../components/common/ItemReviewsSection';
+import { BlogCommentsSection } from '../components/blog/BlogCommentsSection';
 import { getOptimizedBlogThumbnail } from '../utils/imageUtils';
 import { blogApi, cleanSlug } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
@@ -318,6 +320,16 @@ export const BlogPostDetail: React.FC = () => {
                 )}
               </nav>
             )}
+
+            {/* Reader Ratings & Comments */}
+            <div className="mt-12 space-y-6">
+              <ItemReviewsSection
+                targetType="BLOG"
+                targetId={blog.id}
+                title="Article Rating & Feedback"
+              />
+              <BlogCommentsSection blogPostId={blog.id} />
+            </div>
           </main>
         </div>
       </div>

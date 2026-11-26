@@ -4,6 +4,7 @@ import { SEO } from '../../components/common/SEO';
 import { ResponsiveImage } from '../../components/common/ResponsiveImage';
 import { ShareButton } from '../../components/common/ShareButton';
 import { ProductCard } from '../../components/common/ProductCard';
+import { ItemReviewsSection } from '../../components/common/ItemReviewsSection';
 import { productApi } from '../../lib/api/productApi';
 import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
@@ -739,6 +740,15 @@ export const ProductDetails: React.FC = () => {
                   </div>
                 </div>
               </div>
+            </section>
+
+            {/* Section 4: Customer Ratings & Reviews */}
+            <section id="reviews" className="scroll-mt-36">
+              <ItemReviewsSection
+                targetType="PRODUCT"
+                targetId={product.id}
+                title="Customer Ratings & Reviews"
+              />
             </section>
           </div>
         </div>

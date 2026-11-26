@@ -37,7 +37,9 @@ interface CustomCourseVideoPlayerProps {
   videoId: string;
   title: string;
   watermarkText?: string;
+  onDurationLoaded?: (durationSeconds: number) => void;
   onWatchProgress?: (currentTime: number, duration: number) => void;
+  onVideoPaused?: (currentTime: number, duration: number) => void;
   onVideoEnded?: () => void;
 }
 
@@ -88,7 +90,7 @@ const WATERMARK_POSITIONS = [
 export const CustomCourseVideoPlayer = forwardRef<
   CustomVideoPlayerHandle,
   CustomCourseVideoPlayerProps
->(({ videoId, title, watermarkText = 'JADMAA Protected', onWatchProgress, onVideoEnded }, ref) => {
+>(({ videoId, title, watermarkText = 'JADMAA Protected', onDurationLoaded, onWatchProgress, onVideoPaused, onVideoEnded }, ref) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const playerMountRef = useRef<HTMLDivElement>(null);
   const ytPlayerRef = useRef<any>(null);
@@ -234,6 +236,7 @@ export const CustomCourseVideoPlayer = forwardRef<
             setIsReady(true);
             const dur = event.target.getDuration?.() || 0;
             setDuration(dur);
+            if (dur > 0) onDurationLoaded?.(Math.round(dur));
             setCurrentTime(0);
             setIsPlaying(false);
           },
@@ -244,9 +247,15 @@ export const CustomCourseVideoPlayer = forwardRef<
             if (state === 1) {
               setIsPlaying(true);
               const dur = event.target.getDuration?.() || 0;
-              if (dur > 0) setDuration(dur);
+              if (dur > 0) {
+                setDuration(dur);
+                onDurationLoaded?.(Math.round(dur));
+              }
             } else if (state === 2) {
               setIsPlaying(false);
+              const cur = event.target.getCurrentTime?.() || 0;
+              const dur = event.target.getDuration?.() || duration || 0;
+              onVideoPaused?.(cur, dur);
             } else if (state === 0) {
               setIsPlaying(false);
               setShowControls(true);

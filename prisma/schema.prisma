@@ -35,6 +35,8 @@ model User {
   sessions            UserSession[]
   orders              Order[]
   offerBookings       OfferBooking[]
+  itemReviews         ItemReview[]
+  blogComments        BlogComment[]
 }
 
 model Instructor {
@@ -225,7 +227,8 @@ model BlogPost {
   published    Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  author       User     @relation(fields: [authorId], references: [id])
+  author       User          @relation(fields: [authorId], references: [id])
+  comments     BlogComment[]
 
   @@index([authorId])
 }
@@ -644,4 +647,40 @@ model OfferBooking {
   @@index([courseId])
   @@index([userId])
   @@index([status])
+}
+
+enum ReviewTargetType {
+  COURSE
+  PRODUCT
+  BLOG
+}
+
+model ItemReview {
+  id         String           @id @default(uuid())
+  targetType ReviewTargetType
+  targetId   String
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String?          @db.Text
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@index([userId])
+}
+
+model BlogComment {
+  id         String   @id @default(uuid())
+  blogPostId String
+  blogPost   BlogPost @relation(fields: [blogPostId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content    String   @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([blogPostId])
+  @@index([userId])
 }

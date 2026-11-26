@@ -16,6 +16,9 @@ import {
   ChevronUp,
   ListVideo,
   Bookmark,
+  LayoutDashboard,
+  BookOpen,
+  LogOut,
 } from 'lucide-react';
 import { courseApi } from '../../lib/api/courseApi';
 import { progressApi } from '../../lib/api/progressApi';
@@ -24,6 +27,7 @@ import {
   CustomCourseVideoPlayer,
   type CustomVideoPlayerHandle,
 } from '../../components/courses/CustomCourseVideoPlayer';
+import { ItemReviewsSection } from '../../components/common/ItemReviewsSection';
 import { extractYouTubeVideoId } from '../../utils/youtube';
 
 interface TimestampItem {
@@ -31,6 +35,17 @@ interface TimestampItem {
   timeLabel: string;
   label: string;
 }
+
+const formatDurationLabel = (seconds?: number, fallbackStr?: string): string => {
+  if (seconds && seconds > 0) {
+    const rounded = Math.round(seconds);
+    if (rounded < 60) return `${rounded} sec`;
+    const mins = Math.floor(rounded / 60);
+    const secs = rounded % 60;
+    return secs > 0 ? `${mins} min ${secs} sec` : `${mins} min`;
+  }
+  return fallbackStr || '';
+};
 
 const parseTimeToSeconds = (timeStr: string): number => {
   const parts = timeStr.split(':').map((n) => parseInt(n, 10));
@@ -86,10 +101,11 @@ const parseTimestamps = (text?: string, chapters?: any[]): TimestampItem[] => {
 
 export const LearnCourse: React.FC = () => {
   const { courseId } = useParams();
-  const { user, isLoggedIn, loading: authLoading } = useAuth();
+  const { user, isLoggedIn, loading: authLoading, logout } = useAuth();
   const navigate = useNavigate();
 
   const playerRef = useRef<CustomVideoPlayerHandle>(null);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
   const completedRef = useRef<Record<string, boolean>>({});
   const markingRef = useRef<Record<string, boolean>>({});
   const lastSavedSecRef = useRef<Record<string, number>>({});
@@ -97,17 +113,34 @@ export const LearnCourse: React.FC = () => {
   const [course, setCourse] = useState<any>(null);
   const [activeLessonId, setActiveLessonId] = useState<string>('');
   const [completedLessons, setCompletedLessons] = useState<Record<string, boolean>>({});
-  const [progressPercent, setProgressPercent] = useState<number>(0);
+  const [lessonWatchRatios, setLessonWatchRatios] = useState<Record<string, number>>({});
+  const [actualDurations, setActualDurations] = useState<Record<string, number>>({});
+  const [currentPlaybackTime, setCurrentPlaybackTime] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   const [sidebarTab, setSidebarTab] = useState<'lessons' | 'timestamps'>('lessons');
   const [mobileSectionTab, setMobileSectionTab] = useState<'curriculum' | 'overview'>('curriculum');
   const [descExpanded, setDescExpanded] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [ratingStats, setRatingStats] = useState<{ averageRating: number; totalRatings: number }>({
+    averageRating: 0,
+    totalRatings: 0,
+  });
 
-  // Keep completedRef synced for async callbacks
   useEffect(() => {
     completedRef.current = completedLessons;
   }, [completedLessons]);
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -119,9 +152,21 @@ export const LearnCourse: React.FC = () => {
       try {
         if (!courseId) return;
 
-        // Always fetch fresh data so students see the latest video URLs
         const courseData = await courseApi.getCourseForPlayer(courseId);
         setCourse(courseData);
+        setRatingStats({
+          averageRating: courseData.rating || 0,
+          totalRatings: courseData.reviewCount || 0,
+        });
+
+        // Build duration lookup from DB
+        const dbDurations: Record<string, number> = {};
+        (courseData.modules || []).forEach((m: any) => {
+          (m.lessons || []).forEach((l: any) => {
+            if (l.durationSeconds > 0) dbDurations[l.id] = l.durationSeconds;
+          });
+        });
+        setActualDurations(dbDurations);
 
         let completedIds: string[] = [];
         try {
@@ -134,7 +179,18 @@ export const LearnCourse: React.FC = () => {
             });
             setCompletedLessons(completedMap);
             completedRef.current = completedMap;
-            setProgressPercent(progRes.data.percentage || 0);
+
+            // Hydrate partial watch ratios for in-progress lessons
+            const ratios: Record<string, number> = {};
+            const lpList = progRes.data.lessonProgress || [];
+            lpList.forEach((lp: any) => {
+              if (lp.completed) {
+                ratios[lp.lessonId] = 1;
+              } else if (lp.watchedSeconds > 0 && dbDurations[lp.lessonId] > 0) {
+                ratios[lp.lessonId] = Math.min(0.99, lp.watchedSeconds / dbDurations[lp.lessonId]);
+              }
+            });
+            setLessonWatchRatios(ratios);
           }
         } catch (progErr) {
           console.error('Progress load error:', progErr);
@@ -164,7 +220,11 @@ export const LearnCourse: React.FC = () => {
     fetchData();
   }, [courseId, isLoggedIn, navigate, authLoading]);
 
-  // Automatic completion & progress tracker
+  // Reset playback time indicator when switching lessons
+  useEffect(() => {
+    setCurrentPlaybackTime(0);
+  }, [activeLessonId]);
+
   const syncLessonCompletion = useCallback(
     async (lessonId: string, watchedSeconds: number, markComplete: boolean) => {
       if (!lessonId || !course) return;
@@ -182,28 +242,15 @@ export const LearnCourse: React.FC = () => {
           const updatedMap = { ...completedRef.current, [lessonId]: true };
           completedRef.current = updatedMap;
           setCompletedLessons(updatedMap);
+          setLessonWatchRatios((prev) => ({ ...prev, [lessonId]: 1 }));
           progressApi.clearCache();
-
-          const progRes = await progressApi.getCourseProgress(course.id);
-          if (progRes.success && progRes.data) {
-            setProgressPercent(progRes.data.percentage);
-          }
         }
       } catch (err) {
-        // Handle non-enrolled admin/instructor preview gracefully in UI state
         if (markComplete) {
           const updatedMap = { ...completedRef.current, [lessonId]: true };
           completedRef.current = updatedMap;
           setCompletedLessons(updatedMap);
-          let total = 0;
-          let done = 0;
-          course.modules?.forEach((m: any) => {
-            m.lessons?.forEach((l: any) => {
-              total += 1;
-              if (updatedMap[l.id]) done += 1;
-            });
-          });
-          if (total > 0) setProgressPercent(Math.round((done / total) * 100));
+          setLessonWatchRatios((prev) => ({ ...prev, [lessonId]: 1 }));
         }
       } finally {
         if (markComplete) {
@@ -214,20 +261,38 @@ export const LearnCourse: React.FC = () => {
     [course]
   );
 
+  const handleDurationLoaded = useCallback(
+    (durSeconds: number) => {
+      if (!activeLessonId || durSeconds <= 0) return;
+      setActualDurations((prev) =>
+        prev[activeLessonId] === durSeconds ? prev : { ...prev, [activeLessonId]: durSeconds }
+      );
+    },
+    [activeLessonId]
+  );
+
   const handleWatchProgress = useCallback(
     (currentTime: number, duration: number) => {
       if (!activeLessonId) return;
-      const prevSaved = lastSavedSecRef.current[activeLessonId] || 0;
+      setCurrentPlaybackTime(currentTime);
 
-      // Auto-complete once student watches >= 85% of the video
-      if (duration > 0 && currentTime / duration >= 0.85 && !completedRef.current[activeLessonId]) {
-        lastSavedSecRef.current[activeLessonId] = currentTime;
-        syncLessonCompletion(activeLessonId, currentTime, true);
-        return;
+      if (duration > 0) {
+        const ratio = Math.min(1, currentTime / duration);
+        setLessonWatchRatios((prev) => {
+          if (completedRef.current[activeLessonId]) return { ...prev, [activeLessonId]: 1 };
+          return { ...prev, [activeLessonId]: Math.max(prev[activeLessonId] || 0, ratio) };
+        });
+
+        // Auto-complete at >= 90% watched
+        if (ratio >= 0.9 && !completedRef.current[activeLessonId]) {
+          lastSavedSecRef.current[activeLessonId] = currentTime;
+          syncLessonCompletion(activeLessonId, currentTime, true);
+          return;
+        }
       }
 
-      // Periodically save watch position every 15 seconds
-      if (Math.abs(currentTime - prevSaved) >= 15) {
+      const prevSaved = lastSavedSecRef.current[activeLessonId] || 0;
+      if (Math.abs(currentTime - prevSaved) >= 5) {
         lastSavedSecRef.current[activeLessonId] = currentTime;
         syncLessonCompletion(activeLessonId, currentTime, false);
       }
@@ -235,14 +300,24 @@ export const LearnCourse: React.FC = () => {
     [activeLessonId, syncLessonCompletion]
   );
 
+  const handleVideoPaused = useCallback(
+    (currentTime: number, duration: number) => {
+      if (!activeLessonId) return;
+      lastSavedSecRef.current[activeLessonId] = currentTime;
+      const shouldComplete = duration > 0 && currentTime / duration >= 0.9;
+      syncLessonCompletion(activeLessonId, currentTime, shouldComplete);
+    },
+    [activeLessonId, syncLessonCompletion]
+  );
+
   const handleVideoEnded = useCallback(() => {
     if (!activeLessonId) return;
     if (!completedRef.current[activeLessonId]) {
-      syncLessonCompletion(activeLessonId, lastSavedSecRef.current[activeLessonId] || 0, true);
+      const dur = actualDurations[activeLessonId] || lastSavedSecRef.current[activeLessonId] || 0;
+      syncLessonCompletion(activeLessonId, dur, true);
     }
-  }, [activeLessonId, syncLessonCompletion]);
+  }, [activeLessonId, actualDurations, syncLessonCompletion]);
 
-  // Flatten lessons for index lookup and prev/next navigation
   const allLessons = useMemo(() => {
     const list: Array<{ lesson: any; moduleTitle: string; moduleIndex: number; globalIndex: number }> = [];
     if (!course?.modules) return list;
@@ -256,6 +331,21 @@ export const LearnCourse: React.FC = () => {
     return list;
   }, [course]);
 
+  // Real-time progress calculation across all lessons
+  const progressPercent = useMemo(() => {
+    if (allLessons.length === 0) return 0;
+    let totalRatio = 0;
+    for (const item of allLessons) {
+      const id = item.lesson.id;
+      if (completedLessons[id]) {
+        totalRatio += 1;
+      } else {
+        totalRatio += Math.min(0.99, lessonWatchRatios[id] || 0);
+      }
+    }
+    return Math.min(100, Math.round((totalRatio / allLessons.length) * 100));
+  }, [allLessons, completedLessons, lessonWatchRatios]);
+
   const activeEntry = useMemo(
     () => allLessons.find((item) => item.lesson.id === activeLessonId) || allLessons[0],
     [allLessons, activeLessonId]
@@ -267,7 +357,7 @@ export const LearnCourse: React.FC = () => {
   const activeVideoUrl = activeLesson?.videoUrl || '';
   const cleanVideoId = extractYouTubeVideoId(activeVideoUrl) || '';
 
-  // Auto-complete text-only lessons (no video) after 3 seconds of viewing
+  // Auto-complete text-only lessons (no video) after 3 seconds
   useEffect(() => {
     if (!activeLessonId || cleanVideoId || completedRef.current[activeLessonId]) return;
     const timer = window.setTimeout(() => {
@@ -290,11 +380,21 @@ export const LearnCourse: React.FC = () => {
     [activeLesson, course?.description]
   );
 
+  const activeTimestampSeconds = useMemo(() => {
+    let activeSec = -1;
+    for (const ts of lessonTimestamps) {
+      if (ts.seconds <= currentPlaybackTime + 0.5) {
+        activeSec = ts.seconds;
+      }
+    }
+    return activeSec;
+  }, [lessonTimestamps, currentPlaybackTime]);
+
   const handleSeekTimestamp = (seconds: number) => {
+    setCurrentPlaybackTime(seconds);
     playerRef.current?.seekTo(seconds);
   };
 
-  // Render description with clickable timestamps
   const renderDescriptionWithTimestamps = (text: string) => {
     const regex = /(\b(?:\d{1,2}:)?\d{1,2}:\d{2}\b)/g;
     const parts = text.split(regex);
@@ -314,6 +414,19 @@ export const LearnCourse: React.FC = () => {
       }
       return <React.Fragment key={idx}>{part}</React.Fragment>;
     });
+  };
+
+  const getDashboardRoute = () => {
+    if (!user) return '/login';
+    if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') return '/admin#dashboard';
+    if (user.role === 'INSTRUCTOR') return '/instructor';
+    return '/student#dashboard';
+  };
+
+  const handleLogout = async () => {
+    setProfileMenuOpen(false);
+    await logout();
+    navigate('/');
   };
 
   if (loading) {
@@ -342,8 +455,6 @@ export const LearnCourse: React.FC = () => {
     course.instructor?.displayName || course.instructor?.name || 'JADMAA Master';
   const instructorTitle = course.instructor?.title || 'JADMAA Varmakalai Lineage';
   const instructorAvatar = course.instructor?.avatarUrl || course.instructor?.avatar;
-  const ratingValue = course.rating || 4.9;
-  const reviewCount = course.reviewCount || 120;
   const watermarkIdentity = user
     ? `${user.name || 'Student'} • ${user.email || user.id}`
     : 'JADMAA Protected Stream';
@@ -364,8 +475,8 @@ export const LearnCourse: React.FC = () => {
       {/* Print / PDF Save Blocker */}
       <style>{`@media print { body { display: none !important; } }`}</style>
 
-      {/* ── Top Slim Learning Bar ── */}
-      <header className="bg-white border-b border-[#E8DDD0] py-2.5 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-2xs h-[52px]">
+      {/* ── Top Slim Learning Bar with Profile Icon & Menu ── */}
+      <header className="bg-white border-b border-[#E8DDD0] py-2 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-2xs h-[52px]">
         <div className="flex items-center gap-3 min-w-0">
           <Link
             to="/my-courses"
@@ -375,26 +486,90 @@ export const LearnCourse: React.FC = () => {
             <span className="hidden sm:inline">My Courses</span>
           </Link>
           <div className="h-4 w-px bg-[#E8DDD0] hidden sm:block shrink-0" />
-          <h1 className="font-bold text-[#2B2521] text-xs sm:text-sm md:text-base truncate max-w-[180px] sm:max-w-md">
+          <h1 className="font-bold text-[#2B2521] text-xs sm:text-sm md:text-base truncate max-w-[150px] sm:max-w-md">
             {course.title}
           </h1>
         </div>
 
-        <div className="flex items-center gap-2.5 text-xs sm:text-sm font-semibold shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3.5 text-xs sm:text-sm font-semibold shrink-0">
           <span className="hidden md:inline-flex items-center gap-1 text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
             <ShieldCheck className="w-3.5 h-3.5" />
             <span>Protected</span>
           </span>
-          <span className="hidden sm:inline text-[#5C5148]">Progress:</span>
+
           <div className="flex items-center gap-2">
-            <div className="w-16 sm:w-24 bg-[#E8DDD0] rounded-full h-2 overflow-hidden">
+            <span className="hidden sm:inline text-[#5C5148]">Progress:</span>
+            <div className="w-14 sm:w-24 bg-[#E8DDD0] rounded-full h-2 overflow-hidden">
               <div
-                className="bg-[#B12B2B] h-2 rounded-full transition-all duration-500"
+                className="bg-[#B12B2B] h-2 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
             <span className="text-[#2B2521] font-bold tabular-nums">{progressPercent}%</span>
           </div>
+
+          {/* User Profile Icon & Dropdown Menu */}
+          {user && (
+            <div ref={profileMenuRef} className="relative">
+              <button
+                type="button"
+                onClick={() => setProfileMenuOpen((o) => !o)}
+                aria-label="User menu"
+                className="flex items-center gap-1.5 p-1 rounded-full hover:bg-[#FAF6F0] border border-transparent hover:border-[#E8DDD0] transition cursor-pointer"
+              >
+                {user.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.name || 'Profile'}
+                    className="w-8 h-8 rounded-full object-cover border border-[#E8DDD0]"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-[#B12B2B] text-white font-bold text-xs flex items-center justify-center">
+                    {(user.name || user.email || 'U').charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <ChevronDown className="w-3.5 h-3.5 text-[#5C5148] hidden sm:block" />
+              </button>
+
+              {profileMenuOpen && (
+                <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-[#E8DDD0] shadow-xl py-1.5 z-50">
+                  <div className="px-3.5 py-2.5 border-b border-[#E8DDD0]/70">
+                    <p className="text-xs font-bold text-[#2B2521] truncate mb-0">
+                      {user.name || 'Student'}
+                    </p>
+                    <p className="text-[11px] text-[#5C5148] truncate mb-0">{user.email}</p>
+                  </div>
+
+                  <Link
+                    to={getDashboardRoute()}
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#2B2521] hover:bg-[#FAF6F0] hover:text-[#B12B2B] transition"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>My Profile / Dashboard</span>
+                  </Link>
+
+                  <Link
+                    to="/my-courses"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-[#2B2521] hover:bg-[#FAF6F0] hover:text-[#B12B2B] transition"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                    <span>My Courses</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-red-700 hover:bg-red-50 transition text-left cursor-pointer border-t border-[#E8DDD0]/70 mt-1 pt-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -412,7 +587,9 @@ export const LearnCourse: React.FC = () => {
                 videoId={cleanVideoId}
                 title={activeLessonTitle}
                 watermarkText={watermarkIdentity}
+                onDurationLoaded={handleDurationLoaded}
                 onWatchProgress={handleWatchProgress}
+                onVideoPaused={handleVideoPaused}
                 onVideoEnded={handleVideoEnded}
               />
             </div>
@@ -428,7 +605,7 @@ export const LearnCourse: React.FC = () => {
                     : 'bg-[#FAF6F0] text-[#5C5148]'
                 }`}
               >
-                Curriculum & Timestamps
+                Curriculum &amp; Timestamps
               </button>
               <button
                 type="button"
@@ -439,19 +616,19 @@ export const LearnCourse: React.FC = () => {
                     : 'bg-[#FAF6F0] text-[#5C5148]'
                 }`}
               >
-                Overview, Ratings & Instructor
+                Overview, Ratings &amp; Instructor
               </button>
             </div>
 
-            {/* Below-Player Info (Always visible on Desktop/Landscape; Tabbed on Portrait/Mobile) */}
+            {/* Below-Player Info */}
             <div
-              className={`px-4 sm:px-0 pt-4 space-y-3 ${
+              className={`px-4 sm:px-0 pt-4 space-y-4 ${
                 mobileSectionTab === 'overview'
                   ? 'block'
                   : 'hidden lg:block [@media(min-width:768px)_and_(orientation:landscape)]:block'
               }`}
             >
-              {/* 1. Lesson Title & Quick Action Strip (NO Mark as Read Button) */}
+              {/* 1. Lesson Title & Quick Action Strip */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="min-w-0">
                   <span className="text-[11px] font-bold uppercase tracking-wider text-[#B12B2B] block mb-0.5">
@@ -503,16 +680,28 @@ export const LearnCourse: React.FC = () => {
                 </div>
               </div>
 
-              {/* 2. Course Ratings & Progress Row */}
+              {/* 2. Dynamic Course Ratings & Real-Time Progress Row */}
               <div className="flex flex-wrap items-center gap-3 text-xs text-[#5C5148]">
                 <div className="inline-flex items-center gap-1.5 bg-white border border-[#E8DDD0] px-2.5 py-1 rounded-full">
                   <div className="flex items-center text-amber-500">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-3.5 h-3.5 ${
+                          star <= Math.round(ratingStats.averageRating)
+                            ? 'fill-current'
+                            : 'text-gray-300'
+                        }`}
+                      />
                     ))}
                   </div>
-                  <span className="font-bold text-[#2B2521]">{ratingValue}</span>
-                  <span>({reviewCount} Ratings)</span>
+                  <span className="font-bold text-[#2B2521]">
+                    {ratingStats.totalRatings > 0 ? ratingStats.averageRating.toFixed(1) : '0.0'}
+                  </span>
+                  <span>
+                    ({ratingStats.totalRatings}{' '}
+                    {ratingStats.totalRatings === 1 ? 'Rating' : 'Ratings'})
+                  </span>
                 </div>
 
                 {typeof course.studentsCount === 'number' && course.studentsCount > 0 && (
@@ -528,7 +717,7 @@ export const LearnCourse: React.FC = () => {
                       completedLessons[activeLessonId] ? 'text-emerald-600' : 'text-[#B12B2B]'
                     }`}
                   />
-                  <span className="font-semibold text-[#2B2521]">
+                  <span className="font-semibold text-[#2B2521] tabular-nums">
                     Course Progress: {progressPercent}%
                   </span>
                 </div>
@@ -570,7 +759,7 @@ export const LearnCourse: React.FC = () => {
                 {descExpanded && Array.isArray(course.whatYouWillLearn) && course.whatYouWillLearn.length > 0 && (
                   <div className="mt-4 pt-3 border-t border-[#E8DDD0]">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-[#2B2521] mb-2">
-                      Key Techniques & Takeaways
+                      Key Techniques &amp; Takeaways
                     </h4>
                     <ul className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-[#5C5148]">
                       {course.whatYouWillLearn.map((point: string, i: number) => (
@@ -596,6 +785,14 @@ export const LearnCourse: React.FC = () => {
                   )}
                 </button>
               </div>
+
+              {/* 5. Real Student Ratings & Reviews Section */}
+              <ItemReviewsSection
+                targetType="COURSE"
+                targetId={course.id}
+                title="Student Ratings & Reviews"
+                onStatsChange={setRatingStats}
+              />
             </div>
           </div>
 
@@ -618,15 +815,15 @@ export const LearnCourse: React.FC = () => {
                     Lesson {activeIdx >= 0 ? activeIdx + 1 : 1} of {allLessons.length}
                   </p>
                 </div>
-                <span className="text-xs font-bold text-[#B12B2B] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full shrink-0">
+                <span className="text-xs font-bold text-[#B12B2B] bg-red-50 border border-red-100 px-2 py-0.5 rounded-full shrink-0 tabular-nums">
                   {progressPercent}%
                 </span>
               </div>
 
-              {/* Compact Progress Bar */}
+              {/* Compact Real-Time Progress Bar */}
               <div className="w-full bg-[#E8DDD0] rounded-full h-1.5 overflow-hidden">
                 <div
-                  className="bg-[#B12B2B] h-1.5 rounded-full transition-all duration-500"
+                  className="bg-[#B12B2B] h-1.5 rounded-full transition-all duration-300"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
@@ -672,6 +869,11 @@ export const LearnCourse: React.FC = () => {
                       {(m.lessons || []).map((l: any, lIndex: number) => {
                         const isCompleted = completedLessons[l.id];
                         const isActive = l.id === activeLessonId;
+                        const durationText = formatDurationLabel(
+                          actualDurations[l.id] || l.durationSeconds,
+                          l.duration
+                        );
+
                         return (
                           <div
                             key={l.id}
@@ -707,10 +909,10 @@ export const LearnCourse: React.FC = () => {
                                 >
                                   {l.title}
                                 </span>
-                                {l.duration && (
+                                {durationText && (
                                   <span className="inline-flex items-center gap-1 text-[11px] text-[#5C5148] mt-1">
                                     <Clock className="w-3 h-3" />
-                                    {l.duration}
+                                    {durationText}
                                   </span>
                                 )}
                               </div>
@@ -719,19 +921,30 @@ export const LearnCourse: React.FC = () => {
                             {/* Nested Timestamp Chips on Active Lesson */}
                             {isActive && lessonTimestamps.length > 0 && (
                               <div className="px-4 pb-3 flex flex-wrap gap-1.5">
-                                {lessonTimestamps.map((ts, tsIdx) => (
-                                  <button
-                                    key={tsIdx}
-                                    type="button"
-                                    onClick={() => handleSeekTimestamp(ts.seconds)}
-                                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-white border border-[#E8DDD0] hover:border-[#B12B2B] text-[11px] text-[#2B2521] hover:text-[#B12B2B] transition cursor-pointer"
-                                  >
-                                    <span className="font-mono font-bold text-[#B12B2B]">
-                                      {ts.timeLabel}
-                                    </span>
-                                    <span className="truncate max-w-[140px]">{ts.label}</span>
-                                  </button>
-                                ))}
+                                {lessonTimestamps.map((ts, tsIdx) => {
+                                  const isTsActive = ts.seconds === activeTimestampSeconds;
+                                  return (
+                                    <button
+                                      key={tsIdx}
+                                      type="button"
+                                      onClick={() => handleSeekTimestamp(ts.seconds)}
+                                      className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border text-[11px] transition cursor-pointer ${
+                                        isTsActive
+                                          ? 'bg-[#B12B2B] border-[#B12B2B] text-white font-semibold'
+                                          : 'bg-white border-[#E8DDD0] hover:border-[#B12B2B] text-[#2B2521] hover:text-[#B12B2B]'
+                                      }`}
+                                    >
+                                      <span
+                                        className={`font-mono font-bold ${
+                                          isTsActive ? 'text-white' : 'text-[#B12B2B]'
+                                        }`}
+                                      >
+                                        {ts.timeLabel}
+                                      </span>
+                                      <span className="truncate max-w-[140px]">{ts.label}</span>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
@@ -743,26 +956,45 @@ export const LearnCourse: React.FC = () => {
               ) : (
                 <div className="p-4 space-y-2">
                   {lessonTimestamps.length > 0 ? (
-                    lessonTimestamps.map((ts, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSeekTimestamp(ts.seconds)}
-                        className="w-full text-left p-3 rounded-xl border border-[#E8DDD0] hover:border-[#B12B2B] hover:bg-[#FAF6F0] transition flex items-center gap-3 cursor-pointer"
-                      >
-                        <span className="px-2 py-1 rounded-md bg-[#B12B2B]/10 text-[#B12B2B] font-mono text-xs font-bold shrink-0">
-                          {ts.timeLabel}
-                        </span>
-                        <span className="text-xs sm:text-sm font-medium text-[#2B2521] truncate">
-                          {ts.label}
-                        </span>
-                      </button>
-                    ))
+                    lessonTimestamps.map((ts, idx) => {
+                      const isTsActive = ts.seconds === activeTimestampSeconds;
+                      return (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleSeekTimestamp(ts.seconds)}
+                          className={`w-full text-left p-3 rounded-xl border transition flex items-center gap-3 cursor-pointer ${
+                            isTsActive
+                              ? 'bg-red-50 border-[#B12B2B] shadow-2xs'
+                              : 'border-[#E8DDD0] hover:border-[#B12B2B] hover:bg-[#FAF6F0]'
+                          }`}
+                        >
+                          <span
+                            className={`px-2 py-1 rounded-md font-mono text-xs font-bold shrink-0 ${
+                              isTsActive
+                                ? 'bg-[#B12B2B] text-white'
+                                : 'bg-[#B12B2B]/10 text-[#B12B2B]'
+                            }`}
+                          >
+                            {ts.timeLabel}
+                          </span>
+                          <span
+                            className={`text-xs sm:text-sm truncate ${
+                              isTsActive
+                                ? 'font-bold text-[#B12B2B]'
+                                : 'font-medium text-[#2B2521]'
+                            }`}
+                          >
+                            {ts.label}
+                          </span>
+                        </button>
+                      );
+                    })
                   ) : (
                     <div className="text-center py-8 px-4 space-y-1.5">
                       <Clock className="w-8 h-8 text-gray-300 mx-auto" />
                       <p className="text-xs text-[#5C5148] mb-0">
-                        No chapter timestamps listed for this lesson. Use the player seek bar to scrub to any part of the video.
+                        No chapter timestamps listed for this lesson. Add timestamps in the Admin Curriculum Manager or use the player seek bar.
                       </p>
                     </div>
                   )}

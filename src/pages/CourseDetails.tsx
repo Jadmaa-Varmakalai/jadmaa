@@ -5,6 +5,7 @@ import { CurriculumAccordion } from '../components/courses/CurriculumAccordion';
 import { CourseCard, isOnlineCourse, getValidCourseThumbnail } from '../components/courses/CourseCard';
 import { ResponsiveImage } from '../components/common/ResponsiveImage';
 import { ShareButton } from '../components/common/ShareButton';
+import { ItemReviewsSection } from '../components/common/ItemReviewsSection';
 import { 
   Clock, Award, Play, ChevronRight, Share2, 
   BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star,
@@ -666,6 +667,13 @@ export const CourseDetails: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Real User Reviews & Ratings */}
+              <ItemReviewsSection
+                targetType="COURSE"
+                targetId={course.id}
+                title="Student Ratings & Reviews"
+              />
 
             </main>
 

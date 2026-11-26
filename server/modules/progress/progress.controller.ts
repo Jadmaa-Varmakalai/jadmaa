@@ -131,24 +131,35 @@ export const getCourseProgress = async (req: Request, res: Response) => {
       }
     }
 
-    const progress = await prisma.lessonProgress.findMany({
+    const progressRows = await prisma.lessonProgress.findMany({
       where: {
         userId: user.id,
         courseId: course.id,
-        completed: true
       },
-      select: { lessonId: true }
+      select: { lessonId: true, watchedSeconds: true, completed: true }
     });
 
-    const completedLessonIds = progress.map(p => p.lessonId);
-    
+    const completedLessonIds = progressRows.filter(p => p.completed).map(p => p.lessonId);
+    const progressMap = new Map(progressRows.map(p => [p.lessonId, p]));
+
     let totalLessons = 0;
+    let partialUnits = 0;
     (course as any).modules.forEach((m: any) => {
-      totalLessons += m.lessons.length;
+      (m.lessons || []).forEach((l: any) => {
+        totalLessons += 1;
+        const p = progressMap.get(l.id);
+        if (p?.completed) {
+          partialUnits += 1;
+        } else if (p && p.watchedSeconds > 0 && l.durationSeconds > 0) {
+          partialUnits += Math.min(0.99, p.watchedSeconds / l.durationSeconds);
+        }
+      });
     });
 
     const completedLessonsCount = completedLessonIds.length;
-    const percentage = totalLessons > 0 ? Math.round((completedLessonsCount / totalLessons) * 100) : 0;
+    const percentage = totalLessons > 0
+      ? (completedLessonsCount === totalLessons ? 100 : Math.min(99, Math.round((partialUnits / totalLessons) * 100)))
+      : 0;
 
     res.json({
       success: true,
@@ -157,8 +168,9 @@ export const getCourseProgress = async (req: Request, res: Response) => {
         totalLessons,
         completedLessons: completedLessonsCount,
         percentage,
-        completed: percentage === 100,
-        completedLessonIds
+        completed: completedLessonsCount > 0 && completedLessonsCount === totalLessons,
+        completedLessonIds,
+        lessonProgress: progressRows,
       }
     });
   } catch (err) {
@@ -187,7 +199,7 @@ export const updateLessonProgress = async (req: Request, res: Response) => {
       where: { userId_courseId: { userId: user.id, courseId: (lesson as any).module.courseId } }
     });
 
-    if (!enrollment || enrollment.status !== 'ACTIVE') {
+    if (!enrollment || (enrollment.status !== 'ACTIVE' && enrollment.status !== 'COMPLETED')) {
       return res.status(403).json({ success: false, error: { message: 'Not enrolled in this course' } });
     }
 

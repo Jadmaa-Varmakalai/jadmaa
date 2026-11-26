@@ -538,7 +538,7 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
                         ) : (
                           <div className="divide-y divide-gray-100 border border-gray-100 rounded-xl overflow-hidden">
                             {lessons.map((lesson, lessonIdx) => {
-                              const cleanVidId = lesson.youtubeVideoId ? extractVideoId(lesson.youtubeVideoId) : '';
+                              const cleanVidId = lesson.youtubeVideoId ? (extractYouTubeVideoId(lesson.youtubeVideoId) || '') : '';
                               const durationMins = Math.round(lesson.durationSeconds / 60);
 
                               return (
