@@ -27,6 +27,14 @@ export function extractYouTubeVideoId(url: string): string | null {
 }
 
 /**
+ * Checks whether a given YouTube URL is a YouTube Shorts URL.
+ */
+export function isYouTubeShort(url: string): boolean {
+  if (!url) return false;
+  return /(?:youtube\.com\/shorts\/)/i.test(url.trim());
+}
+
+/**
  * Converts any YouTube URL (including /shorts/<id>) into a clean standard
  * /embed/<id> URL with JS API enabled and minimal branding.
  */

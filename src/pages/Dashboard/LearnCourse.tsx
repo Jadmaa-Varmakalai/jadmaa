@@ -284,8 +284,11 @@ export const LearnCourse: React.FC = () => {
   const activeLesson = activeEntry?.lesson;
   const activeLessonTitle = activeLesson?.title || '';
   const activeModuleTitle = activeEntry?.moduleTitle || '';
-  const activeVideoUrl = activeLesson?.videoUrl || '';
-  const cleanVideoId = extractYouTubeVideoId(activeVideoUrl) || '';
+  const rawLessonVideo = activeLesson?.youtubeVideoId || activeLesson?.videoUrl || '';
+  const cleanVideoId = extractYouTubeVideoId(rawLessonVideo) || rawLessonVideo || '';
+  const isShortVideo =
+    isYouTubeShort(rawLessonVideo) ||
+    Boolean(actualDurations[activeLesson?.id] && actualDurations[activeLesson?.id] <= 60);
 
   // Auto-complete text-only lessons (no video) after 3 seconds
   useEffect(() => {
@@ -510,10 +513,13 @@ export const LearnCourse: React.FC = () => {
                 videoId={cleanVideoId}
                 title={activeLessonTitle}
                 watermarkText={watermarkIdentity}
+                isShort={isShortVideo}
                 onDurationLoaded={handleDurationLoaded}
                 onWatchProgress={handleWatchProgress}
                 onVideoPaused={handleVideoPaused}
                 onVideoEnded={handleVideoEnded}
+                onNextLesson={() => nextLesson && setActiveLessonId(nextLesson.id)}
+                hasNextLesson={Boolean(nextLesson)}
               />
             </div>
 
