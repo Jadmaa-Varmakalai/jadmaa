@@ -4,6 +4,7 @@ import {
   PlayCircle, ExternalLink, Clock, Eye, AlertCircle, Save, Check
 } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
+import { extractYouTubeVideoId } from '../../utils/youtube';
 
 interface CurriculumManagerModalProps {
   isOpen: boolean;
@@ -66,26 +67,29 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
   const [lessonFormVideoUrl, setLessonFormVideoUrl] = useState('');
   const [lessonFormDuration, setLessonFormDuration] = useState('10'); // in minutes
   const [lessonFormIsPreview, setLessonFormIsPreview] = useState(false);
+  const [lessonFormChapters, setLessonFormChapters] = useState<Array<{ time: string; title: string }>>([]);
 
-  const extractVideoId = (url: string) => {
-    if (!url) return '';
-    const trimmed = url.trim();
-    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-      return trimmed;
+  const parsedCurrentVideoId = extractYouTubeVideoId(lessonFormVideoUrl) || '';
+
+  const splitDescriptionAndChapters = (raw?: string | null) => {
+    if (!raw) return { notes: '', chapters: [] as Array<{ time: string; title: string }> };
+    const lines = raw.split('\n');
+    const noteLines: string[] = [];
+    const chapters: Array<{ time: string; title: string }> = [];
+    const tsRegex = /^((?:\d{1,2}:)?\d{1,2}:\d{2})\s*[-–—|:]?\s*(.+)$/;
+
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (/^chapters:?$/i.test(trimmed)) continue;
+      const m = trimmed.match(tsRegex);
+      if (m && m[1] && m[2]) {
+        chapters.push({ time: m[1].trim(), title: m[2].trim() });
+      } else {
+        noteLines.push(line);
+      }
     }
-    const match = trimmed.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
-    );
-    if (match && match[1]) {
-      return match[1];
-    }
-    const fallback = trimmed.match(
-      /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
-    );
-    return fallback && fallback[1] ? fallback[1] : '';
+    return { notes: noteLines.join('\n').trim(), chapters };
   };
-
-  const parsedCurrentVideoId = extractVideoId(lessonFormVideoUrl);
 
   const fetchCurriculum = async () => {
     if (!courseId) return;
@@ -193,6 +197,7 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
     setLessonFormVideoUrl('');
     setLessonFormDuration('10');
     setLessonFormIsPreview(false);
+    setLessonFormChapters([]);
     setLessonModalOpen(true);
   };
 
@@ -200,7 +205,9 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
     setTargetModuleId(lesson.moduleId);
     setEditingLesson(lesson);
     setLessonFormTitle(lesson.title);
-    setLessonFormDesc(lesson.description || '');
+    const { notes, chapters } = splitDescriptionAndChapters(lesson.description);
+    setLessonFormDesc(notes);
+    setLessonFormChapters(chapters);
     const videoUrl = lesson.youtubeVideoId 
       ? (lesson.youtubeVideoId.startsWith('http') ? lesson.youtubeVideoId : `https://www.youtube.com/watch?v=${lesson.youtubeVideoId}`)
       : '';
@@ -208,6 +215,30 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
     setLessonFormDuration(Math.round(lesson.durationSeconds / 60).toString() || '10');
     setLessonFormIsPreview(Boolean(lesson.isPreview));
     setLessonModalOpen(true);
+  };
+
+  const handleAddChapterRow = () => {
+    setLessonFormChapters(prev => [...prev, { time: '00:00', title: '' }]);
+  };
+
+  const handleUpdateChapterRow = (idx: number, field: 'time' | 'title', val: string) => {
+    setLessonFormChapters(prev => prev.map((row, i) => (i === idx ? { ...row, [field]: val } : row)));
+  };
+
+  const handleMoveChapterRow = (idx: number, dir: -1 | 1) => {
+    const target = idx + dir;
+    if (target < 0 || target >= lessonFormChapters.length) return;
+    setLessonFormChapters(prev => {
+      const next = [...prev];
+      const temp = next[idx];
+      next[idx] = next[target];
+      next[target] = temp;
+      return next;
+    });
+  };
+
+  const handleRemoveChapterRow = (idx: number) => {
+    setLessonFormChapters(prev => prev.filter((_, i) => i !== idx));
   };
 
   const handleSaveLesson = async (e: React.FormEvent) => {
@@ -219,10 +250,21 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
       const durMinutes = Number(lessonFormDuration) || 0;
       const totalSecs = Math.round(durMinutes * 60);
 
+      const validChapters = lessonFormChapters
+        .filter(c => c.time.trim() && c.title.trim())
+        .map(c => `${c.time.trim()} - ${c.title.trim()}`);
+      const notesPart = lessonFormDesc.trim();
+      const combinedDesc = [
+        notesPart,
+        validChapters.length > 0 ? `Chapters:\n${validChapters.join('\n')}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n\n');
+
       if (editingLesson) {
         await adminApi.updateLesson(editingLesson.id, {
           title: lessonFormTitle.trim(),
-          description: lessonFormDesc.trim() || undefined,
+          description: combinedDesc || undefined,
           youtubeVideoId: lessonFormVideoUrl.trim() || undefined,
           durationSeconds: totalSecs,
           isPreview: lessonFormIsPreview
@@ -235,7 +277,7 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
         await adminApi.createLesson({
           moduleId: targetModuleId,
           title: lessonFormTitle.trim(),
-          description: lessonFormDesc.trim() || undefined,
+          description: combinedDesc || undefined,
           youtubeVideoId: lessonFormVideoUrl.trim() || undefined,
           durationSeconds: totalSecs,
           isPreview: lessonFormIsPreview,
@@ -667,7 +709,7 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
       {/* --- Sub-Modal: Add / Edit Video Lesson (Sub-dropdown) --- */}
       {lessonModalOpen && (
         <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 space-y-4 animate-in fade-in zoom-in-95">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex justify-between items-center border-b pb-3">
               <div>
                 <h3 className="font-heading font-bold text-lg text-gray-900">
@@ -774,6 +816,77 @@ export const CurriculumManagerModal: React.FC<CurriculumManagerModalProps> = ({
                   onChange={e => setLessonFormDesc(e.target.value)}
                   className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:border-jadmaa-red resize-none"
                 />
+              </div>
+
+              {/* Chapters / Timestamps Manager */}
+              <div className="space-y-2 p-3 bg-[#FAF8F5] rounded-xl border border-gray-200">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-gray-800 uppercase flex items-center space-x-1.5">
+                    <Clock className="w-3.5 h-3.5 text-jadmaa-red" />
+                    <span>Lesson Chapters &amp; Timestamps</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={handleAddChapterRow}
+                    className="inline-flex items-center space-x-1 px-2.5 py-1 text-[11px] font-bold text-jadmaa-red bg-red-50 hover:bg-red-100 rounded-lg transition cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add Timestamp</span>
+                  </button>
+                </div>
+
+                {lessonFormChapters.length === 0 ? (
+                  <p className="text-[11px] text-gray-500">
+                    No chapters added yet. Add <code className="font-mono">MM:SS</code> timestamps so students can jump to specific sections in the player.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                    {lessonFormChapters.map((ch, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5">
+                        <input
+                          type="text"
+                          placeholder="00:00"
+                          value={ch.time}
+                          onChange={e => handleUpdateChapterRow(idx, 'time', e.target.value)}
+                          className="w-20 px-2 py-1.5 text-xs font-mono border border-gray-300 rounded-lg focus:outline-none focus:border-jadmaa-red bg-white"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Chapter Title (e.g. Varmam Point Location)"
+                          value={ch.title}
+                          onChange={e => handleUpdateChapterRow(idx, 'title', e.target.value)}
+                          className="flex-1 px-2.5 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:border-jadmaa-red bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => handleMoveChapterRow(idx, -1)}
+                          disabled={idx === 0}
+                          title="Move up"
+                          className="p-1 text-gray-500 hover:text-gray-800 disabled:opacity-30 cursor-pointer"
+                        >
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoveChapterRow(idx, 1)}
+                          disabled={idx === lessonFormChapters.length - 1}
+                          title="Move down"
+                          className="p-1 text-gray-500 hover:text-gray-800 disabled:opacity-30 cursor-pointer"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveChapterRow(idx)}
+                          title="Remove chapter"
+                          className="p-1 text-red-500 hover:text-red-700 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="pt-2 flex justify-end space-x-2">

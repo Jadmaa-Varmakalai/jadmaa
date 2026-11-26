@@ -212,6 +212,7 @@ export const CustomCourseVideoPlayer = forwardRef<
       playerMountRef.current.appendChild(targetDiv);
 
       ytPlayerRef.current = new window.YT.Player(targetDiv, {
+        host: 'https://www.youtube-nocookie.com',
         videoId,
         width: '100%',
         height: '100%',
@@ -418,7 +419,7 @@ export const CustomCourseVideoPlayer = forwardRef<
       onMouseLeave={() => isPlaying && setShowControls(false)}
       onContextMenu={(e) => e.preventDefault()}
       onDragStart={(e) => e.preventDefault()}
-      className="relative aspect-video w-full bg-black sm:rounded-2xl overflow-hidden shadow-md select-none group"
+      className="relative aspect-video w-full max-h-[56vh] xl:max-h-[500px] bg-black sm:rounded-2xl overflow-hidden shadow-md select-none group"
     >
       {/* Embedded YouTube IFrame (controls=0, no YouTube UI overlays) */}
       <div

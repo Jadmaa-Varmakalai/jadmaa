@@ -193,6 +193,8 @@ export const getCourseBySlug = async (req: Request, res: Response) => {
         lessons: m.lessons.map((l) => ({
           id: l.id,
           title: l.title,
+          description: l.description,
+          summary: l.description,
           duration: `${Math.floor(l.durationSeconds / 60)} min`,
           isFreePreview: l.isPreview,
           // VULN-01 Fix: Video ID is only provided if user has verified full access or lesson is free preview

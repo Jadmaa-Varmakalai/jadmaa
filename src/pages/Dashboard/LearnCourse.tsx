@@ -24,30 +24,13 @@ import {
   CustomCourseVideoPlayer,
   type CustomVideoPlayerHandle,
 } from '../../components/courses/CustomCourseVideoPlayer';
+import { extractYouTubeVideoId } from '../../utils/youtube';
 
 interface TimestampItem {
   seconds: number;
   timeLabel: string;
   label: string;
 }
-
-const extractYouTubeVideoId = (input: string): string => {
-  if (!input) return '';
-  const trimmed = input.trim();
-  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
-    return trimmed;
-  }
-  const match = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([a-zA-Z0-9_-]{11})/i
-  );
-  if (match && match[1]) {
-    return match[1];
-  }
-  const fallback = trimmed.match(
-    /(?:youtu\.be\/|youtube\.com\/(?:shorts\/|embed\/|v\/|live\/|watch\?v=|watch\?.+&v=))([^&?#/]+)/i
-  );
-  return fallback && fallback[1] ? fallback[1] : trimmed;
-};
 
 const parseTimeToSeconds = (timeStr: string): number => {
   const parts = timeStr.split(':').map((n) => parseInt(n, 10));
@@ -282,7 +265,7 @@ export const LearnCourse: React.FC = () => {
   const activeLessonTitle = activeLesson?.title || '';
   const activeModuleTitle = activeEntry?.moduleTitle || '';
   const activeVideoUrl = activeLesson?.videoUrl || '';
-  const cleanVideoId = extractYouTubeVideoId(activeVideoUrl);
+  const cleanVideoId = extractYouTubeVideoId(activeVideoUrl) || '';
 
   // Auto-complete text-only lessons (no video) after 3 seconds of viewing
   useEffect(() => {
