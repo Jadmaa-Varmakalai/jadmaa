@@ -8,7 +8,7 @@ import { ShareButton } from '../components/common/ShareButton';
 import { 
   Clock, Award, Play, ChevronRight, Share2, 
   BarChart, Users, Phone, Check, Copy, CheckCheck, Loader2, Star,
-  Video, MapPin
+  Video, MapPin, X
 } from 'lucide-react';
 import { courseApi } from '../lib/api/courseApi';
 import { paymentApi } from '../lib/api/paymentApi';
@@ -40,6 +40,7 @@ export const CourseDetails: React.FC = () => {
   const [paymentStep, setPaymentStep] = useState<PaymentStep>('IDLE');
   const [copied, setCopied] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [previewLesson, setPreviewLesson] = useState<{ id: string; title: string; videoUrl?: string | null } | null>(null);
 
 
   useEffect(() => {
@@ -260,6 +261,28 @@ export const CourseDetails: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleSelectLesson = (lessonId: string) => {
+    if (!course?.modules) return;
+    const allLessons = course.modules.flatMap(m => m.lessons || []);
+    const target = allLessons.find(l => l.id === lessonId);
+    if (!target) return;
+
+    if (isEnrolled && isOnline) {
+      navigate(`/learn/${course.id}`);
+      return;
+    }
+
+    if (target.isFreePreview) {
+      setPreviewLesson({
+        id: target.id,
+        title: target.title,
+        videoUrl: target.videoUrl
+      });
+    } else {
+      handleEnrollClick();
+    }
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center font-sans text-jadmaa-textMuted">Loading course details...</div>;
   }
@@ -324,80 +347,6 @@ export const CourseDetails: React.FC = () => {
             </span>
           </nav>
 
-          {/* Course Details Header */}
-          <header className="mb-8 md:mb-10 space-y-4" data-aos="fade-up">
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Training Format Badge */}
-              {isOnline ? (
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
-                  <Video className="w-3.5 h-3.5" />
-                  Recorded Online Course
-                </span>
-              ) : (
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#B12B2B]/10 text-[#B12B2B] border border-[#B12B2B]/20 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5" />
-                  In-Person Branch Training
-                </span>
-              )}
-
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#1F2937]/10 text-[#1F2937] border border-[#1F2937]/20">
-                {course.category}
-              </span>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#374151] border border-gray-200">
-                Level: {course.level || 'All Levels'}
-              </span>
-
-              {hasRealRating && (
-                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
-                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
-                  <span>{course.rating.toFixed(1)}</span>
-                  <span className="text-amber-700/70 font-normal">({course.reviewCount} reviews)</span>
-                </span>
-              )}
-
-              {course.isFree && (
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                  FREE STARTER
-                </span>
-              )}
-            </div>
-
-            <h1 className="font-heading font-semibold text-2xl sm:text-3xl lg:text-4xl text-[#111827] leading-tight">
-              {displayTitle}
-            </h1>
-
-            {/* Offline Branch Notice Banner */}
-            {!isOnline && (
-              <div className="p-4 rounded-xl bg-[#FFF8F0] border border-[#F0DBC5] text-[#7A3614] flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-[#B12B2B] shrink-0 mt-0.5" />
-                <div className="text-xs sm:text-sm leading-relaxed">
-                  <strong>Academy Branch Training:</strong> This program is conducted through hands-on, in-person training at our academy branches in <strong>Thanjavur, Kumbakonam, and Ariyalur</strong> under qualified Aasans. It is not an online recorded video course.
-                </div>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-b border-[#E5E2DC] pb-5">
-              <div className="flex items-center gap-3 text-sm text-[#4B5563]">
-                <div className="w-8 h-8 rounded-full bg-[#B12B2B] text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                  {instructorName.charAt(0) || 'J'}
-                </div>
-                <span>
-                  Taught by <strong className="text-[#1F2937]">{instructorName}</strong>
-                </span>
-              </div>
-
-              {/* Actions: Share */}
-              <div className="flex items-center space-x-3 text-xs md:text-sm">
-                <ShareButton
-                  title={course.title}
-                  url={`/courses/${course.slug}`}
-                  variant="button"
-                  buttonText="Share Course"
-                />
-              </div>
-            </div>
-          </header>
-
           {/* Two-Column Grid: Main Content (8 cols) & Sticky Purchase Sidebar (4 cols) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             
@@ -426,6 +375,80 @@ export const CourseDetails: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Course Details Header */}
+              <header className="space-y-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* Training Format Badge */}
+                  {isOnline ? (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+                      <Video className="w-3.5 h-3.5" />
+                      Recorded Online Course
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#B12B2B]/10 text-[#B12B2B] border border-[#B12B2B]/20 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                      In-Person Branch Training
+                    </span>
+                  )}
+
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#1F2937]/10 text-[#1F2937] border border-[#1F2937]/20">
+                    {course.category}
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-[#374151] border border-gray-200">
+                    Level: {course.level || 'All Levels'}
+                  </span>
+
+                  {hasRealRating && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                      <span>{course.rating.toFixed(1)}</span>
+                      <span className="text-amber-700/70 font-normal">({course.reviewCount} reviews)</span>
+                    </span>
+                  )}
+
+                  {course.isFree && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      FREE STARTER
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="font-heading font-semibold text-2xl sm:text-3xl lg:text-4xl text-[#111827] leading-tight">
+                  {displayTitle}
+                </h1>
+
+                {/* Offline Branch Notice Banner */}
+                {!isOnline && (
+                  <div className="p-4 rounded-xl bg-[#FFF8F0] border border-[#F0DBC5] text-[#7A3614] flex items-start gap-3">
+                    <MapPin className="w-5 h-5 text-[#B12B2B] shrink-0 mt-0.5" />
+                    <div className="text-xs sm:text-sm leading-relaxed">
+                      <strong>Academy Branch Training:</strong> This program is conducted through hands-on, in-person training at our academy branches in <strong>Thanjavur, Kumbakonam, and Ariyalur</strong> under qualified Aasans. It is not an online recorded video course.
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2 border-b border-[#E5E2DC] pb-5">
+                  <div className="flex items-center gap-3 text-sm text-[#4B5563]">
+                    <div className="w-8 h-8 rounded-full bg-[#B12B2B] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+                      {instructorName.charAt(0) || 'J'}
+                    </div>
+                    <span>
+                      Taught by <strong className="text-[#1F2937]">{instructorName}</strong>
+                    </span>
+                  </div>
+
+                  {/* Actions: Share */}
+                  <div className="flex items-center space-x-3 text-xs md:text-sm">
+                    <ShareButton
+                      title={course.title}
+                      url={`/courses/${course.slug}`}
+                      variant="button"
+                      buttonText="Share Course"
+                    />
+                  </div>
+                </div>
+              </header>
 
               {/* Quick Course Highlights Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -611,7 +634,7 @@ export const CourseDetails: React.FC = () => {
                     )}
                   </div>
 
-                  <CurriculumAccordion modules={course.modules} />
+                  <CurriculumAccordion modules={course.modules} onSelectLesson={handleSelectLesson} />
                 </div>
               )}
 
@@ -853,6 +876,60 @@ export const CourseDetails: React.FC = () => {
                 className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-900"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Free Lesson Video Preview Modal */}
+      {previewLesson && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-black rounded-2xl shadow-2xl max-w-3xl w-full overflow-hidden border border-gray-800">
+            <div className="flex items-center justify-between p-3.5 sm:p-4 bg-[#111] text-white border-b border-gray-800">
+              <div className="flex items-center space-x-2 min-w-0 pr-2">
+                <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shrink-0">
+                  FREE PREVIEW
+                </span>
+                <h3 className="font-heading font-semibold text-xs sm:text-sm text-gray-100 truncate">
+                  {previewLesson.title}
+                </h3>
+              </div>
+              <button
+                onClick={() => setPreviewLesson(null)}
+                className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="aspect-[16/9] w-full bg-black">
+              {previewLesson.videoUrl ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${previewLesson.videoUrl}?autoplay=1&rel=0`}
+                  title={previewLesson.title}
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-6 text-center space-y-2">
+                  <Play className="w-12 h-12 text-gray-600" />
+                  <p className="text-sm">Video stream is being prepared.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 bg-[#18181B] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-300">
+              <span>Previewing syllabus lesson. Enroll to unlock full course curriculum, private instruction &amp; certification.</span>
+              <button
+                onClick={() => {
+                  setPreviewLesson(null);
+                  handleEnrollClick();
+                }}
+                className="px-4 py-2 bg-jadmaa-red hover:bg-[#8E1C1C] text-white font-bold rounded-xl transition shrink-0 shadow-md"
+              >
+                Enroll in Course
               </button>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Video, PlayCircle, ExternalLink } from 'lucide-react';
+import { X, Video, PlayCircle, ExternalLink, BookOpen } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
 import { ImageUpload } from '../../components/common/ImageUpload';
+import { CurriculumManagerModal } from './CurriculumManagerModal';
 
 interface AdminCourseModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface AdminCourseModalProps {
 }
 
 export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onClose, course, onSuccess }) => {
+  const [curriculumModalOpen, setCurriculumModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     slug: '',
@@ -340,12 +342,59 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
             helperText="Upload thumbnail from your device or drag & drop for PC"
           />
 
-          {/* YouTube Video Link Field (Available in both Create & Edit mode) */}
+          {/* Curriculum & Video Lessons (Modules & Sub-dropdowns) Section */}
+          <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <BookOpen className="w-5 h-5 text-emerald-700" />
+                <div>
+                  <h4 className="text-sm font-bold text-gray-900">
+                    Syllabus Curriculum &amp; Video Lessons
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    Create dropdown syllabus modules and sub-dropdown video lessons
+                  </p>
+                </div>
+              </div>
+              {course?.id ? (
+                <button
+                  type="button"
+                  onClick={() => setCurriculumModalOpen(true)}
+                  className="px-3.5 py-1.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-sm transition inline-flex items-center space-x-1"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  <span>Open Curriculum Manager</span>
+                </button>
+              ) : (
+                <span className="text-[11px] font-semibold text-gray-400 italic">
+                  Save course to manage curriculum
+                </span>
+              )}
+            </div>
+
+            {course?.modules && course.modules.length > 0 ? (
+              <div className="text-xs text-emerald-900 bg-white/80 p-2.5 rounded-lg border border-emerald-100 flex items-center justify-between">
+                <span>
+                  Currently configured: <strong>{course.modules.length}</strong> modules,{' '}
+                  <strong>{course.modules.reduce((acc: number, m: any) => acc + (m.lessons?.length || 0), 0)}</strong> video lessons
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurriculumModalOpen(true)}
+                  className="text-xs font-bold text-emerald-700 hover:underline"
+                >
+                  Edit Syllabus →
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          {/* Quick Primary Video Link Field (Available in both Create & Edit mode) */}
           <div className="space-y-2 p-3.5 bg-red-50/50 rounded-xl border border-red-100">
             <div className="flex items-center justify-between">
               <label className="text-sm font-bold text-gray-800 flex items-center space-x-1.5">
                 <Video className="w-4 h-4 text-jadmaa-red" />
-                <span>YouTube Video Link (Course Video)</span>
+                <span>Primary / Starter Video Link</span>
               </label>
               {parsedVideoId && (
                 <a
@@ -367,7 +416,7 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-jadmaa-red bg-white text-sm"
             />
             <p className="text-xs text-gray-500">
-              Students playing this course will watch lessons streamed from this YouTube link. You can update or change this link at any time.
+              For single-video courses or quick default streaming link. For multi-lesson courses with chapters, use the Curriculum Manager above.
             </p>
             {parsedVideoId && (
               <div className="flex items-center space-x-2 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
@@ -395,6 +444,18 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
           </div>
         </form>
       </div>
+
+      {course?.id && (
+        <CurriculumManagerModal
+          isOpen={curriculumModalOpen}
+          onClose={() => setCurriculumModalOpen(false)}
+          courseId={course.id}
+          courseTitle={course.title}
+          onSuccess={() => {
+            onSuccess();
+          }}
+        />
+      )}
     </div>
   );
 };

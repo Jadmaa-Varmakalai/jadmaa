@@ -41,22 +41,22 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
                   {index + 1}
                 </span>
                 <div>
-                  <h4 className="font-heading font-bold text-lg text-jadmaa-charcoal">
+                  <h4 className="font-heading font-bold text-base sm:text-lg text-jadmaa-charcoal">
                     {module.title}
                   </h4>
                   {module.description && (
-                    <p className="text-sm md:text-xl text-jadmaa-textMuted mt-0.5">{module.description}</p>
+                    <p className="text-xs sm:text-sm text-jadmaa-textMuted mt-0.5">{module.description}</p>
                   )}
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 text-xs font-semibold text-jadmaa-textMuted">
-                <span>{module.lessons.length} Lessons</span>
+              <div className="flex items-center space-x-3 text-xs font-semibold text-jadmaa-textMuted shrink-0">
+                <span>{module.lessons.length} {module.lessons.length === 1 ? 'Lesson' : 'Lessons'}</span>
                 {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </div>
             </button>
 
-            {/* Lessons List */}
+            {/* Lessons List (Sub-dropdown items) */}
             {isOpen && (
               <div className="divide-y divide-gray-100 bg-white">
                 {module.lessons.map((lesson) => {
@@ -69,22 +69,22 @@ export const CurriculumAccordion: React.FC<CurriculumAccordionProps> = ({
                         onSelectLesson ? 'cursor-pointer hover:bg-jadmaa-cream/50' : ''
                       } ${isActive ? 'bg-jadmaa-red/10 border-l-4 border-jadmaa-red font-bold text-jadmaa-red' : 'text-jadmaa-charcoal'}`}
                     >
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 min-w-0 pr-2">
                         {lesson.isFreePreview ? (
-                          <PlayCircle className="w-4 h-4 text-jadmaa-red flex-shrink-0" />
+                          <PlayCircle className="w-4 h-4 text-jadmaa-red shrink-0" />
                         ) : (
-                          <Lock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                          <Lock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
                         )}
-                        <span>{lesson.title}</span>
+                        <span className="truncate">{lesson.title}</span>
                       </div>
 
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-3 shrink-0">
                         {lesson.isFreePreview && (
-                          <span className="px-2 py-0.5 rounded text-xs font-extrabold bg-emerald-100 text-emerald-700">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-200">
                             FREE PREVIEW
                           </span>
                         )}
-                        <span className="text-gray-400 font-mono">{lesson.duration}</span>
+                        <span className="text-gray-400 font-mono text-[11px]">{lesson.duration}</span>
                       </div>
                     </div>
                   );

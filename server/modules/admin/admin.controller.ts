@@ -1073,18 +1073,53 @@ export const updateCourseAvailability = async (req: Request, res: Response) => {
   }
 };
 
-// --- Modules & Lessons ---
+// --- Modules & Lessons (Curriculum & Video Lessons) ---
 export const createModule = async (req: Request, res: Response) => {
   try {
-    const module = await prisma.courseModule.create({ data: req.body });
-    await logAdminAction((req as any).user.id, 'CREATE_MODULE', 'CourseModule', module.id, { courseId: module.courseId }, req);
+    const { courseId, title, description, sortOrder } = req.body;
+    if (!courseId || !title?.trim()) {
+      return res.status(400).json({ success: false, error: { message: 'Course ID and title are required' } });
+    }
+
+    const maxOrder = sortOrder !== undefined ? Number(sortOrder) : (
+      await prisma.courseModule.count({ where: { courseId } })
+    ) + 1;
+
+    const module = await prisma.courseModule.create({
+      data: {
+        courseId,
+        title: title.trim(),
+        description: description?.trim() || null,
+        sortOrder: maxOrder
+      },
+      include: {
+        lessons: { orderBy: { sortOrder: 'asc' } }
+      }
+    });
+
+    invalidateCoursesCache();
+    await logAdminAction((req as any).user.id, 'CREATE_MODULE', 'CourseModule', module.id, { courseId: module.courseId, title: module.title }, req);
     res.json({ success: true, data: module });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
 };
 
 export const updateModule = async (req: Request, res: Response) => {
   try {
-    const module = await prisma.courseModule.update({ where: { id: (req.params.id as string) }, data: req.body });
+    const { title, description, sortOrder } = req.body;
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title.trim();
+    if (description !== undefined) updateData.description = description ? description.trim() : null;
+    if (sortOrder !== undefined) updateData.sortOrder = Number(sortOrder);
+
+    const module = await prisma.courseModule.update({
+      where: { id: (req.params.id as string) },
+      data: updateData,
+      include: {
+        lessons: { orderBy: { sortOrder: 'asc' } }
+      }
+    });
+
+    invalidateCoursesCache();
     await logAdminAction((req as any).user.id, 'UPDATE_MODULE', 'CourseModule', module.id, null, req);
     res.json({ success: true, data: module });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
@@ -1093,6 +1128,7 @@ export const updateModule = async (req: Request, res: Response) => {
 export const deleteModule = async (req: Request, res: Response) => {
   try {
     await prisma.courseModule.delete({ where: { id: (req.params.id as string) } });
+    invalidateCoursesCache();
     await logAdminAction((req as any).user.id, 'DELETE_MODULE', 'CourseModule', (req.params.id as string), null, req);
     res.json({ success: true, data: { message: 'Deleted' } });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
@@ -1100,22 +1136,70 @@ export const deleteModule = async (req: Request, res: Response) => {
 
 export const createLesson = async (req: Request, res: Response) => {
   try {
-    const data = { ...req.body };
-    if (data.youtubeVideoId) data.youtubeVideoId = extractYouTubeId(data.youtubeVideoId);
-    
-    const lesson = await prisma.lesson.create({ data });
-    await logAdminAction((req as any).user.id, 'CREATE_LESSON', 'Lesson', lesson.id, { moduleId: lesson.moduleId }, req);
+    const { moduleId, title, description, youtubeVideoId, videoUrl, durationMinutes, durationSeconds, isPreview, isRequired, isPublished, sortOrder } = req.body;
+    if (!moduleId || !title?.trim()) {
+      return res.status(400).json({ success: false, error: { message: 'Module ID and title are required' } });
+    }
+
+    const rawVideo = youtubeVideoId !== undefined ? youtubeVideoId : videoUrl;
+    const cleanVideoId = rawVideo ? extractYouTubeId(rawVideo) : '';
+
+    let totalSecs = 0;
+    if (durationSeconds !== undefined) {
+      totalSecs = Number(durationSeconds) || 0;
+    } else if (durationMinutes !== undefined) {
+      totalSecs = Math.round(Number(durationMinutes) * 60) || 0;
+    }
+
+    const maxOrder = sortOrder !== undefined ? Number(sortOrder) : (
+      await prisma.lesson.count({ where: { moduleId } })
+    ) + 1;
+
+    const lesson = await prisma.lesson.create({
+      data: {
+        moduleId,
+        title: title.trim(),
+        description: description?.trim() || null,
+        youtubeVideoId: cleanVideoId || null,
+        durationSeconds: totalSecs,
+        sortOrder: maxOrder,
+        isPreview: isPreview !== undefined ? Boolean(isPreview) : false,
+        isRequired: isRequired !== undefined ? Boolean(isRequired) : true,
+        isPublished: isPublished !== undefined ? Boolean(isPublished) : true
+      }
+    });
+
+    invalidateCoursesCache();
+    await logAdminAction((req as any).user.id, 'CREATE_LESSON', 'Lesson', lesson.id, { moduleId: lesson.moduleId, title: lesson.title }, req);
     res.json({ success: true, data: lesson });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
 };
 
 export const updateLesson = async (req: Request, res: Response) => {
   try {
-    const data = { ...req.body };
-    if (data.youtubeVideoId) data.youtubeVideoId = extractYouTubeId(data.youtubeVideoId);
-    
-    const lesson = await prisma.lesson.update({ where: { id: (req.params.id as string) }, data });
-    // Invalidate server course cache so updated video URLs are immediately visible to students
+    const { title, description, youtubeVideoId, videoUrl, durationMinutes, durationSeconds, isPreview, isRequired, isPublished, sortOrder } = req.body;
+    const updateData: any = {};
+    if (title !== undefined) updateData.title = title.trim();
+    if (description !== undefined) updateData.description = description ? description.trim() : null;
+    if (youtubeVideoId !== undefined || videoUrl !== undefined) {
+      const raw = youtubeVideoId !== undefined ? youtubeVideoId : videoUrl;
+      updateData.youtubeVideoId = raw ? extractYouTubeId(raw) : null;
+    }
+    if (durationSeconds !== undefined) {
+      updateData.durationSeconds = Number(durationSeconds) || 0;
+    } else if (durationMinutes !== undefined) {
+      updateData.durationSeconds = Math.round(Number(durationMinutes) * 60) || 0;
+    }
+    if (isPreview !== undefined) updateData.isPreview = Boolean(isPreview);
+    if (isRequired !== undefined) updateData.isRequired = Boolean(isRequired);
+    if (isPublished !== undefined) updateData.isPublished = Boolean(isPublished);
+    if (sortOrder !== undefined) updateData.sortOrder = Number(sortOrder);
+
+    const lesson = await prisma.lesson.update({
+      where: { id: (req.params.id as string) },
+      data: updateData
+    });
+
     invalidateCoursesCache();
     await logAdminAction((req as any).user.id, 'UPDATE_LESSON', 'Lesson', lesson.id, null, req);
     res.json({ success: true, data: lesson });
@@ -1125,9 +1209,138 @@ export const updateLesson = async (req: Request, res: Response) => {
 export const deleteLesson = async (req: Request, res: Response) => {
   try {
     await prisma.lesson.delete({ where: { id: (req.params.id as string) } });
+    invalidateCoursesCache();
     await logAdminAction((req as any).user.id, 'DELETE_LESSON', 'Lesson', (req.params.id as string), null, req);
     res.json({ success: true, data: { message: 'Deleted' } });
   } catch (err: any) { res.status(500).json({ success: false, error: { message: err.message } }); }
+};
+
+export const saveCourseCurriculum = async (req: Request, res: Response) => {
+  try {
+    const courseId = req.params.id as string;
+    const { modules } = req.body;
+
+    if (!Array.isArray(modules)) {
+      return res.status(400).json({ success: false, error: { message: 'Modules must be provided as an array' } });
+    }
+
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        modules: {
+          include: { lessons: true }
+        }
+      }
+    });
+
+    if (!course) {
+      return res.status(404).json({ success: false, error: { message: 'Course not found' } });
+    }
+
+    const existingModules = course.modules || [];
+    const incomingModuleIds = new Set(modules.filter(m => m.id).map(m => m.id));
+
+    // Delete removed modules
+    for (const em of existingModules) {
+      if (!incomingModuleIds.has(em.id)) {
+        await prisma.courseModule.delete({ where: { id: em.id } });
+      }
+    }
+
+    // Process incoming modules and lessons
+    for (let mIdx = 0; mIdx < modules.length; mIdx++) {
+      const m = modules[mIdx];
+      let moduleId = m.id;
+
+      if (moduleId && existingModules.some(em => em.id === moduleId)) {
+        await prisma.courseModule.update({
+          where: { id: moduleId },
+          data: {
+            title: m.title.trim(),
+            description: m.description?.trim() || null,
+            sortOrder: mIdx + 1
+          }
+        });
+      } else {
+        const createdModule = await prisma.courseModule.create({
+          data: {
+            courseId,
+            title: m.title.trim(),
+            description: m.description?.trim() || null,
+            sortOrder: mIdx + 1
+          }
+        });
+        moduleId = createdModule.id;
+      }
+
+      const existingLessons = existingModules.find(em => em.id === moduleId)?.lessons || [];
+      const incomingLessons = Array.isArray(m.lessons) ? m.lessons : [];
+      const incomingLessonIds = new Set(incomingLessons.filter((l: any) => l.id).map((l: any) => l.id));
+
+      // Delete removed lessons
+      for (const el of existingLessons) {
+        if (!incomingLessonIds.has(el.id)) {
+          await prisma.lesson.delete({ where: { id: el.id } });
+        }
+      }
+
+      // Upsert lessons
+      for (let lIdx = 0; lIdx < incomingLessons.length; lIdx++) {
+        const l = incomingLessons[lIdx];
+        const rawVid = l.youtubeVideoId !== undefined ? l.youtubeVideoId : (l.videoUrl || '');
+        const cleanVid = rawVid ? extractYouTubeId(rawVid) : '';
+        const durSecs = l.durationSeconds !== undefined 
+          ? Number(l.durationSeconds) || 0
+          : (l.durationMinutes !== undefined ? Math.round(Number(l.durationMinutes) * 60) || 0 : 0);
+
+        if (l.id && existingLessons.some(el => el.id === l.id)) {
+          await prisma.lesson.update({
+            where: { id: l.id },
+            data: {
+              moduleId,
+              title: l.title.trim(),
+              description: l.description?.trim() || null,
+              youtubeVideoId: cleanVid || null,
+              durationSeconds: durSecs,
+              isPreview: Boolean(l.isPreview),
+              sortOrder: lIdx + 1
+            }
+          });
+        } else {
+          await prisma.lesson.create({
+            data: {
+              moduleId,
+              title: l.title.trim(),
+              description: l.description?.trim() || null,
+              youtubeVideoId: cleanVid || null,
+              durationSeconds: durSecs,
+              isPreview: Boolean(l.isPreview),
+              sortOrder: lIdx + 1,
+              isRequired: true,
+              isPublished: true
+            }
+          });
+        }
+      }
+    }
+
+    invalidateCoursesCache();
+    await logAdminAction((req as any).user.id, 'SAVE_CURRICULUM', 'Course', courseId, { modulesCount: modules.length }, req);
+
+    const updatedCourse = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        modules: {
+          include: { lessons: { orderBy: { sortOrder: 'asc' } } },
+          orderBy: { sortOrder: 'asc' }
+        }
+      }
+    });
+
+    res.json({ success: true, data: updatedCourse });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: { message: err.message } });
+  }
 };
 
 // --- Enrollments ---

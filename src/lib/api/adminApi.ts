@@ -69,6 +69,30 @@ export const adminApi = {
     body: JSON.stringify({ isAvailable })
   }),
   deleteCourse: (id: string, force = false) => fetchApi(`/admin/courses/${id}${force ? '?force=true' : ''}`, { method: 'DELETE' }),
+
+  // Curriculum & Video Lessons (Modules & Lessons)
+  saveCourseCurriculum: (courseId: string, modules: any[]) => fetchApi(`/admin/courses/${courseId}/curriculum`, {
+    method: 'PUT',
+    body: JSON.stringify({ modules })
+  }),
+  createModule: (data: { courseId: string; title: string; description?: string; sortOrder?: number }) => fetchApi('/admin/modules', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  updateModule: (id: string, data: { title?: string; description?: string; sortOrder?: number }) => fetchApi(`/admin/modules/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  }),
+  deleteModule: (id: string) => fetchApi(`/admin/modules/${id}`, { method: 'DELETE' }),
+  createLesson: (data: { moduleId: string; title: string; description?: string; youtubeVideoId?: string; videoUrl?: string; durationMinutes?: number; durationSeconds?: number; isPreview?: boolean; sortOrder?: number }) => fetchApi('/admin/lessons', {
+    method: 'POST',
+    body: JSON.stringify(data)
+  }),
+  updateLesson: (id: string, data: { title?: string; description?: string; youtubeVideoId?: string; videoUrl?: string; durationMinutes?: number; durationSeconds?: number; isPreview?: boolean; sortOrder?: number }) => fetchApi(`/admin/lessons/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(data)
+  }),
+  deleteLesson: (id: string) => fetchApi(`/admin/lessons/${id}`, { method: 'DELETE' }),
   
   // Enrollments
   getEnrollments: (params = {}) => {

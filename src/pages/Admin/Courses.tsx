@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
-import { Search, Plus, Edit, Trash2 } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, BookOpen } from 'lucide-react';
 import { AdminCourseModal } from './AdminCourseModal';
+import { CurriculumManagerModal } from './CurriculumManagerModal';
 
 export const Courses: React.FC = () => {
   const [courses, setCourses] = useState<any[]>([]);
@@ -11,6 +12,10 @@ export const Courses: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<any>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
+
+  // Curriculum Manager state
+  const [curriculumModalOpen, setCurriculumModalOpen] = useState(false);
+  const [curriculumCourse, setCurriculumCourse] = useState<{ id: string; title: string } | null>(null);
 
   const fetchCourses = async () => {
     setLoading(true);
@@ -96,6 +101,11 @@ export const Courses: React.FC = () => {
     setModalOpen(true);
   };
 
+  const openCurriculumModal = (course: any) => {
+    setCurriculumCourse({ id: course.id, title: course.title });
+    setCurriculumModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -128,6 +138,7 @@ export const Courses: React.FC = () => {
             <thead className="bg-gray-50 border-b">
               <tr>
                 <th className="px-6 py-4 font-bold text-gray-700">Title</th>
+                <th className="px-6 py-4 font-bold text-gray-700">Curriculum</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Instructor</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Price</th>
                 <th className="px-6 py-4 font-bold text-gray-700">Status</th>
@@ -138,15 +149,32 @@ export const Courses: React.FC = () => {
             </thead>
             <tbody className="divide-y">
               {loading && courses.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
               ) : courses.length === 0 ? (
-                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">No courses found</td></tr>
+                <tr><td colSpan={8} className="px-6 py-8 text-center text-gray-500">No courses found</td></tr>
               ) : (
                 courses.map(course => (
                   <tr key={course.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 font-medium whitespace-normal max-w-[300px] truncate">{course.title}</td>
+                    <td className="px-6 py-4 font-medium whitespace-normal max-w-[280px]">
+                      <div className="font-bold text-gray-900 line-clamp-1">{course.title}</div>
+                      <div className="text-xs text-gray-400">{course.category} • {course.level}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        type="button"
+                        onClick={() => openCurriculumModal(course)}
+                        className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition shadow-xs group"
+                        title="Manage Syllabus Dropdowns, Lessons & Videos"
+                      >
+                        <BookOpen className="w-3.5 h-3.5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                        <span>
+                          {course.modules?.length || 0} {course.modules?.length === 1 ? 'Module' : 'Modules'} •{' '}
+                          {course.modules?.reduce((acc: number, m: any) => acc + (m.lessons?.length || 0), 0) || 0} Lessons
+                        </span>
+                      </button>
+                    </td>
                     <td className="px-6 py-4 text-gray-600">{course.instructor?.displayName || 'Unknown'}</td>
-                    <td className="px-6 py-4 text-gray-600">₹{course.price}</td>
+                    <td className="px-6 py-4 text-gray-600 font-semibold">₹{course.price}</td>
                     <td className="px-6 py-4">
                       <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
                         course.status === 'PUBLISHED' 
@@ -184,7 +212,14 @@ export const Courses: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-gray-600">{new Date(course.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-right space-x-2">
+                    <td className="px-6 py-4 text-right space-x-1.5">
+                      <button 
+                        onClick={() => openCurriculumModal(course)}
+                        className="p-2 text-emerald-700 hover:bg-emerald-50 rounded-lg transition"
+                        title="Manage Curriculum & Video Lessons"
+                      >
+                        <BookOpen className="w-4 h-4" />
+                      </button>
                       <button 
                         onClick={() => openEditModal(course)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
@@ -269,13 +304,27 @@ export const Courses: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-2 pt-3 border-t">
+                {/* Mobile Curriculum Button */}
+                <div className="pt-2 border-t">
+                  <button
+                    onClick={() => openCurriculumModal(course)}
+                    className="w-full py-2 px-3 text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg flex items-center justify-center space-x-1.5 transition"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>
+                      Manage Curriculum ({course.modules?.length || 0} Modules •{' '}
+                      {course.modules?.reduce((acc: number, m: any) => acc + (m.lessons?.length || 0), 0) || 0} Lessons)
+                    </span>
+                  </button>
+                </div>
+
+                <div className="flex justify-end space-x-2 pt-2 border-t">
                   <button 
                     onClick={() => openEditModal(course)}
                     className="flex-1 flex items-center justify-center space-x-1 py-2 text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition font-medium text-sm"
                   >
                     <Edit className="w-4 h-4" />
-                    <span>Edit</span>
+                    <span>Edit Course</span>
                   </button>
                   <button 
                     onClick={() => handleDelete(course.id)}
@@ -313,6 +362,19 @@ export const Courses: React.FC = () => {
         course={selectedCourse} 
         onSuccess={fetchCourses} 
       />
+
+      {curriculumCourse && (
+        <CurriculumManagerModal
+          isOpen={curriculumModalOpen}
+          onClose={() => {
+            setCurriculumModalOpen(false);
+            setCurriculumCourse(null);
+          }}
+          courseId={curriculumCourse.id}
+          courseTitle={curriculumCourse.title}
+          onSuccess={fetchCourses}
+        />
+      )}
     </div>
   );
 };
