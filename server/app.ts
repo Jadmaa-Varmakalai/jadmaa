@@ -33,6 +33,7 @@ import fs from 'fs';
 initCourseAvailability().catch(() => {});
 
 const app = express();
+app.disable('x-powered-by');
 
 app.use(express.json({
   limit: '20mb',
@@ -42,11 +43,41 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(cookieParser());
-app.use(cors());
+
+const ALLOWED_ORIGINS = [
+  'https://jadmaa.com',
+  'https://www.jadmaa.com',
+  ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:5173', 'http://localhost:3000'] : []),
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
+
 app.use(helmet({
-  contentSecurityPolicy: false,
+  frameguard: { action: 'deny' },
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  hsts: { maxAge: 31536000, includeSubDomains: true },
+  noSniff: true,
   crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.youtube.com', 'https://s.ytimg.com', 'https://checkout.razorpay.com'],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com', 'data:'],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https:', 'http:'],
+      frameSrc: ["'self'", 'https://www.youtube.com', 'https://www.youtube-nocookie.com', 'https://api.razorpay.com'],
+      connectSrc: ["'self'", 'https://jadmaa.com', 'https://www.jadmaa.com', 'https://api.razorpay.com', 'https://www.youtube.com'],
+    },
+  },
 }));
 
 app.get(['/api/health', '/api/v1/health'], (req, res) => {

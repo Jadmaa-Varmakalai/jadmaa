@@ -124,25 +124,25 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
 
         <div>
           {/* Metadata Row: Duration & Rating / Learners */}
-          <div className="flex items-center justify-between text-[11px] text-[#5C5148] font-medium mb-1">
-            <div className="inline-flex items-center gap-1 text-[#B12B2B] font-semibold">
-              <Clock className="w-3 h-3" />
+          <div className="flex items-center justify-between text-sm text-[#5C5148] font-medium mb-1.5">
+            <div className="inline-flex items-center gap-1.5 text-[#B12B2B] font-semibold">
+              <Clock className="w-3.5 h-3.5" />
               <span>{durationText}</span>
             </div>
 
             {hasRealRating ? (
               <div className="inline-flex items-center gap-1 text-amber-700">
-                <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
                 <span className="font-bold">{displayRating}</span>
-                <span className="text-gray-400 text-[10px]">({displayReviews})</span>
+                <span className="text-gray-400 text-xs">({displayReviews})</span>
               </div>
             ) : typeof course.studentsCount === 'number' && course.studentsCount > 0 ? (
-              <div className="inline-flex items-center gap-1 text-gray-500 text-[10px]">
-                <Users className="w-3 h-3 text-gray-400" />
+              <div className="inline-flex items-center gap-1 text-[#5C5148] text-sm">
+                <Users className="w-3.5 h-3.5 text-gray-400" />
                 <span>{course.studentsCount} learners</span>
               </div>
             ) : (
-              <span className="text-gray-400 text-[10px]">
+              <span className="text-[#5C5148] text-sm">
                 {typeof course.category === 'object' && course.category !== null
                   ? (course.category as any).name
                   : (course.category || 'Varmakalai')}
@@ -152,13 +152,13 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
 
           {/* Title */}
           <Link to={`/courses/${course.slug}`} className="block group-hover:text-[#B12B2B] transition-colors">
-            <h3 className="font-heading font-bold text-sm sm:text-base lg:text-[16px] text-[#1F2937] leading-snug line-clamp-2 min-h-[2.3rem] sm:min-h-[2.6rem]">
+            <h3 className="text-lg sm:text-xl font-bold font-serif text-[#2B2521] leading-snug line-clamp-2 min-h-[3rem]">
               {cleanTitle}
             </h3>
           </Link>
 
-          {/* Description — hidden on mobile so action buttons stay visible above the fold */}
-          <p className="hidden sm:line-clamp-2 text-xs text-[#5C5148] leading-relaxed mt-1">
+          {/* Description */}
+          <p className="line-clamp-2 text-sm sm:text-base text-[#5C5148] leading-relaxed font-normal mt-1.5">
             {course.description || course.subtitle || ''}
           </p>
         </div>
@@ -190,20 +190,20 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
             </div>
           )}
 
-          {/* Dual Compact Action Buttons (50/50 Grid inspired by reference) */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* Dual Action Buttons */}
+          <div className="grid grid-cols-2 gap-2.5">
             <Link
               to={`/courses/${course.slug}`}
-              className="inline-flex items-center justify-center py-1.5 sm:py-2 px-2.5 rounded-lg border border-[#E8DDD0] hover:border-[#B12B2B] hover:bg-[#FAF6F0] text-[#2B2521] hover:text-[#B12B2B] font-semibold text-xs transition-colors"
+              className="inline-flex items-center justify-center py-2.5 px-4 rounded-lg border border-[#E8DDD0] hover:border-[#B12B2B] hover:bg-[#FAF6F0] text-[#2B2521] hover:text-[#B12B2B] font-medium text-sm transition-colors"
             >
               More Info
             </Link>
             <Link
               to={`/courses/${course.slug}`}
-              className="inline-flex items-center justify-center gap-1 py-1.5 sm:py-2 px-2.5 rounded-lg bg-gradient-to-r from-[#B12B2B] to-[#911B1B] hover:from-[#911B1B] hover:to-[#781515] text-white font-semibold text-xs shadow-2xs hover:shadow-sm transition-all"
+              className="inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-lg bg-gradient-to-r from-[#B12B2B] to-[#911B1B] hover:from-[#911B1B] hover:to-[#781515] text-white font-medium text-sm shadow-2xs hover:shadow-sm transition-all"
             >
               <span>{course.isFree ? 'Start Free' : 'Enroll'}</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
