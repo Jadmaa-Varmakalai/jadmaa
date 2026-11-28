@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Video, PlayCircle, ExternalLink, BookOpen } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
 import { ImageUpload } from '../../components/common/ImageUpload';
+import { useModalHistory } from '../../hooks/useModalHistory';
 import { CurriculumManagerModal } from './CurriculumManagerModal';
 
 interface AdminCourseModalProps {
@@ -12,6 +13,7 @@ interface AdminCourseModalProps {
 }
 
 export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onClose, course, onSuccess }) => {
+  const { closeWithHistory } = useModalHistory(isOpen, onClose, 'admin-course-modal');
   const [curriculumModalOpen, setCurriculumModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
@@ -154,7 +156,7 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
       <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center p-6 border-b sticky top-0 bg-white">
           <h2 className="text-xl font-bold font-heading">{course ? 'Edit Course' : 'Create New Course'}</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full">
+          <button onClick={closeWithHistory} className="p-2 hover:bg-gray-100 rounded-full">
             <X className="w-5 h-5 text-gray-500" />
           </button>
         </div>
@@ -429,7 +431,7 @@ export const AdminCourseModal: React.FC<AdminCourseModalProps> = ({ isOpen, onCl
           <div className="pt-4 flex justify-end space-x-3">
             <button 
               type="button" 
-              onClick={onClose}
+              onClick={closeWithHistory}
               className="px-4 py-2 text-sm font-bold text-gray-600 hover:bg-gray-100 rounded-lg"
             >
               Cancel

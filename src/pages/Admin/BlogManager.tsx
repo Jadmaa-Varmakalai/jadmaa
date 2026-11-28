@@ -5,6 +5,14 @@ import type { BlogPost } from '../../lib/api/blogApi';
 import { Plus, Edit, Trash2, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ImageUpload } from '../../components/common/ImageUpload';
+import { useModalHistory } from '../../hooks/useModalHistory';
+
+export const DEFAULT_BLOG_CONTACT_TEMPLATE = `<p>📍 <strong>JADMAA வர்மக்கலை:</strong> கும்பகோணம் | தஞ்சாவூர் | அரியலூர்</p>
+
+<p>👉 <a href="https://wa.me/919345220020?text=Hello%20JADMAA%20Varmakalai%2C%20I%20want%20to%20know%20about%20classes" target="_blank" rel="noopener"><strong>Chat on WhatsApp: +91 93452 20020</strong></a></p>
+<p>📞 <a href="tel:+919345220020"><strong>Call Now: +91 93452 20020</strong></a></p>
+
+<p>Ready to begin? <a href="/courses/">Explore the Basic Varmakalai Training course</a> or <a href="/contact/">book a Treatment Consulting</a> at Thanjavur, Kumbakonam, or Ariyalur.</p>`;
 
 export const BlogManager: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +24,8 @@ export const BlogManager: React.FC = () => {
   
   const [isEditing, setIsEditing] = useState(false);
   const [currentBlog, setCurrentBlog] = useState<Partial<BlogPost>>({});
+
+  const { closeWithHistory } = useModalHistory(isEditing, () => setIsEditing(false), 'blog-editor');
 
   const fetchBlogs = async () => {
     try {
@@ -161,18 +171,20 @@ export const BlogManager: React.FC = () => {
           </div>
           <div>
             <div className="flex items-center justify-between mb-1">
-              <label className="block text-xs font-bold text-jadmaa-charcoal">Excerpt</label>
-              <span className="text-xs font-semibold text-gray-500">
-                {currentBlog.excerpt?.length || 0} of 160 chars
+              <label className="block text-xs font-bold text-jadmaa-charcoal">Blog Content</label>
+              <span className="text-xs font-medium text-gray-500">
+                {currentBlog.excerpt?.length || 0} chars
               </span>
             </div>
+            <p className="text-[11px] text-gray-500 mb-1.5">
+              Write your article normally in plain text. Line breaks and paragraphs are formatted automatically.
+            </p>
             <textarea 
-              rows={2}
-              maxLength={160}
-              placeholder="Short summary of article (max 160 chars)..."
+              rows={14}
+              placeholder="Write your full article here in plain text..."
               value={currentBlog.excerpt || ''}
-              onChange={(e) => setCurrentBlog({...currentBlog, excerpt: e.target.value.slice(0, 160)})}
-              className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
+              onChange={(e) => setCurrentBlog({...currentBlog, excerpt: e.target.value})}
+              className="w-full px-4 py-3 text-base leading-relaxed font-sans border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none"
             />
           </div>
 
@@ -232,13 +244,22 @@ export const BlogManager: React.FC = () => {
             helperText="1:1 square template. Any image uploaded here will fit cleanly inside without being cropped."
           />
           <div>
-            <label className="block text-xs font-bold text-jadmaa-charcoal mb-1">Content (Markdown)</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-bold text-jadmaa-charcoal">Contact Details (Template)</label>
+              <button
+                type="button"
+                onClick={() => setCurrentBlog({ ...currentBlog, content: DEFAULT_BLOG_CONTACT_TEMPLATE })}
+                className="text-[11px] font-semibold text-[#B12B2B] hover:underline cursor-pointer"
+              >
+                Reset to Default Template
+              </button>
+            </div>
             <textarea 
               required
-              rows={10}
+              rows={6}
               value={currentBlog.content || ''}
               onChange={(e) => setCurrentBlog({...currentBlog, content: e.target.value})}
-              className="w-full px-4 py-2 text-sm border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none font-mono"
+              className="w-full px-4 py-2 text-xs border border-jadmaa-border rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none font-mono"
             />
           </div>
           <div className="flex items-center space-x-2">
@@ -254,7 +275,7 @@ export const BlogManager: React.FC = () => {
           <div className="flex justify-end space-x-3 pt-4 border-t border-jadmaa-border">
             <button 
               type="button" 
-              onClick={() => setIsEditing(false)}
+              onClick={closeWithHistory}
               className="px-4 py-2 text-sm font-bold text-jadmaa-textMuted hover:text-jadmaa-charcoal"
             >
               Cancel
@@ -277,7 +298,7 @@ export const BlogManager: React.FC = () => {
         <h3 className="font-heading font-extrabold text-2xl text-jadmaa-charcoal">Blog Posts</h3>
         <button 
           onClick={() => {
-            setCurrentBlog({ published: true });
+            setCurrentBlog({ published: true, content: DEFAULT_BLOG_CONTACT_TEMPLATE });
             setIsEditing(true);
           }}
           className="flex items-center justify-center space-x-1 bg-jadmaa-charcoal text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors shrink-0 w-full sm:w-auto"

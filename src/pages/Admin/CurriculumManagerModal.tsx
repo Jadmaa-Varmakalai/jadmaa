@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { adminApi } from '../../lib/api/adminApi';
 import { extractYouTubeVideoId } from '../../utils/youtube';
+import { useModalHistory } from '../../hooks/useModalHistory';
 
 interface CurriculumManagerModalProps {
   isOpen: boolean;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { adminApi } from '../../lib/api/adminApi';
+import { useModalHistory } from '../../hooks/useModalHistory';
 import { X, BookOpen, CreditCard, CheckCircle2, PlayCircle } from 'lucide-react';
 
 interface StudentDetailsModalProps {
@@ -8,6 +9,7 @@ interface StudentDetailsModalProps {
 }
 
 export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({ studentId, onClose }) => {
+  const { closeWithHistory } = useModalHistory(Boolean(studentId), onClose, 'student-modal');
   const [student, setStudent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({ studen
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
         <div className="bg-white rounded-2xl w-full max-w-3xl p-6 shadow-xl relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
+          <button onClick={closeWithHistory} className="absolute top-4 right-4 text-gray-500 hover:text-gray-700">
             <X className="w-5 h-5" />
           </button>
           <div className="text-center py-10 text-red-500 font-bold">{error || 'Student not found'}</div>
@@ -62,7 +64,7 @@ export const StudentDetailsModal: React.FC<StudentDetailsModalProps> = ({ studen
             <h2 className="text-2xl font-heading font-bold text-gray-900">{student.name}</h2>
             <p className="text-sm text-gray-500">{student.email} • {student.phone || 'No phone'}</p>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+          <button onClick={closeWithHistory} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
             <X className="w-6 h-6" />
           </button>
         </div>

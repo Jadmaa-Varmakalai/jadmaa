@@ -284,56 +284,56 @@ export const Home: React.FC = () => {
                 />
               </p>
 
-              {/* Hero Stats Row (Above CTA) - All 4 authority counts in single horizontal row */}
-              <div className="my-4 sm:my-5 pt-4 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
-                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+              {/* Hero Stats Row (Above CTA) - Compact 2x2 on mobile/tablet, 4-col on desktop */}
+              <div className="w-fit max-w-[270px] sm:max-w-md lg:max-w-xl my-4 sm:my-5 pt-4 border-t border-[#E8DDD0] grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 lg:gap-6 text-left">
+                <div className="min-w-0">
+                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.tradition.value" defaultText="1000" />
                     ) : (
                       <CountUp end={traditionValue} suffix="+" />
                     )}
                   </div>
-                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
                     <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
                   </div>
                 </div>
 
-                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                <div className="min-w-0">
+                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.branches.value" defaultText="3" />
                     ) : (
                       <CountUp end={branchesValue} />
                     )}
                   </div>
-                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
                     <EditableText settingKey="home.stats.branches" defaultText="Branches" />
                   </div>
                 </div>
 
-                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                <div className="min-w-0">
+                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.courses.value" defaultText="5" />
                     ) : (
                       <CountUp end={coursesValue} />
                     )}
                   </div>
-                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
                     <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
                   </div>
                 </div>
 
-                <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
-                  <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
+                <div className="min-w-0">
+                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
                     {isEditing ? (
                       <EditableText settingKey="home.stats.experience.value" defaultText="10" />
                     ) : (
                       <CountUp end={experienceValue} suffix="+" />
                     )}
                   </div>
-                  <div className="font-body text-[9.5px] min-[380px]:text-[10.5px] sm:text-xs md:text-sm text-[#5C5148] mt-0.5 sm:mt-1 font-medium leading-[1.2] break-words">
+                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
                     <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
                   </div>
                 </div>
@@ -357,8 +357,8 @@ export const Home: React.FC = () => {
 
             </div>
 
-            {/* Right Column (on desktop): Hero Practitioner Kick Image (flush-left closer to text) */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-start lg:-ml-4 items-end relative z-10 min-h-[320px] sm:min-h-[400px] lg:min-h-[480px] mt-4 sm:mt-6 lg:mt-0 pt-2 lg:pt-0">
+            {/* Right Column (on desktop): Hero Practitioner Kick Image (aligned under right navbar links) */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[320px] sm:min-h-[400px] lg:min-h-[480px] mt-4 sm:mt-6 lg:mt-0 pt-2 lg:pt-0 lg:mr-4 xl:mr-6">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center will-change-transform contain-layout">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />
