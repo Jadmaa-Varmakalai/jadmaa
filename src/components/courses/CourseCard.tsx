@@ -59,10 +59,10 @@ export const CourseCard: React.FC<CourseCardProps> = ({ course, hidePrice = fals
   const formattedPrice = hasPrice ? course.price.toLocaleString('en-IN') : '0';
 
   return (
-    <div className={`jd-card group w-full flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-[#EBE4DC] shadow-[0_2px_12px_rgba(43,37,33,0.05)] hover:shadow-[0_12px_28px_rgba(177,43,43,0.11)] hover:border-[#E2C7B8] transition-all duration-300 h-full ${className}`}>
+    <div className={`jd-card group w-full flex flex-col bg-white rounded-2xl overflow-hidden border border-[#E8DDD0] shadow-[0_4px_16px_rgba(43,37,33,0.05)] hover:shadow-[0_12px_28px_rgba(177,43,43,0.09)] hover:border-[#B12B2B]/30 transition-all duration-300 h-full ${className}`}>
 
-      {/* ── 1. Thumbnail with Badges (Aspect 16/10) ── */}
-      <div className="relative w-full aspect-[16/10] overflow-hidden bg-gray-100 border-b border-[#F0EBE4]">
+      {/* ── 1. Unified 1:1 Square Image Frame ── */}
+      <div className="relative w-full aspect-square overflow-hidden bg-[#FAF6F0] border-b border-[#F0EBE4]">
         <ResponsiveImage
           src={thumbnailSrc}
           alt={cleanTitle}

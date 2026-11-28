@@ -240,8 +240,7 @@ export const BlogManager: React.FC = () => {
             value={currentBlog.thumbnailUrl || ''}
             onChange={(url) => setCurrentBlog({...currentBlog, thumbnailUrl: url})}
             aspectRatio="square"
-            disableCrop={true}
-            helperText="1:1 square template. Any image uploaded here will fit cleanly inside without being cropped."
+            helperText="1:1 square template. Drag & zoom to frame your image cleanly."
           />
           <div>
             <div className="flex items-center justify-between mb-1">
