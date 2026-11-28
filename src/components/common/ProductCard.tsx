@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Check, ShoppingBag, Eye, Trash2, Edit } from 'lucide-react';
+import { BookOpen, Check, ShoppingBag, Trash2, Edit } from 'lucide-react';
 import type { Product } from '../../lib/api/productApi';
 import { ResponsiveImage } from './ResponsiveImage';
 import { ShareButton } from './ShareButton';
@@ -90,41 +90,41 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       <div className="p-3 sm:p-4 flex flex-col flex-grow justify-between gap-2.5 text-left">
         <div>
           {/* Category / Sub-meta */}
-          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-[#7A6E65] font-medium mb-1">
-            <span className="uppercase tracking-wider font-semibold text-[#B12B2B]">
+          <div className="flex items-center justify-between text-sm text-[#5C5148] font-medium mb-1.5">
+            <span className="uppercase tracking-wider font-semibold text-[#B12B2B] text-xs">
               {categoryName}
             </span>
             {product.isDigital && (
-              <span className="text-gray-400">Instant Access</span>
+              <span className="text-sm text-[#5C5148]">Instant Access</span>
             )}
           </div>
 
           {/* Title */}
           <Link to={`/products/${product.slug}`} className="block group-hover:text-jadmaa-red transition-colors">
-            <h3 className="font-heading font-bold text-xs sm:text-sm lg:text-[15px] text-gray-900 leading-snug line-clamp-2 min-h-[2.2rem] sm:min-h-[2.5rem]">
+            <h3 className="text-lg sm:text-xl font-bold font-serif text-[#2B2521] leading-snug line-clamp-2 min-h-[3rem]">
               {product.name}
             </h3>
           </Link>
 
-          {/* Description — hidden on mobile to keep card scannable & compact */}
+          {/* Description */}
           {product.description && (
-            <p className="hidden sm:line-clamp-2 text-xs text-[#5C5148] leading-relaxed mt-1">
+            <p className="line-clamp-2 text-sm sm:text-base text-[#5C5148] leading-relaxed font-normal mt-1.5">
               {product.description}
             </p>
           )}
         </div>
 
         {/* ── 3. Footer & Action Row ── */}
-        <div className="pt-2 border-t border-gray-100 flex flex-col gap-2">
-          <div className="flex items-center justify-between gap-1">
+        <div className="pt-2.5 border-t border-gray-100 flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
             {/* Price */}
             <div>
-              <span className="font-heading font-extrabold text-sm sm:text-base text-[#2B2521]">
+              <span className="font-heading font-bold text-base sm:text-lg text-[#2B2521]">
                 ₹{product.price.toLocaleString('en-IN')}
               </span>
             </div>
 
-            {/* Compact CTA */}
+            {/* CTA */}
             {onAddToCart && !isOutOfStock && (
               <button
                 type="button"
@@ -134,7 +134,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   onAddToCart(product);
                 }}
                 disabled={isJustAdded}
-                className={`inline-flex items-center justify-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shadow-2xs cursor-pointer ${
+                className={`inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-lg text-sm font-medium transition-all shadow-2xs cursor-pointer ${
                   isJustAdded
                     ? 'bg-emerald-600 text-white'
                     : 'bg-[#B12B2B] hover:bg-[#8F2020] text-white active:scale-95'

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { productApi } from '../../lib/api/productApi';
 import type { Product, ProductCategory } from '../../lib/api/productApi';
 import { uploadApi } from '../../lib/api/uploadApi';
+import { useModalHistory } from '../../hooks/useModalHistory';
 import {
   Package,
   Plus,
