@@ -9,6 +9,7 @@ import type { Product } from '../../lib/api/productApi';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { EditableText } from '../../components/common/EditableText';
+import { PageHeader } from '../../components/common/PageHeader';
 import {
   SlidersHorizontal,
   ShoppingBag,
@@ -122,31 +123,27 @@ export const Products: React.FC = () => {
       />
 
       {/* Hero Banner */}
-      <section className="bg-gradient-to-b from-[#F5EFEB] to-[#FAF6F0] border-b border-[#E8DDD0] py-10 md:py-14 text-left relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-80 h-80 rounded-full bg-jadmaa-red/5 blur-3xl pointer-events-none" />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="max-w-3xl space-y-3">
-            <h1 className="text-3xl sm:text-5xl font-heading font-extrabold text-jadmaa-charcoal tracking-tight">
-              <EditableText
-                settingKey="shop.hero.title"
-                defaultText='Dojo Gear & <span class="text-jadmaa-red">Martial Arts Equipment</span>'
-              />
-            </h1>
-            <p className="text-base sm:text-lg text-[#5C5148] leading-relaxed">
-              <EditableText
-                settingKey="shop.hero.subtitle"
-                defaultText="Equip your journey with authentic uniforms, sparring protection, master belts, and training equipment for practitioners."
-                multiline
-              />
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow="Authentic Store & Gear"
+        title={
+          <EditableText
+            settingKey="shop.hero.title"
+            defaultText='Dojo Gear & <span class="text-jadmaa-red">Martial Arts Equipment</span>'
+          />
+        }
+        subtitle={
+          <EditableText
+            settingKey="shop.hero.subtitle"
+            defaultText="Equip your journey with authentic uniforms, sparring protection, master belts, and training equipment for practitioners."
+            multiline
+          />
+        }
+      />
 
       {/* Admin Quick Action Banner on Public Store */}
       {isAdmin && (
-        <div className="bg-amber-50/90 border-b border-amber-200 py-3.5 px-4 sm:px-6 shadow-2xs">
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="bg-amber-50/90 border-b border-amber-200 py-3.5 px-4 sm:px-6 lg:px-10 xl:px-12 shadow-2xs">
+          <div className="max-w-[1500px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2 text-amber-950 font-semibold">
               <span className="w-2.5 h-2.5 rounded-full bg-jadmaa-red animate-pulse shrink-0" />
               <span>Administrator Mode: You can create new products, set pricing, and manage inventory.</span>
@@ -172,7 +169,7 @@ export const Products: React.FC = () => {
 
       {/* Main Catalog Section */}
       <section className="py-10 bg-[#F2EDE4] min-h-screen text-left">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-8">
           
           {/* Controls: Search, Filter & Sort */}
           <div className="bg-white p-4 sm:p-5 rounded-2xl shadow-xs border border-gray-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">

@@ -5,6 +5,7 @@ import { CourseCard, isOnlineCourse } from '../components/courses/CourseCard';
 import { Search, Filter, BookOpen, Video, MapPin, Layers, X } from 'lucide-react';
 import { courseApi } from '../lib/api/courseApi';
 import { EditableText } from '../components/common/EditableText';
+import { PageHeader } from '../components/common/PageHeader';
 import type { Course } from '../types';
 
 export const Courses: React.FC = () => {
@@ -102,29 +103,27 @@ export const Courses: React.FC = () => {
       />
 
       {/* Page Header */}
-      <section className="bg-jadmaa-cream py-12 md:py-16 border-b border-jadmaa-border text-left">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
-          <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
-            <EditableText
-              settingKey="courses.hero.eyebrow"
-              defaultText="Our Curriculum & Training"
-            />
-          </span>
-          <h1 className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-jadmaa-charcoal">
-            <EditableText
-              settingKey="courses.hero.title"
-              defaultText="Courses & Training Programs"
-            />
-          </h1>
-          <p className="text-base md:text-lg text-jadmaa-textMuted max-w-3xl leading-relaxed">
-            <EditableText
-              settingKey="courses.hero.description"
-              defaultText="Recorded online courses for self-paced video learning, and in-person academy classes across our branches in Thanjavur, Kumbakonam, and Ariyalur."
-              multiline
-            />
-          </p>
-        </div>
-      </section>
+      <PageHeader
+        eyebrow={
+          <EditableText
+            settingKey="courses.hero.eyebrow"
+            defaultText="Our Curriculum"
+          />
+        }
+        title={
+          <EditableText
+            settingKey="courses.hero.title"
+            defaultText="Courses & Training Programs"
+          />
+        }
+        subtitle={
+          <EditableText
+            settingKey="courses.hero.description"
+            defaultText="Recorded online courses for self-paced video learning, and in-person academy classes across our branches in Thanjavur, Kumbakonam, and Ariyalur."
+            multiline
+          />
+        }
+      />
 
       {/* Course Catalog Content */}
       <section className="py-12 bg-[#F2EDE4] border-b border-jadmaa-border min-h-screen">

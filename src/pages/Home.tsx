@@ -258,25 +258,25 @@ export const Home: React.FC = () => {
       />
 
       {/* 1. HERO SECTION */}
-      <section className="relative bg-[#FAF6F0] pt-10 pb-12 md:pt-14 md:pb-16 border-b border-[#E8DDD0] overflow-hidden">
+      <section className="relative bg-[#FAF6F0] pt-5 pb-10 sm:pt-7 md:pt-8 md:pb-12 border-b border-[#E8DDD0] overflow-x-hidden">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-6 items-center">
             
             {/* Left Column (on desktop): Hero Content */}
             <div className="lg:col-span-7 space-y-4 text-left relative z-20">
               
-              <div className="text-[#B12B2B] text-[12px] md:text-[13px] font-bold tracking-[1.2px] uppercase font-body">
+              <div className="text-xs font-bold uppercase tracking-[0.15em] text-[#B12B2B] mb-2.5 block font-body">
                 <EditableText settingKey="home.hero.eyebrow" defaultText="1000+ Year Old Mother of Martial Arts" />
               </div>
 
-              <h2 className="font-heading font-medium text-[clamp(28px,3.8vw,48px)] text-[#2B2521] leading-[1.18] tracking-[-0.5px]">
+              <h1 className="font-heading text-3xl sm:text-4xl lg:text-[44px] font-semibold text-[#2B2521] tracking-tight leading-[1.15]">
                 <EditableText 
                   settingKey="home.hero.title" 
                   defaultText="Learn the Ancient Science of Varmakalai" 
                 />
-              </h2>
+              </h1>
 
-              <p className="font-body text-[#5C5148] text-[16px] md:text-[17px] leading-[1.6] max-w-xl">
+              <p className="mt-3 text-sm sm:text-base text-[#5C5148] max-w-2xl leading-relaxed font-normal font-body">
                 <EditableText 
                   settingKey="home.hero.subtitle" 
                   defaultText="Empower your body, sharpen your mind, and preserve a timeless tradition through professional Varmakalai (Varma Kalai) martial arts training." 
@@ -284,24 +284,8 @@ export const Home: React.FC = () => {
                 />
               </p>
 
-              {/* Hero CTA Buttons - Mobile-only compact sizing: identical dimensions, single row, minimal gap */}
-              <div className="flex flex-row items-center justify-start gap-2 sm:gap-3 pt-1">
-                <Link 
-                  to="/contact" 
-                  className="btn-jadmaa-primary w-[130px] sm:w-[160px] h-[36px] sm:h-[42px] text-[12.5px] sm:text-[14px] !py-0 !px-2.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
-                >
-                  <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
-                </Link>
-                <Link 
-                  to="/contact" 
-                  className="btn-jadmaa-outline w-[130px] sm:w-[160px] h-[36px] sm:h-[42px] text-[12.5px] sm:text-[14px] !py-0 !px-2.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
-                >
-                  <EditableText settingKey="home.hero.cta2" defaultText="Book Demo" />
-                </Link>
-              </div>
-
-              {/* Hero Stats Row - All 4 authority counts in single horizontal row on mobile with restored large text */}
-              <div className="pt-4 sm:pt-6 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
+              {/* Hero Stats Row (Above CTA) - All 4 authority counts in single horizontal row */}
+              <div className="my-4 sm:my-5 pt-4 border-t border-[#E8DDD0] flex flex-nowrap items-start justify-between gap-1 sm:gap-4 md:gap-6 text-center sm:text-left">
                 <div className="flex-1 min-w-0 max-w-[25%] px-0.5">
                   <div className="font-heading font-bold text-[17px] min-[380px]:text-lg sm:text-2xl md:text-3xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-center sm:justify-start contain-layout">
                     {isEditing ? (
@@ -355,10 +339,26 @@ export const Home: React.FC = () => {
                 </div>
               </div>
 
+              {/* Hero CTA Buttons (Below Stats) - Touch-friendly 44px+ on mobile/desktop */}
+              <div className="flex flex-row items-center justify-start gap-2.5 sm:gap-3 mt-4 sm:mt-6">
+                <Link 
+                  to="/contact" 
+                  className="btn-jadmaa-primary min-w-[136px] sm:w-[164px] min-h-[44px] text-[13px] sm:text-[14px] !py-0 !px-3.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
+                >
+                  <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
+                </Link>
+                <Link 
+                  to="/contact" 
+                  className="btn-jadmaa-outline min-w-[136px] sm:w-[164px] min-h-[44px] text-[13px] sm:text-[14px] !py-0 !px-3.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
+                >
+                  <EditableText settingKey="home.hero.cta2" defaultText="Book Demo" />
+                </Link>
+              </div>
+
             </div>
 
-            {/* Right Column (on desktop): Hero Practitioner Kick Image */}
-            <div className="lg:col-span-5 flex justify-center lg:justify-end items-end relative z-10 min-h-[340px] sm:min-h-[420px] lg:min-h-[520px] mt-6 sm:mt-8 lg:mt-0 pt-3 lg:pt-0">
+            {/* Right Column (on desktop): Hero Practitioner Kick Image (flush-left closer to text) */}
+            <div className="lg:col-span-5 flex justify-center lg:justify-start lg:-ml-4 items-end relative z-10 min-h-[320px] sm:min-h-[400px] lg:min-h-[480px] mt-4 sm:mt-6 lg:mt-0 pt-2 lg:pt-0">
               <div className="relative group cursor-pointer animate-jd-hero-float inline-block text-center will-change-transform contain-layout">
                 <picture>
                   <source type="image/avif" srcSet="/images/optimized/hero-kick-action-transparent-386w.avif 386w, /images/optimized/hero-kick-action-transparent.avif 386w" />

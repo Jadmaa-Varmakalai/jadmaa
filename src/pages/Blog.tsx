@@ -6,6 +6,7 @@ import { blogApi } from "../lib/api/blogApi";
 import type { BlogPost } from '../lib/api/blogApi';
 import { useAuth } from '../context/AuthContext';
 import { FileText } from 'lucide-react';
+import { PageHeader } from '../components/common/PageHeader';
 
 export const Blog: React.FC = () => {
   const navigate = useNavigate();
@@ -57,22 +58,12 @@ export const Blog: React.FC = () => {
 
       <div className="bg-[#FAF6F0] min-h-screen text-left text-[#2B2521]">
         {/* Header Container */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
-          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div className="space-y-3">
-              <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
-                Articles &amp; Insights
-              </span>
-              <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-5xl text-jadmaa-charcoal">
-                Varmakalai Blog
-              </h2>
-              <p className="text-base md:text-lg text-jadmaa-textMuted max-w-2xl">
-                Insights on Varmakalai (Varma Kalai) martial arts training, self-defence, and traditional Varma treatment — from the JADMAA Varmakalai team.
-              </p>
-            </div>
-
-            {/* Admin / Super Admin Manage Blogs Button */}
-            {canManageBlogs && (
+        <PageHeader
+          eyebrow="Knowledge & Insights"
+          title="Varmakalai Blog"
+          subtitle="Insights on Varmakalai (Varma Kalai) martial arts training, self-defence, and traditional Varma treatment — from the JADMAA Varmakalai team."
+          rightSlot={
+            canManageBlogs ? (
               <div className="flex items-center gap-3 shrink-0">
                 <button
                   onClick={() => navigate('/admin/blogs')}
@@ -83,9 +74,9 @@ export const Blog: React.FC = () => {
                   <span>Manage Blogs</span>
                 </button>
               </div>
-            )}
-          </div>
-        </section>
+            ) : undefined
+          }
+        />
 
         {/* Blog Posts Grid Section */}
         <section className="py-12 bg-[#F2EDE4] border-b border-jadmaa-border min-h-screen">

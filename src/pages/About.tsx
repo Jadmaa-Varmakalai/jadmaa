@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { CheckCircle2 } from 'lucide-react';
 import { EditableText } from '../components/common/EditableText';
+import { PageHeader } from '../components/common/PageHeader';
 import { ResponsiveImage } from '../components/common/ResponsiveImage';
 
 const whyChooseItems = [
@@ -36,19 +37,11 @@ export const About: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Section 1: Title & Tagline */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
-          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
-            <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
-              <EditableText settingKey="about.eyebrow" defaultText="Tradition & Lineage" />
-            </span>
-            <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-5xl text-jadmaa-charcoal">
-              <EditableText settingKey="about.title" defaultText="About JADMAA Varmakalai" />
-            </h2>
-            <p className="text-base md:text-lg text-jadmaa-textMuted max-w-2xl">
-              <EditableText settingKey="about.tagline" defaultText="Preserving Tradition. Empowering Generations." />
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          eyebrow={<EditableText settingKey="about.eyebrow" defaultText="Tradition & Lineage" />}
+          title={<EditableText settingKey="about.title" defaultText="About JADMAA Varmakalai" />}
+          subtitle={<EditableText settingKey="about.tagline" defaultText="Preserving Tradition. Empowering Generations." />}
+        />
 
         {/* Section 2: Image + Intro paragraphs */}
         <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
