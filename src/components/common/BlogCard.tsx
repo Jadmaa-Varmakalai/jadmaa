@@ -61,11 +61,11 @@ export const BlogCard: React.FC<BlogCardProps> = ({
   }, [titleLength]);
 
   return (
-    <article className={`bg-white border border-[#E8DDD0] rounded-2xl overflow-hidden flex flex-col shadow-[0_4px_16px_rgba(43,37,33,0.05)] hover:shadow-[0_12px_28px_rgba(177,43,43,0.09)] hover:border-[#B12B2B]/30 transition-all duration-300 group relative w-full h-full ${className}`}>
-      {/* ── Unified 1:1 Square Image Frame ── */}
+    <article className={`bg-white border border-[#E8DDD0] rounded-xl sm:rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 group relative w-full h-full ${className}`}>
+      {/* ── Upper visual split panel (Compact Aspect 16/10) ── */}
       <Link
         to={`/blog/${blog.slug}`}
-        className="flex aspect-square w-full overflow-hidden border-b border-[#E8DDD0] bg-[#FAF6F0]"
+        className="flex aspect-[16/10] w-full overflow-hidden border-b border-[#E8DDD0] bg-[#FAF6F0]"
         aria-label={`Open article: ${blog.title}`}
       >
         {/* LEFT (50%) — Thumbnail Artwork */}
@@ -119,26 +119,26 @@ export const BlogCard: React.FC<BlogCardProps> = ({
         </div>
       </Link>
 
-      {/* ── Lower content section (p-4) ── */}
-      <div className="p-4 flex flex-col flex-1 text-left justify-between gap-2">
+      {/* ── Lower content section (p-3 sm:p-4) ── */}
+      <div className="p-3 sm:p-4 flex flex-col flex-grow text-left justify-between gap-2">
         <div>
           {/* Title */}
           <Link to={`/blog/${blog.slug}`} className="block group-hover:text-[#8F2020] transition-colors">
-            <h3 className="text-base sm:text-lg font-bold text-[#2B2521] leading-snug line-clamp-2">
+            <h3 className="text-xs sm:text-sm lg:text-[15px] font-bold text-[#B12B2B] leading-snug line-clamp-2 min-h-[2.2rem] sm:min-h-[2.5rem]">
               {blog.title}
             </h3>
           </Link>
 
           {/* Meta — date + author */}
-          <div className="text-sm text-[#5C5148] leading-[1.4] mt-1 font-normal flex items-center gap-1.5 truncate">
+          <div className="text-[11px] text-[#7A6E65] leading-[1.4] mt-1 font-normal flex items-center gap-1.5 truncate">
             <span>{formattedDate}</span>
             <span className="text-[#E8DDD0]">•</span>
             <span className="truncate">{blog.author?.name || 'JADMAA Gurukulam'}</span>
           </div>
 
-          {/* Excerpt */}
+          {/* Excerpt — hidden on mobile to maintain compact scannability */}
           {blog.excerpt && (
-            <p className="line-clamp-2 text-sm text-[#5C5148] leading-relaxed mt-1.5">
+            <p className="hidden sm:line-clamp-2 text-xs text-[#5C5148] leading-relaxed mt-1.5">
               {blog.excerpt}
             </p>
           )}
