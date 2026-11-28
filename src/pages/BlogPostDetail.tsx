@@ -169,9 +169,9 @@ export const BlogPostDetail: React.FC = () => {
   return (
     <>
       <SEO 
-        title={(blog as any).metaTitle || `${blog.title} | JADMAA Varmakalai`}
+        title={(blog as any).metaTitle || `${blog.title} | JADMAA`}
         description={(blog as any).metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160)}
-        keywords={(blog as any).keywords || 'varmakalai, varma therapy, traditional healing, martial arts'}
+        keywords={(blog as any).keywords || 'traditional martial arts, wellness, jadmaa article'}
         image={`https://jadmaa.com/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.jpg`}
         url={`/blog/${encodeURIComponent(blog.slug)}`}
         type="article"

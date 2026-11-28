@@ -122,8 +122,9 @@ export const AppRoutes: React.FC = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/careers" element={<Navigate to="/about" replace />} />
           <Route path="/blog" element={<Blog />} />
-          <Route path="/blogs" element={<Navigate to="/admin/blogs" replace />} />
+          <Route path="/blogs" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPostDetail />} />
+          <Route path="/blogs/:slug" element={<BlogPostDetail />} />
 
           {/* Legal Compliance */}
           <Route path="/search" element={<SearchResultsPage />} />

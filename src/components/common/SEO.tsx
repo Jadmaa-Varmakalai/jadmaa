@@ -13,9 +13,9 @@ export interface SEOProps {
   noindex?: boolean;
 }
 
-const DEFAULT_TITLE = 'JADMAA Varmakalai | Varmakalai Courses, Training & Self Defence';
-const DEFAULT_DESC = 'Master authentic Varmakalai, traditional Tamil martial arts, and Siddha vital points therapy. Structured courses and certified training in Thanjavur, Kumbakonam & Ariyalur.';
-const DEFAULT_KEYWORDS = 'varmakalai course online, learn varma points, varmakalai training, tamil traditional martial arts, varma therapy, self defence for kids and women';
+const DEFAULT_TITLE = 'JADMAA | Traditional Martial Arts & Wellness';
+const DEFAULT_DESC = 'Master authentic traditional martial arts and vital points wellness at JADMAA. Structured courses and certified training in Thanjavur, Kumbakonam & Ariyalur.';
+const DEFAULT_KEYWORDS = 'learn varma points, varmakalai training, tamil traditional martial arts, varma therapy, self defence for kids and women, jadmaa';
 const DEFAULT_IMAGE = 'https://jadmaa.com/images/logo-1.png';
 const SITE_URL = 'https://jadmaa.com';
 
@@ -35,7 +35,7 @@ export const SEO: React.FC<SEOProps> = ({
   const resolvedImage = image.startsWith('http') ? image : `${SITE_URL}${image.startsWith('/') ? '' : '/'}${image}`;
 
   const fullTitle = title
-    ? (title.includes('JADMAA') ? title : `${title} | JADMAA Varmakalai`)
+    ? (title.includes('JADMAA') ? title : `${title} | JADMAA`)
     : DEFAULT_TITLE;
 
   return (

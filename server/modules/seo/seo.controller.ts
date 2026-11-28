@@ -266,8 +266,8 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
   }
 
   try {
-    let pageTitle = 'JADMAA Varmakalai | Authentic Varmam Courses, Martial Arts & Siddha Therapy';
-    let pageDesc = 'Learn authentic Varmakalai, traditional Tamil martial arts, and Siddha vital points therapy. Certified lineage courses & clinical healing in Thanjavur, Kumbakonam & Ariyalur.';
+    let pageTitle = 'JADMAA | Traditional Martial Arts & Wellness';
+    let pageDesc = 'Learn authentic traditional martial arts and vital points wellness at JADMAA. Certified lineage courses & clinical healing in Thanjavur, Kumbakonam & Ariyalur.';
     let pageImage = `${BASE_URL}/images/jadmaa-hero-preview.jpg`;
     let pageImageMime = 'image/jpeg';
     let imageWidth = 1200;
@@ -285,7 +285,7 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
       });
 
       if (course) {
-        pageTitle = course.metaTitle || `${course.title} | JADMAA Varmakalai Course`;
+        pageTitle = course.metaTitle || `${course.title} | JADMAA`;
         pageDesc = course.metaDesc || course.subtitle || course.description.slice(0, 160).trim();
         pageImage = getAbsoluteImageUrl(course.thumbnailUrl);
         pageImageMime = getImageMimeType(pageImage);
@@ -301,7 +301,7 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
           image: pageImage,
           provider: {
             '@type': 'Organization',
-            name: 'JADMAA Varmakalai',
+            name: 'JADMAA',
             sameAs: 'https://jadmaa.com'
           },
           offers: {
@@ -313,9 +313,9 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
         };
       }
     } 
-    // 2. Blog post: /blog/:slug
-    else if (urlPath.startsWith('/blog/')) {
-      const rawSlug = urlPath.replace('/blog/', '').split('?')[0].trim();
+    // 2. Blog post: /blog/:slug or /blogs/:slug
+    else if (urlPath.startsWith('/blog/') || urlPath.startsWith('/blogs/')) {
+      const rawSlug = urlPath.replace('/blogs/', '').replace('/blog/', '').split('?')[0].trim();
       const decodedSlug = decodeURIComponent(rawSlug).trim();
       const transliterated = transliterateTamilToEnglish(decodedSlug).toLowerCase().replace(/[\s_-]+/g, '-');
 
@@ -355,7 +355,7 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
       }
 
       if (blog) {
-        pageTitle = blog.metaTitle || `${blog.title} | JADMAA Varmakalai`;
+        pageTitle = blog.metaTitle || `${blog.title} | JADMAA`;
         pageDesc = blog.metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160).trim();
         const absoluteJpgImageUrl = `${BASE_URL}/api/v1/blogs/og-image/${encodeURIComponent(blog.slug)}.jpg`;
         pageImage = absoluteJpgImageUrl;
@@ -378,7 +378,7 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
           },
           publisher: {
             '@type': 'Organization',
-            name: 'JADMAA Varmakalai',
+            name: 'JADMAA',
             logo: {
               '@type': 'ImageObject',
               url: `${BASE_URL}/images/logo-1.png`
@@ -386,6 +386,13 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
           }
         };
       }
+    }
+    // 2b. Blog Listing: /blog or /blogs
+    else if (urlPath === '/blog' || urlPath === '/blogs') {
+      pageTitle = 'Blog & Educational Guides | JADMAA';
+      pageDesc = 'Comprehensive articles, research, and traditional insights on martial arts, health, and wellness from JADMAA masters.';
+      pageCanonical = `${BASE_URL}/blog`;
+      pageType = 'website';
     }
     // 3. Campaign Offer: /offers/:slug
     else if (urlPath.startsWith('/offers/')) {
@@ -413,7 +420,7 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
       });
 
       if (product) {
-        pageTitle = product.metaTitle || `${product.name} | JADMAA Official Store`;
+        pageTitle = product.metaTitle || `${product.name} | JADMAA Store`;
         pageDesc = product.metaDesc || product.description?.slice(0, 160).trim() || 'Official JADMAA equipment, uniforms and Siddhar literature.';
         const firstImg = product.images && product.images.length > 0 ? product.images[0] : null;
         pageImage = getAbsoluteImageUrl(firstImg);
@@ -430,7 +437,7 @@ export const botPrerenderMiddleware = async (req: Request, res: Response, next: 
     const metaTags = `
     <title>${escapeXml(pageTitle)}</title>
     <meta name="description" content="${escapeXml(pageDesc)}" />
-    <meta property="og:site_name" content="JADMAA Varmakalai" />
+    <meta property="og:site_name" content="JADMAA" />
     <meta property="og:type" content="${pageType}" />
     <meta property="og:url" content="${escapeXml(pageCanonical)}" />
     <meta property="og:title" content="${escapeXml(pageTitle)}" />

@@ -314,6 +314,9 @@ export const createProduct = async (req: Request, res: Response) => {
     const {
       name,
       slug,
+      metaTitle,
+      metaDesc,
+      keywords,
       description,
       categoryId,
       price,
@@ -364,8 +367,18 @@ export const createProduct = async (req: Request, res: Response) => {
     }
 
     // Auto-resolve unique SEO slug
-    const baseSlug = generateSeoSlug(slug || name, { intentKeywords: ['varmakalai', 'traditional'] });
+    const baseSlug = generateSeoSlug(name, slug);
     const finalSlug = await getUniqueSlug(prisma.product, baseSlug);
+
+    // Auto-resolve SEO metadata
+    const finalMetaTitle = metaTitle?.trim() || `${name.trim()} | JADMAA`;
+    const finalMetaDesc =
+      metaDesc?.trim() ||
+      description?.trim().slice(0, 160) ||
+      `Buy ${name.trim()} at JADMAA. Authentic traditional products and wellness materials.`;
+    const finalKeywords =
+      keywords?.trim() ||
+      `${name.trim().toLowerCase()}, buy ${name.trim().toLowerCase()}, jadmaa products, traditional store`;
 
     // Auto-resolve unique SKU
     let baseSku = (sku || `SKU-${Date.now().toString().slice(-6)}`).toUpperCase().trim();
@@ -382,6 +395,9 @@ export const createProduct = async (req: Request, res: Response) => {
         data: {
           name: name.trim(),
           slug: finalSlug,
+          metaTitle: finalMetaTitle,
+          metaDesc: finalMetaDesc,
+          keywords: finalKeywords,
           description: description?.trim() || '',
           categoryId: targetCategoryId,
           price: numPrice,
@@ -436,6 +452,9 @@ export const updateProduct = async (req: Request, res: Response) => {
     const {
       name,
       slug,
+      metaTitle,
+      metaDesc,
+      keywords,
       description,
       categoryId,
       price,
@@ -462,7 +481,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
     let finalSlug = existing.slug;
     if (slug && slug !== existing.slug) {
-      const base = generateSeoSlug(slug);
+      const base = generateSeoSlug(name ?? existing.name, slug);
       finalSlug = await getUniqueSlug(prisma.product, base, id);
     }
 
@@ -509,6 +528,9 @@ export const updateProduct = async (req: Request, res: Response) => {
         data: {
           name: name !== undefined ? name.trim() : undefined,
           slug: finalSlug,
+          metaTitle: metaTitle !== undefined ? (metaTitle ? metaTitle.trim() : null) : undefined,
+          metaDesc: metaDesc !== undefined ? (metaDesc ? metaDesc.trim() : null) : undefined,
+          keywords: keywords !== undefined ? (keywords ? keywords.trim() : null) : undefined,
           description: description !== undefined ? description.trim() : undefined,
           categoryId: categoryId !== undefined ? categoryId : undefined,
           price: price !== undefined ? parseFloat(price) : undefined,

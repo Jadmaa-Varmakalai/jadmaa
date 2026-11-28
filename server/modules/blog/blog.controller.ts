@@ -696,7 +696,7 @@ export const createBlog = async (req: Request, res: Response) => {
     const { title, slug, content, excerpt, thumbnailUrl, published, topic, metaTitle, metaDesc, keywords } = req.body;
     
     const trimmedTitle = (title || 'Untitled Post').trim();
-    const generatedSlug = generateSeoSlug(trimmedTitle, slug, { intentKeywords: ['varmakalai', 'traditional-healing'] });
+    const generatedSlug = generateSeoSlug(trimmedTitle, slug);
     const cleanSlugVal = await getUniqueSlug(prisma.blogPost, generatedSlug);
 
     let finalContent = content || '';
@@ -712,9 +712,9 @@ export const createBlog = async (req: Request, res: Response) => {
         content: finalContent,
         excerpt: excerpt || null,
         thumbnailUrl: thumbnailUrl || null,
-        metaTitle: metaTitle || `${trimmedTitle} | JADMAA Varmakalai Blog`,
-        metaDesc: metaDesc || excerpt || finalContent.replace(/<[^>]+>/g, '').slice(0, 160),
-        keywords: keywords || 'varmakalai, varma therapy, traditional tamil healing',
+        metaTitle: metaTitle?.trim() || `${trimmedTitle} | JADMAA Blog`,
+        metaDesc: metaDesc?.trim() || excerpt || finalContent.replace(/<[^>]+>/g, '').slice(0, 160),
+        keywords: keywords?.trim() || 'martial arts, wellness, traditional healing',
         published: published ?? true,
         authorId: userId
       }
@@ -734,7 +734,7 @@ export const updateBlog = async (req: Request, res: Response) => {
     const idOrSlug = req.params.id as string;
     const decoded = decodeURIComponent(idOrSlug).trim();
     const normalized = decoded.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const { title, slug, content, excerpt, thumbnailUrl, published, topic } = req.body;
+    const { title, slug, content, excerpt, thumbnailUrl, published, topic, metaTitle, metaDesc, keywords } = req.body;
     
     const unicodeSlug = cleanSlug(idOrSlug);
     const conditions: any[] = [];
@@ -773,6 +773,9 @@ export const updateBlog = async (req: Request, res: Response) => {
           content: finalContent,
           excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
           thumbnailUrl: thumbnailUrl !== undefined ? thumbnailUrl : existing.thumbnailUrl,
+          metaTitle: metaTitle !== undefined ? (metaTitle ? metaTitle.trim() : null) : existing.metaTitle,
+          metaDesc: metaDesc !== undefined ? (metaDesc ? metaDesc.trim() : null) : existing.metaDesc,
+          keywords: keywords !== undefined ? (keywords ? keywords.trim() : null) : existing.keywords,
           published: published !== undefined ? published : existing.published
         }
       });
@@ -788,6 +791,9 @@ export const updateBlog = async (req: Request, res: Response) => {
           content: finalContent || defaultMatch?.content || '',
           excerpt: excerpt !== undefined ? excerpt : (defaultMatch?.excerpt || null),
           thumbnailUrl: thumbnailUrl !== undefined ? thumbnailUrl : (defaultMatch?.thumbnailUrl || null),
+          metaTitle: metaTitle !== undefined ? metaTitle : (defaultMatch?.metaTitle || `${title || 'Article'} | JADMAA Blog`),
+          metaDesc: metaDesc !== undefined ? metaDesc : (defaultMatch?.metaDesc || null),
+          keywords: keywords !== undefined ? keywords : (defaultMatch?.keywords || null),
           published: published !== undefined ? published : true,
           authorId: userId
         }

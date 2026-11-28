@@ -40,6 +40,9 @@ export interface Product {
   stockStatus: StockStatus;
   discountPercentage?: number;
   isLowStock?: boolean;
+  metaTitle?: string | null;
+  metaDesc?: string | null;
+  keywords?: string | null;
   relatedProducts?: Product[];
   _count?: {
     orderItems: number;

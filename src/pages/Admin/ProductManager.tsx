@@ -41,6 +41,22 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
   const [isActive, setIsActive] = useState(true);
   const [formError, setFormError] = useState('');
 
+  // SEO & Slug State
+  const [slug, setSlug] = useState('');
+  const [metaTitle, setMetaTitle] = useState('');
+  const [metaDesc, setMetaDesc] = useState('');
+  const [keywords, setKeywords] = useState('');
+
+  const generateSlugFromName = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .normalize('NFKD')
+      .replace(/[^\w\s-]/g, '')
+      .replace(/[\s_-]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
+
   // Digital eBook / File Delivery State
   const [isDigital, setIsDigital] = useState(false);
   const [downloadUrl, setDownloadUrl] = useState('');
@@ -124,6 +140,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
   const openAddModal = () => {
     setEditingProduct(null);
     setName('');
+    setSlug('');
+    setMetaTitle('');
+    setMetaDesc('');
+    setKeywords('');
     setCategoryId(categories[0]?.id || '');
     setIsCreatingCategory(false);
     setNewCategoryName('');
@@ -145,6 +165,10 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
   const openEditModal = (prod: Product) => {
     setEditingProduct(prod);
     setName(prod.name);
+    setSlug(prod.slug || '');
+    setMetaTitle((prod as any).metaTitle || '');
+    setMetaDesc((prod as any).metaDesc || '');
+    setKeywords((prod as any).keywords || '');
     setCategoryId(prod.categoryId || (prod.category as any)?.id || categories[0]?.id || '');
     setIsCreatingCategory(false);
     setNewCategoryName('');
@@ -272,16 +296,15 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
 
     try {
       setSaving(true);
-      const generatedSlug = name
-        .trim()
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/[\s_-]+/g, '-');
+      const finalSlug = slug.trim() || generateSlugFromName(name);
       const generatedSku = `PRD-${Date.now().toString().slice(-6)}`;
 
       const payload: any = {
         name: name.trim(),
-        slug: editingProduct?.slug || generatedSlug,
+        slug: finalSlug,
+        metaTitle: metaTitle.trim() || `${name.trim()} | JADMAA`,
+        metaDesc: metaDesc.trim() || description.trim().slice(0, 160) || `Buy ${name.trim()} at JADMAA.`,
+        keywords: keywords.trim() || `${name.trim().toLowerCase()}, buy ${name.trim().toLowerCase()}, jadmaa products`,
         price: numPrice,
         stockQuantity: numQty,
         sku: editingProduct?.sku || generatedSku,
@@ -623,11 +646,116 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
                   type="text"
                   maxLength={80}
                   value={name}
-                  onChange={(e) => setName(e.target.value.slice(0, 80))}
+                  onChange={(e) => {
+                    const val = e.target.value.slice(0, 80);
+                    setName(val);
+                    if (!editingProduct) {
+                      if (!slug || slug === generateSlugFromName(name)) {
+                        setSlug(generateSlugFromName(val));
+                      }
+                      if (!metaTitle || metaTitle === `${name} | JADMAA`) {
+                        setMetaTitle(val ? `${val} | JADMAA` : '');
+                      }
+                    }
+                  }}
                   placeholder="e.g. Traditional Books / Uniform / Gear"
                   required
                   className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-1 focus:ring-jadmaa-red text-sm"
                 />
+              </div>
+
+              {/* Product Slug (URL) */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block font-bold text-gray-700">
+                    Slug (URL Key) <span className="text-jadmaa-red">*</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setSlug(generateSlugFromName(name || ''))}
+                    className="text-xs text-jadmaa-red hover:underline font-semibold cursor-pointer"
+                  >
+                    Auto-generate from name
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-mono text-gray-600 focus-within:bg-white focus-within:ring-1 focus-within:ring-jadmaa-red">
+                  <span className="text-gray-400 select-none">/products/</span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. rare-siddhar-books"
+                    value={slug}
+                    onChange={(e) => setSlug(generateSlugFromName(e.target.value))}
+                    className="flex-1 bg-transparent border-none outline-none font-mono text-gray-900"
+                  />
+                </div>
+              </div>
+
+              {/* Search Engine Optimization (SEO) */}
+              <div className="p-3 bg-gray-50 rounded-xl border border-gray-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">Search Engine Optimization (SEO)</h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (name.trim()) {
+                        setMetaTitle(`${name.trim()} | JADMAA`);
+                        setMetaDesc(description.trim().slice(0, 160) || `Buy ${name.trim()} at JADMAA. Authentic traditional products and wellness materials.`);
+                        setKeywords(`${name.trim().toLowerCase()}, buy ${name.trim().toLowerCase()}, jadmaa products, traditional store`);
+                      }
+                    }}
+                    className="text-[11px] text-jadmaa-red hover:underline font-semibold cursor-pointer"
+                  >
+                    Auto-fill SEO from details
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <label className="block text-[11px] font-semibold text-gray-600">Meta Title</label>
+                      <span className="text-[10px] font-semibold text-gray-500">
+                        {metaTitle.length} of 60 chars
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      maxLength={60}
+                      placeholder="Appears in Google search keyline"
+                      value={metaTitle}
+                      onChange={(e) => setMetaTitle(e.target.value.slice(0, 60))}
+                      className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-600 mb-0.5">Keywords</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. books, traditional gear, jadmaa"
+                      value={keywords}
+                      onChange={(e) => setKeywords(e.target.value)}
+                      className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <label className="block text-[11px] font-semibold text-gray-600">Meta Description</label>
+                    <span className="text-[10px] font-semibold text-gray-500">
+                      {metaDesc.length} of 160 chars
+                    </span>
+                  </div>
+                  <textarea
+                    rows={2}
+                    maxLength={160}
+                    placeholder="Short Google search snippet (150-160 characters)..."
+                    value={metaDesc}
+                    onChange={(e) => setMetaDesc(e.target.value.slice(0, 160))}
+                    className="w-full px-3 py-1.5 text-xs border border-gray-300 rounded-lg focus:ring-1 focus:ring-jadmaa-red outline-none bg-white"
+                  />
+                </div>
               </div>
 
               {/* Product Category Selection / Quick Creation */}

@@ -49,9 +49,9 @@ export const Blog: React.FC = () => {
   return (
     <>
       <SEO 
-        title="Varmakalai Blog & Educational Guides | JADMAA"
-        description="Comprehensive guides on 108 Varmam points, traditional Siddha Varma therapy, Tamil martial arts history, and self-defence techniques from Aasan Bojagarajan."
-        keywords="varmam points list, varmakalai benefits, varma therapy for back pain, traditional tamil healing, varmakalai guide"
+        title="Blog & Educational Guides | JADMAA"
+        description="Comprehensive guides on traditional vital points therapy, martial arts history, and wellness techniques from JADMAA masters."
+        keywords="wellness articles, traditional martial arts, vital points therapy, self defence techniques, jadmaa blog"
         url="/blog"
       />
 
