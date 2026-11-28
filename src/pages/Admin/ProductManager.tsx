@@ -27,6 +27,7 @@ export const ProductManager: React.FC<ProductManagerProps> = ({ createTrigger })
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { closeWithHistory } = useModalHistory(isModalOpen, () => setIsModalOpen(false), 'product-modal');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);

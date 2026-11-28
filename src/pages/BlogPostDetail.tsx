@@ -177,7 +177,7 @@ export const BlogPostDetail: React.FC = () => {
         type="article"
         schema={buildArticleSchema({
           title: blog.title,
-          description: (blog as any).metaDesc || blog.excerpt || blog.content.replace(/<[^>]+>/g, '').slice(0, 160),
+          description: (blog as any).metaDesc || (blog.excerpt ? blog.excerpt.slice(0, 160) : '') || blog.content.replace(/<[^>]+>/g, '').slice(0, 160),
           slug: blog.slug,
           authorName: blog.author?.name || 'Aasan Bojagarajan',
           datePublished: blog.createdAt,
@@ -233,17 +233,25 @@ export const BlogPostDetail: React.FC = () => {
                 />
               </div>
 
-              {/* 4. Blog Article Content */}
-              <div className="text-[15px] sm:text-[16px] text-[#334155] leading-[1.8] space-y-5 font-normal">
-                {isHtmlContent ? (
-                  <div 
-                    className="jadmaa-article-content"
-                    dangerouslySetInnerHTML={{ __html: cleanedContent }}
-                  />
-                ) : (
-                  <div className="prose max-w-none text-[#334155] leading-[1.8]">
-                    <ReactMarkdown>{cleanedContent}</ReactMarkdown>
+              {/* 4. Blog Article Content (Plain-Text Body + Contact Details Template) */}
+              <div className="text-[15px] sm:text-[16px] text-[#334155] leading-[1.8] space-y-6 font-normal">
+                {blog.excerpt && blog.excerpt.trim() && (
+                  <div className="whitespace-pre-line text-[#334155] leading-[1.85]">
+                    {blog.excerpt}
                   </div>
+                )}
+
+                {cleanedContent && (
+                  isHtmlContent ? (
+                    <div 
+                      className="jadmaa-article-content pt-4 border-t border-[#F0F0F0]"
+                      dangerouslySetInnerHTML={{ __html: cleanedContent }}
+                    />
+                  ) : (
+                    <div className="prose max-w-none text-[#334155] leading-[1.8] pt-4 border-t border-[#F0F0F0]">
+                      <ReactMarkdown>{cleanedContent}</ReactMarkdown>
+                    </div>
+                  )
                 )}
               </div>
 
