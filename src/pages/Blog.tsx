@@ -86,7 +86,7 @@ export const Blog: React.FC = () => {
             ) : error && blogs.length === 0 ? (
               <div className="text-center py-20 text-[#B12B2B]">Error: {error}</div>
             ) : blogs.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 items-stretch justify-items-center" data-aos="fade-up">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5 lg:gap-6 items-stretch" data-aos="fade-up">
                 {blogs.map((blog, idx) => (
                   <div key={blog.id} data-aos="fade-up" data-aos-delay={(idx % 4) * 80} className="w-full flex justify-center">
                     <BlogCard 

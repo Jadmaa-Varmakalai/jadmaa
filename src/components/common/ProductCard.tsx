@@ -31,12 +31,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-2xs hover:shadow-md transition-all duration-300 flex flex-col group overflow-hidden h-full ${className}`}
+      className={`bg-white rounded-2xl border border-[#E8DDD0] shadow-[0_4px_16px_rgba(43,37,33,0.05)] hover:shadow-[0_12px_28px_rgba(177,43,43,0.09)] hover:border-[#B12B2B]/30 transition-all duration-300 flex flex-col group overflow-hidden h-full ${className}`}
     >
-      {/* ── 1. Thumbnail Image Area (Aspect 16/10 or 4/3, never oversized) ── */}
+      {/* ── 1. Unified 1:1 Square Image Frame ── */}
       <Link
         to={`/products/${product.slug}`}
-        className="relative block w-full aspect-[16/10] sm:aspect-[4/3] bg-[#FAF6F0]/50 overflow-hidden flex items-center justify-center border-b border-gray-100/80"
+        className="relative block w-full aspect-square bg-[#FAF6F0] overflow-hidden flex items-center justify-center border-b border-gray-100/80"
         aria-label={`View ${product.name}`}
       >
         {product.images && product.images[0] ? (
