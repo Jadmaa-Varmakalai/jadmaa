@@ -284,75 +284,77 @@ export const Home: React.FC = () => {
                 />
               </p>
 
-              {/* Hero Stats Row (Above CTA) - Compact 2x2 on mobile/tablet, 4-col on desktop */}
-              <div className="w-fit max-w-[270px] sm:max-w-md lg:max-w-xl my-4 sm:my-5 pt-4 border-t border-[#E8DDD0] grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-3 lg:gap-6 text-left">
-                <div className="min-w-0">
-                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
-                    {isEditing ? (
-                      <EditableText settingKey="home.stats.tradition.value" defaultText="1000" />
-                    ) : (
-                      <CountUp end={traditionValue} suffix="+" />
-                    )}
+              {/* Shared Width Wrapper for Single-Row Stats + CTA Buttons */}
+              <div className="w-full max-w-[295px] sm:max-w-[380px] lg:max-w-xl border-t border-[#E8DDD0] pt-3.5 mt-4">
+                <div className="grid grid-cols-4 gap-2 sm:gap-4 lg:gap-6 text-left">
+                  <div className="min-w-0">
+                    <div className="font-heading font-bold text-sm sm:text-lg lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
+                      {isEditing ? (
+                        <EditableText settingKey="home.stats.tradition.value" defaultText="1000" />
+                      ) : (
+                        <CountUp end={traditionValue} suffix="+" />
+                      )}
+                    </div>
+                    <div className="font-body text-[9px] sm:text-[11px] lg:text-xs text-[#5C5148] leading-tight mt-0.5 font-medium">
+                      <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
+                    </div>
                   </div>
-                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
-                    <EditableText settingKey="home.stats.tradition" defaultText="Years of Tradition" />
+
+                  <div className="min-w-0">
+                    <div className="font-heading font-bold text-sm sm:text-lg lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
+                      {isEditing ? (
+                        <EditableText settingKey="home.stats.branches.value" defaultText="3" />
+                      ) : (
+                        <CountUp end={branchesValue} />
+                      )}
+                    </div>
+                    <div className="font-body text-[9px] sm:text-[11px] lg:text-xs text-[#5C5148] leading-tight mt-0.5 font-medium">
+                      <EditableText settingKey="home.stats.branches" defaultText="Branches" />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="font-heading font-bold text-sm sm:text-lg lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
+                      {isEditing ? (
+                        <EditableText settingKey="home.stats.courses.value" defaultText="5" />
+                      ) : (
+                        <CountUp end={coursesValue} />
+                      )}
+                    </div>
+                    <div className="font-body text-[9px] sm:text-[11px] lg:text-xs text-[#5C5148] leading-tight mt-0.5 font-medium">
+                      <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="font-heading font-bold text-sm sm:text-lg lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
+                      {isEditing ? (
+                        <EditableText settingKey="home.stats.experience.value" defaultText="10" />
+                      ) : (
+                        <CountUp end={experienceValue} suffix="+" />
+                      )}
+                    </div>
+                    <div className="font-body text-[9px] sm:text-[11px] lg:text-xs text-[#5C5148] leading-tight mt-0.5 font-medium">
+                      <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
+                    </div>
                   </div>
                 </div>
 
-                <div className="min-w-0">
-                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
-                    {isEditing ? (
-                      <EditableText settingKey="home.stats.branches.value" defaultText="3" />
-                    ) : (
-                      <CountUp end={branchesValue} />
-                    )}
-                  </div>
-                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
-                    <EditableText settingKey="home.stats.branches" defaultText="Branches" />
-                  </div>
+                {/* CTA Buttons aligned to exact same width */}
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mt-4">
+                  <Link 
+                    to="/contact" 
+                    className="btn-jadmaa-primary w-full min-h-[44px] text-[13px] sm:text-[14px] !py-0 !px-3.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm"
+                  >
+                    <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
+                  </Link>
+                  <Link 
+                    to="/contact" 
+                    className="btn-jadmaa-outline w-full min-h-[44px] text-[13px] sm:text-[14px] !py-0 !px-3.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm"
+                  >
+                    <EditableText settingKey="home.hero.cta2" defaultText="Book Demo" />
+                  </Link>
                 </div>
-
-                <div className="min-w-0">
-                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
-                    {isEditing ? (
-                      <EditableText settingKey="home.stats.courses.value" defaultText="5" />
-                    ) : (
-                      <CountUp end={coursesValue} />
-                    )}
-                  </div>
-                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
-                    <EditableText settingKey="home.stats.courses" defaultText="Structured Courses" />
-                  </div>
-                </div>
-
-                <div className="min-w-0">
-                  <div className="font-heading font-bold text-lg sm:text-xl lg:text-2xl text-[#2B2521] leading-tight min-h-[1.25em] flex items-center justify-start contain-layout">
-                    {isEditing ? (
-                      <EditableText settingKey="home.stats.experience.value" defaultText="10" />
-                    ) : (
-                      <CountUp end={experienceValue} suffix="+" />
-                    )}
-                  </div>
-                  <div className="font-body text-[11px] sm:text-xs text-[#5C5148] mt-0.5 font-medium leading-snug">
-                    <EditableText settingKey="home.stats.experience" defaultText="Years Aasan Experience" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Hero CTA Buttons (Below Stats) - Touch-friendly 44px+ on mobile/desktop */}
-              <div className="flex flex-row items-center justify-start gap-2.5 sm:gap-3 mt-4 sm:mt-6">
-                <Link 
-                  to="/contact" 
-                  className="btn-jadmaa-primary min-w-[136px] sm:w-[164px] min-h-[44px] text-[13px] sm:text-[14px] !py-0 !px-3.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
-                >
-                  <EditableText settingKey="home.hero.cta1" defaultText="Join Now" />
-                </Link>
-                <Link 
-                  to="/contact" 
-                  className="btn-jadmaa-outline min-w-[136px] sm:w-[164px] min-h-[44px] text-[13px] sm:text-[14px] !py-0 !px-3.5 sm:!px-4 text-center justify-center whitespace-nowrap font-semibold shadow-sm flex-none"
-                >
-                  <EditableText settingKey="home.hero.cta2" defaultText="Book Demo" />
-                </Link>
               </div>
 
             </div>
