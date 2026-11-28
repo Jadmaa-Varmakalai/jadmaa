@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { SEO } from '../components/common/SEO';
 import { Phone, Mail, CheckCircle2, MessageCircle, Send, Loader2 } from 'lucide-react';
 import { EditableText } from '../components/common/EditableText';
+import { PageHeader } from '../components/common/PageHeader';
 import { courseApi } from '../lib/api/courseApi';
 import type { Course } from '../types';
 import { adminApi } from '../lib/api/adminApi';
@@ -118,23 +119,17 @@ export const Contact: React.FC = () => {
       <div className="bg-[#FAF6F0] min-h-screen font-body text-[#2B2521] text-left">
         
         {/* Banner Section */}
-        <section className="bg-jadmaa-cream py-12 border-b border-jadmaa-border text-left">
-          <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-10 xl:px-12 space-y-3">
-            <span className="text-base md:text-lg font-bold text-jadmaa-red uppercase tracking-wider block">
-              <EditableText settingKey="contact.hero.eyebrow" defaultText="Get In Touch" />
-            </span>
-            <h2 className="font-heading font-medium text-3xl sm:text-4xl lg:text-5xl text-jadmaa-charcoal">
-              <EditableText settingKey="contact.title" defaultText="Contact JADMAA Varmakalai" />
-            </h2>
-            <p className="text-base md:text-lg text-jadmaa-textMuted max-w-2xl">
-              <EditableText 
-                settingKey="contact.description" 
-                defaultText="Whether you're interested in joining our Varmakalai (Varma Kalai) martial arts training programs, booking a trial class, asking about Varma treatment, or becoming part of our instructor network, our team is here to help."
-                multiline
-              />
-            </p>
-          </div>
-        </section>
+        <PageHeader
+          eyebrow={<EditableText settingKey="contact.hero.eyebrow" defaultText="Get In Touch" />}
+          title={<EditableText settingKey="contact.title" defaultText="Contact JADMAA Varmakalai" />}
+          subtitle={
+            <EditableText 
+              settingKey="contact.description" 
+              defaultText="Whether you're interested in joining our Varmakalai (Varma Kalai) martial arts training programs, booking a trial class, asking about Varma treatment, or becoming part of our instructor network, our team is here to help."
+              multiline
+            />
+          }
+        />
 
         {/* Contact Info + Enquiry Form Grid */}
         <section className="py-12 bg-[#F2EDE4] border-b border-[#E8DDD0]">
